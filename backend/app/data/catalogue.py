@@ -225,8 +225,59 @@ TREATMENT_CATALOGUE: Dict[str, Treatment] = {
         package_code_aarogyasri=None,
         standard_stay_duration="Outpatient (15-30 mins)",
         common_diagnostics_required=[]
+    ),
+    "diabetes_care": Treatment(
+        id="diabetes_care",
+        name="Comprehensive Diabetes Care & Glycemic Evaluation",
+        category="Endocrinology & Diabetology",
+        aliases=[
+            "diabetes", "sugar test", "diabetes care", "hba1c", "blood sugar check", "diabetic screening",
+            "మధుమేహం సంరక్షణ", "मधुमेह देखभाल"
+        ],
+        description="Comprehensive diabetic assessment including fasting & post-prandial blood sugar, HbA1c, urine microalbumin, diabetic foot examination, and specialist dietetics counseling.",
+        indicative_min=1800,
+        indicative_max=4500,
+        package_code_pmjay=None,
+        package_code_aarogyasri="M3.1",
+        standard_stay_duration="Outpatient (1-2 hours)",
+        common_diagnostics_required=["Fasting Blood Glucose", "PPBS", "HbA1c", "Lipid Profile", "Serum Creatinine", "Urine Microalbumin"]
+    ),
+    "kidney_stones": Treatment(
+        id="kidney_stones",
+        name="Kidney Stone Laser Removal (URS / PCNL / RIRS)",
+        category="Urology",
+        aliases=[
+            "kidney stone", "renal calculi", "stone surgery", "laser stone removal", "pcnl", "urs", "rirs",
+            "మూత్రపిండాల్లో రాళ్ళు", "गुर्दे की पथरी"
+        ],
+        description="Minimally invasive endoscopic Holmium laser fragmentation and basket extraction of renal or ureteric calculi with DJ ureteral stent placement.",
+        indicative_min=45000,
+        indicative_max=115000,
+        package_code_pmjay="SU07002",
+        package_code_aarogyasri="U1.3",
+        standard_stay_duration="1-2 days",
+        common_diagnostics_required=["NCCT KUB (Non-Contrast CT)", "Serum Creatinine", "Urine Culture & Sensitivity", "Coagulation profile"]
+    ),
+    "blood_tests": Treatment(
+        id="blood_tests",
+        name="Comprehensive Diagnostic Blood Profile & Health Screening",
+        category="Diagnostics & Pathology",
+        aliases=[
+            "blood test", "blood tests", "full body checkup", "cbc", "lipid profile", "lft", "kft", "pathology panel",
+            "రక్త పరీక్షలు", "रक्त परीक्षण"
+        ],
+        description="Complete metabolic pathology panel covering Complete Blood Count (CBC), Liver Function Tests (LFT), Kidney Function Tests (KFT), Lipid Profile, and Thyroid Stimulating Hormone (TSH).",
+        indicative_min=1200,
+        indicative_max=3500,
+        package_code_pmjay=None,
+        package_code_aarogyasri=None,
+        standard_stay_duration="Outpatient (15 mins)",
+        common_diagnostics_required=["Fasting specimen collection"]
     )
 }
+
+# Alias for cataract shorthand
+TREATMENT_CATALOGUE["cataract"] = TREATMENT_CATALOGUE["cataract_surgery"]
 
 def normalize_treatment_query(query: str) -> Optional[Treatment]:
     """
@@ -248,6 +299,12 @@ def normalize_treatment_query(query: str) -> Optional[Treatment]:
         return TREATMENT_CATALOGUE["knee_replacement"]
     if "cataract" in tokens or "eye" in tokens or "motiyabind" in tokens:
         return TREATMENT_CATALOGUE["cataract_surgery"]
+    if "diabetes" in tokens or "sugar" in tokens or "hba1c" in tokens:
+        return TREATMENT_CATALOGUE["diabetes_care"]
+    if "stone" in tokens or "calculi" in tokens or "pcnl" in tokens or "urs" in tokens:
+        return TREATMENT_CATALOGUE["kidney_stones"]
+    if "blood" in tokens and ("test" in tokens or "tests" in tokens or "profile" in tokens or "check" in tokens):
+        return TREATMENT_CATALOGUE["blood_tests"]
     if "mri" in tokens:
         if "brain" in tokens or "head" in tokens:
             return TREATMENT_CATALOGUE["mri_brain"]

@@ -27,6 +27,8 @@ class Facility(BaseModel):
     lat: float
     lng: float
     ownership: str  # Government, Private, Charitable/Trust
+    facility_class: str = "Standard"  # Standard, Premium
+    recommendation_reason: Optional[str] = None
     phone: Optional[str] = None
     website: Optional[str] = None
     rating: Optional[float] = None
@@ -44,6 +46,17 @@ class Facility(BaseModel):
     image_attribution: Optional[str] = None
     image_license: Optional[str] = None
     initials: Optional[str] = None
+
+# --- Cost Breakdown Schema ---
+class CostBreakdown(BaseModel):
+    consultation_and_registration: int = 0
+    diagnostics_and_lab: int = 0
+    room_and_nursing: int = 0
+    surgeon_ot_anesthesia: int = 0
+    medicines_and_consumables: int = 0
+    implant_or_prosthesis: int = 0
+    rehabilitation_physiotherapy: int = 0
+    tax_and_admin: int = 0
 
 # --- Cost Component Detail (Itemized with public references & NPPA caps) ---
 class CostComponentItem(BaseModel):
@@ -80,24 +93,24 @@ class ChecklistData(BaseModel):
     documents_to_carry: List[str]
 
 class TierComparisonItem(BaseModel):
-    tier_name: str  # Government, Charitable / Trust, Private Corporate
+    tier_name: str  # Government Hospitals, Private Hospitals, Premium Super-Specialty Hospitals
+    category_key: str = "government"  # government, private, premium, charitable
     min_price: int
     max_price: int
+    price_type: str = "Reference Estimate"  # Official Published Tariff, Observed Price, Reference Estimate
+    source_name: str = "PM-JAY / CGHS & State Gazette Schedules"
+    source_url: str = "https://pmjay.gov.in"
+    last_updated: str = "March 2026"
+    confidence_level: str = "High"  # High, Medium, Low
+    confidence_explanation: str = "Statutory tariff rates or multi-hospital billing benchmarks."
     ward_amenity: str
     scheme_support: str
     waiting_time: str
     key_advantage: str
     exemplar_facility: str
-
-class CostBreakdown(BaseModel):
-    consultation_and_registration: int = 0
-    diagnostics_and_lab: int = 0
-    room_and_nursing: int = 0
-    surgeon_ot_anesthesia: int = 0
-    medicines_and_consumables: int = 0
-    implant_or_prosthesis: int = 0
-    rehabilitation_physiotherapy: int = 0
-    tax_and_admin: int = 0
+    cost_breakdown: CostBreakdown = Field(default_factory=CostBreakdown)
+    extra_expenses: List[str] = []
+    exclusions: List[str] = []
 
 class CostObservation(BaseModel):
     id: str

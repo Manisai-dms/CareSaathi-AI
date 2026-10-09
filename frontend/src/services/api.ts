@@ -64,13 +64,23 @@ export interface ChecklistDataDTO {
 
 export interface TierComparisonItemDTO {
   tier_name: string;
+  category_key?: string; // government, private, premium, charitable
   min_price: number;
   max_price: number;
+  price_type?: string;
+  source_name?: string;
+  source_url?: string;
+  last_updated?: string;
+  confidence_level?: string;
+  confidence_explanation?: string;
   ward_amenity: string;
   scheme_support: string;
   waiting_time: string;
   key_advantage: string;
   exemplar_facility: string;
+  cost_breakdown?: CostBreakdownDTO;
+  extra_expenses?: string[];
+  exclusions?: string[];
 }
 
 export interface FacilityDTO {
@@ -84,6 +94,8 @@ export interface FacilityDTO {
   lat: number;
   lng: number;
   ownership: string;
+  facility_class?: string; // Standard, Premium
+  recommendation_reason?: string;
   phone?: string;
   website?: string;
   rating?: number;
@@ -294,7 +306,9 @@ export const api = {
     treatment_id?: string;
     ownership?: string;
     scheme?: string;
+    radius?: number;
     sort?: string;
+    treatment_available_only?: boolean;
   }): Promise<FacilityDTO[]> {
     const url = new URL(`${API_BASE}/facilities`, window.location.origin);
     if (params) {

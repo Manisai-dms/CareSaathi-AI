@@ -119,10 +119,17 @@ export const Navbar: React.FC<NavbarProps> = ({
           gap: '8px'
         }} className="desktop-nav">
           <style>{`
-            @media (min-width: 1024px) {
+            @media (min-width: 960px) {
               .desktop-nav { display: flex !important; }
               .mobile-toggle { display: none !important; }
+              .horizontal-subnav { display: none !important; }
             }
+            @media (max-width: 959px) {
+              .desktop-nav { display: none !important; }
+              .mobile-toggle { display: flex !important; }
+              .horizontal-subnav { display: flex !important; }
+            }
+            .horizontal-subnav::-webkit-scrollbar { display: none; }
           `}</style>
           {navLinks.map(link => {
             const Icon = link.icon;
@@ -457,6 +464,51 @@ export const Navbar: React.FC<NavbarProps> = ({
             {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
+      </div>
+
+      {/* Horizontal Nav Bar for smaller/tablet screens — Keeps navigation strictly horizontal without disturbing layout */}
+      <div
+        className="horizontal-subnav"
+        style={{
+          display: 'none',
+          overflowX: 'auto',
+          whiteSpace: 'nowrap',
+          gap: '8px',
+          padding: '8px 16px',
+          backgroundColor: '#FFFFFF',
+          borderTop: '1px solid var(--color-border)',
+          WebkitOverflowScrolling: 'touch',
+          scrollbarWidth: 'none'
+        }}
+      >
+        {navLinks.map(link => {
+          const Icon = link.icon;
+          const isActive = activeTab === link.id;
+          return (
+            <button
+              key={link.id}
+              onClick={() => setActiveTab(link.id)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 14px',
+                borderRadius: 'var(--radius-full)',
+                border: isActive ? '1px solid var(--color-teal)' : '1px solid var(--color-border)',
+                background: isActive ? 'var(--color-mint)' : 'var(--color-white)',
+                color: isActive ? 'var(--color-teal-dark)' : 'var(--color-navy)',
+                fontWeight: isActive ? 700 : 500,
+                fontSize: '0.85rem',
+                cursor: 'pointer',
+                flexShrink: 0,
+                transition: 'all 0.15s ease'
+              }}
+            >
+              <Icon size={14} color={isActive ? 'var(--color-teal)' : 'var(--color-text-grey)'} />
+              <span>{link.label}</span>
+            </button>
+          );
+        })}
       </div>
 
       {/* Mobile Drawer Menu */}

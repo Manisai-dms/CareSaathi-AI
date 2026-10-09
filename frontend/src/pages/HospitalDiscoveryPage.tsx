@@ -1,29 +1,25 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { useSearch } from '../context/SearchContext';
 import { 
   MapPin, 
   Search, 
   Navigation, 
-  Filter, 
-  Layers, 
   Building2, 
-  ShieldCheck, 
-  CheckCircle2, 
   AlertTriangle, 
   RefreshCw,
-  ExternalLink,
   Map as MapIcon,
   List as ListIcon
 } from 'lucide-react';
 import { api, FacilityDTO, TreatmentDTO } from '../services/api';
 import { HospitalCard } from '../components/HospitalCard';
-import { HospitalMap } from '../components/HospitalMap';
 import { HospitalDetailModal } from '../components/HospitalDetailModal';
+import { HospitalMapContainer } from '../components/maps/HospitalMapContainer';
+import { BookingModal } from '../components/BookingModal';
 
 export const HospitalDiscoveryPage: React.FC = () => {
   const { t } = useLanguage();
-  const { searchState, setLocation, setTreatment } = useSearch();
+  const { searchState } = useSearch();
 
   const [facilities, setFacilities] = useState<FacilityDTO[]>([]);
   const [treatmentsList, setTreatmentsList] = useState<TreatmentDTO[]>([]);
@@ -32,43 +28,56 @@ export const HospitalDiscoveryPage: React.FC = () => {
   const [locality, setLocality] = useState<string>(searchState.locality || '');
   const [pinCode, setPinCode] = useState<string>('');
   
-  // Geolocation
-  const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
+  // Geolocation (Default to central Hyderabad)
+  const [userCoords, setUserCoords] = useState<{ lat: number; lng: number }>({ lat: 17.4399, lng: 78.4806 });
   const [gpsLoading, setGpsLoading] = useState<boolean>(false);
-  const [gpsError, setGpsError] = useState<string | null>(null);
+  const [gpsNotice, setGpsNotice] = useState<string | null>(null);
 
   // Filters & Sorting
   const [ownershipFilter, setOwnershipFilter] = useState<string>('All');
   const [schemeFilter, setSchemeFilter] = useState<string>('All');
+  const [radiusKm, setRadiusKm] = useState<number>(15);
   const [sortBy, setSortBy] = useState<string>('nearest');
-  const [viewMode, setViewMode] = useState<'split' | 'list'>('split');
+  const [viewMode, setViewMode] = useState<'split' | 'list' | 'map'>('split');
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
-  // Modal
+  // Interactive Map Sync
+  const [selectedFacilityId, setSelectedFacilityId] = useState<string | null>(null);
+  const [hoveredFacilityId, setHoveredFacilityId] = useState<string | null>(null);
+
+  // Modals
   const [selectedFacilityForModal, setSelectedFacilityForModal] = useState<FacilityDTO | null>(null);
+  const [bookingFacility, setBookingFacility] = useState<FacilityDTO | null>(null);
+
+  const cardListRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     api.getTreatments().then(setTreatmentsList).catch(console.error);
     fetchFacilities();
-  }, [selectedTreatmentId, city, locality, pinCode, ownershipFilter, schemeFilter, sortBy, userCoords]);
+  }, [selectedTreatmentId, city, locality, pinCode, ownershipFilter, schemeFilter, sortBy, userCoords, radiusKm]);
 
   const fetchFacilities = async () => {
     setIsLoading(true);
+    setLoadError(null);
     try {
       const data = await api.getFacilities({
-        lat: userCoords?.lat,
-        lng: userCoords?.lng,
+        lat: userCoords.lat,
+        lng: userCoords.lng,
         city: city,
         locality: locality || undefined,
         pin: pinCode || undefined,
         treatment_id: selectedTreatmentId,
         ownership: ownershipFilter,
         scheme: schemeFilter,
+        radius: radiusKm === 999 ? undefined : radiusKm,
         sort: sortBy
       });
+
       setFacilities(data);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to load facilities", err);
+      setLoadError("Unable to load hospitals right now. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -76,107 +85,99 @@ export const HospitalDiscoveryPage: React.FC = () => {
 
   const requestDeviceLocation = () => {
     if (!navigator.geolocation) {
-      setGpsError("Geolocation is not supported by your browser. Please enter location manually.");
+      setGpsNotice("Geolocation is not supported by your browser. Please enter your locality or PIN code manually.");
       return;
     }
 
     setGpsLoading(true);
-    setGpsError(null);
+    setGpsNotice(null);
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const { latitude, longitude } = pos.coords;
         setUserCoords({ lat: latitude, lng: longitude });
         setGpsLoading(false);
+        setGpsNotice("Location updated from your GPS device.");
       },
       (err) => {
         setGpsLoading(false);
         if (err.code === 1) {
-          setGpsError("Location permission denied. Continuing with manual city / locality coordinates.");
+          setGpsNotice("Location permission was denied. You can manually enter your locality or PIN code in the search field above.");
         } else {
-          setGpsError("Unable to retrieve device position. Using Hyderabad center.");
+          setGpsNotice("Unable to retrieve GPS coordinates. Defaulting to central Hyderabad.");
         }
-        // Fallback to central Hyderabad coordinates
-        setUserCoords({ lat: 17.4399, lng: 78.4806 });
       },
       { timeout: 8000 }
     );
   };
 
+  const handleSelectFacilityFromMap = (fac: FacilityDTO) => {
+    setSelectedFacilityId(fac.id);
+    const cardEl = document.getElementById(`hospital-card-${fac.id}`);
+    if (cardEl) {
+      cardEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  };
+
+  const handleSearchThisArea = (newLat: number, newLng: number) => {
+    setUserCoords({ lat: newLat, lng: newLng });
+  };
+
   return (
-    <div className="section" style={{ paddingTop: '30px' }}>
+    <div className="section" style={{ paddingTop: '24px' }}>
       <div className="container">
-        {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px', marginBottom: '24px' }}>
+        
+        {/* Page Header */}
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px', marginBottom: '22px' }}>
           <div>
-            <div className="badge badge-teal" style={{ marginBottom: '8px' }}>
-              Spatial Facility Discovery & Verification
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+              <span className="badge badge-teal">Verified Healthcare Facilities</span>
+              <span className="badge badge-navy">
+                📍 Radius: {radiusKm === 999 ? 'All Distances' : `${radiusKm} km`}
+              </span>
             </div>
-            <h1 style={{ fontSize: '2.2rem', color: 'var(--color-navy)', marginBottom: '8px' }}>
-              Nearby Healthcare Discovery
+            <h1 style={{ fontSize: '2.1rem', color: 'var(--color-navy)', marginBottom: '4px' }}>
+              Find Nearby Hospitals & Care
             </h1>
-            <p style={{ color: 'var(--color-text-grey)', fontSize: '1.05rem', maxWidth: '780px' }}>
-              Locate verified healthcare institutions offering your treatment with spatial distance, ownership classifications, and active scheme empanelments.
+            <p style={{ color: 'var(--color-text-grey)', fontSize: '0.96rem' }}>
+              Discover verified hospitals in Hyderabad with authentic facility photographs, calculated distance, and empanelled scheme support.
             </p>
           </div>
 
-          {/* GPS Button & View Toggle */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <button
-              onClick={requestDeviceLocation}
-              className="btn btn-secondary"
-              disabled={gpsLoading}
-              title="Use current GPS location"
-            >
-              {gpsLoading ? (
-                <RefreshCw size={16} style={{ animation: 'spin 1s linear infinite' }} />
-              ) : (
-                <Navigation size={16} color="var(--color-teal)" />
-              )}
-              <span>{userCoords ? "GPS Active" : "Use My Location"}</span>
-            </button>
-
-            {/* View Mode Toggle */}
-            <div style={{
-              display: 'flex',
-              backgroundColor: 'var(--color-white)',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--color-border)',
-              padding: '2px'
-            }}>
+          {/* View mode toggle */}
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <div style={{ display: 'flex', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
               <button
                 onClick={() => setViewMode('split')}
                 style={{
-                  padding: '6px 12px',
+                  padding: '7px 14px',
                   border: 'none',
-                  borderRadius: 'var(--radius-sm)',
-                  backgroundColor: viewMode === 'split' ? 'var(--color-mint)' : 'transparent',
-                  color: viewMode === 'split' ? 'var(--color-teal-dark)' : 'var(--color-navy)',
-                  fontWeight: 600,
+                  backgroundColor: viewMode === 'split' ? '#2C8C83' : '#FFFFFF',
+                  color: viewMode === 'split' ? 'white' : '#12304A',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '4px',
-                  fontSize: '0.85rem'
+                  gap: '6px',
+                  fontSize: '0.82rem',
+                  fontWeight: 600
                 }}
               >
                 <MapIcon size={14} />
-                <span>Map + List</span>
+                <span>Split View</span>
               </button>
               <button
                 onClick={() => setViewMode('list')}
                 style={{
-                  padding: '6px 12px',
+                  padding: '7px 14px',
                   border: 'none',
-                  borderRadius: 'var(--radius-sm)',
-                  backgroundColor: viewMode === 'list' ? 'var(--color-mint)' : 'transparent',
-                  color: viewMode === 'list' ? 'var(--color-teal-dark)' : 'var(--color-navy)',
-                  fontWeight: 600,
+                  backgroundColor: viewMode === 'list' ? '#2C8C83' : '#FFFFFF',
+                  color: viewMode === 'list' ? 'white' : '#12304A',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '4px',
-                  fontSize: '0.85rem'
+                  gap: '6px',
+                  fontSize: '0.82rem',
+                  fontWeight: 600
                 }}
               >
                 <ListIcon size={14} />
@@ -186,42 +187,19 @@ export const HospitalDiscoveryPage: React.FC = () => {
           </div>
         </div>
 
-        {/* GPS Error or Manual Fallback Notice */}
-        {gpsError && (
-          <div style={{
-            backgroundColor: '#FEF3C7',
-            border: '1px solid #FCD34D',
-            borderRadius: 'var(--radius-md)',
-            padding: '10px 16px',
-            fontSize: '0.85rem',
-            color: '#92400E',
-            marginBottom: '20px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}>
-            <AlertTriangle size={16} />
-            <span>{gpsError}</span>
-          </div>
-        )}
-
-        {/* Filters Bar */}
-        <div style={{
-          backgroundColor: 'var(--color-white)',
-          borderRadius: 'var(--radius-lg)',
-          padding: '18px 20px',
-          border: '1px solid var(--color-border)',
-          boxShadow: 'var(--shadow-sm)',
-          marginBottom: '28px'
-        }}>
-          <div className="grid-4" style={{ gap: '14px', alignItems: 'flex-end' }}>
-            {/* Treatment Filter */}
-            <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label">Procedure / Treatment:</label>
+        {/* Filter Controls Bar */}
+        <div className="card" style={{ padding: '16px', marginBottom: '22px', backgroundColor: '#FFFFFF' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px' }}>
+            
+            {/* Procedure Selector */}
+            <div>
+              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#12304A', marginBottom: '4px' }}>
+                PROCEDURE / CARE
+              </label>
               <select
-                className="form-select"
                 value={selectedTreatmentId}
                 onChange={e => setSelectedTreatmentId(e.target.value)}
+                style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '0.85rem' }}
               >
                 {treatmentsList.map(t => (
                   <option key={t.id} value={t.id}>{t.name}</option>
@@ -229,114 +207,237 @@ export const HospitalDiscoveryPage: React.FC = () => {
               </select>
             </div>
 
-            {/* Locality Search */}
-            <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label">City / Locality:</label>
-              <select
-                className="form-select"
-                value={locality}
-                onChange={e => setLocality(e.target.value)}
-              >
-                <option value="">All Hyderabad Localities</option>
-                <option value="Kukatpally">Kukatpally</option>
-                <option value="Banjara Hills">Banjara Hills</option>
-                <option value="Jubilee Hills">Jubilee Hills</option>
-                <option value="Secunderabad">Secunderabad</option>
-                <option value="HITEC City">HITEC City</option>
-                <option value="Gachibowli">Gachibowli</option>
-                <option value="Somajiguda">Somajiguda</option>
-                <option value="Musheerabad">Musheerabad</option>
-                <option value="Hyderguda">Hyderguda</option>
-              </select>
-            </div>
-
-            {/* Ownership Filter */}
-            <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label">Ownership Type:</label>
-              <select
-                className="form-select"
-                value={ownershipFilter}
-                onChange={e => setOwnershipFilter(e.target.value)}
-              >
-                <option value="All">All Facilities</option>
-                <option value="Government">Government Hospitals</option>
-                <option value="Charitable/Trust">Charitable / Trust</option>
-                <option value="Private">Private Hospitals</option>
-              </select>
-            </div>
-
-            {/* Sorting */}
-            <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label">Sort By:</label>
-              <select
-                className="form-select"
-                value={sortBy}
-                onChange={e => setSortBy(e.target.value)}
-              >
-                <option value="nearest">Nearest Distance (km)</option>
-                <option value="lowest_cost">Lowest Estimated Cost (₹)</option>
-                <option value="rating">Patient Rating</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        {/* Content Area */}
-        {viewMode === 'split' ? (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', alignItems: 'start' }}>
-            <style>{`
-              @media (max-width: 992px) {
-                div[style*="gridTemplateColumns: 1fr 1fr"] { grid-template-columns: 1fr !important; }
-              }
-            `}</style>
-            {/* Left: Map */}
-            <div style={{ position: 'sticky', top: '90px' }}>
-              <HospitalMap
-                facilities={facilities}
-                userLat={userCoords?.lat || 17.4399}
-                userLng={userCoords?.lng || 78.4806}
-                onSelectFacility={fac => setSelectedFacilityForModal(fac)}
-              />
-              <div style={{ marginTop: '12px', fontSize: '0.8rem', color: 'var(--color-text-grey)' }}>
-                Showing {facilities.length} verified hospital locations with spatial Haversine distance calculations.
+            {/* Locality / Area / PIN Code */}
+            <div>
+              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#12304A', marginBottom: '4px' }}>
+                LOCALITY OR PIN CODE
+              </label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  type="text"
+                  value={locality}
+                  onChange={e => {
+                    const val = e.target.value;
+                    setLocality(val);
+                    if (/^\d{6}$/.test(val.trim())) {
+                      setPinCode(val.trim());
+                    } else {
+                      setPinCode('');
+                    }
+                  }}
+                  placeholder="e.g. Gachibowli, Secunderabad, 500082"
+                  style={{ width: '100%', padding: '8px 10px 8px 30px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '0.85rem' }}
+                />
+                <Search size={14} color="#94A3B8" style={{ position: 'absolute', left: '10px', top: '11px' }} />
               </div>
             </div>
 
-            {/* Right: Hospital Cards List */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {facilities.map(fac => (
-                <HospitalCard
-                  key={fac.id}
-                  facility={fac}
-                  activeTreatmentId={selectedTreatmentId}
-                  onViewDetails={f => setSelectedFacilityForModal(f)}
-                />
-              ))}
+            {/* Hospital Category */}
+            <div>
+              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#12304A', marginBottom: '4px' }}>
+                HOSPITAL CATEGORY
+              </label>
+              <select
+                value={ownershipFilter}
+                onChange={e => setOwnershipFilter(e.target.value)}
+                style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '0.85rem' }}
+              >
+                <option value="All">All Hospital Types</option>
+                <option value="Government">Government Hospitals</option>
+                <option value="Private">Private Hospitals</option>
+                <option value="Charitable/Trust">Charitable / Trust</option>
+              </select>
+            </div>
+
+            {/* Distance Radius */}
+            <div>
+              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#12304A', marginBottom: '4px' }}>
+                DISTANCE RADIUS
+              </label>
+              <select
+                value={radiusKm}
+                onChange={e => setRadiusKm(Number(e.target.value))}
+                style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '0.85rem' }}
+              >
+                <option value={5}>Within 5 km</option>
+                <option value={10}>Within 10 km</option>
+                <option value={20}>Within 20 km</option>
+                <option value={50}>Within 50 km</option>
+                <option value={999}>All Hospitals (No Limit)</option>
+              </select>
+            </div>
+
+            {/* Device GPS Location Button */}
+            <div>
+              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#12304A', marginBottom: '4px' }}>
+                GPS LOCATION
+              </label>
+              <button
+                onClick={requestDeviceLocation}
+                disabled={gpsLoading}
+                className="btn btn-secondary btn-sm"
+                style={{ width: '100%', padding: '8px 10px', fontSize: '0.82rem', height: '37px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+              >
+                <Navigation size={14} color="#2C8C83" />
+                <span>{gpsLoading ? 'Locating...' : 'Use My GPS'}</span>
+              </button>
             </div>
           </div>
-        ) : (
-          /* List Only View (Grid 3) */
-          <div className="grid-3">
-            {facilities.map(fac => (
-              <HospitalCard
-                key={fac.id}
-                facility={fac}
-                activeTreatmentId={selectedTreatmentId}
-                onViewDetails={f => setSelectedFacilityForModal(f)}
-              />
-            ))}
-          </div>
-        )}
 
-        {/* Modal */}
-        {selectedFacilityForModal && (
-          <HospitalDetailModal
-            facility={selectedFacilityForModal}
-            onClose={() => setSelectedFacilityForModal(null)}
-            onEstimateHere={() => setSelectedFacilityForModal(null)}
-          />
-        )}
+          {gpsNotice && (
+            <div style={{ marginTop: '10px', color: '#12304A', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: '#F8FAF9', padding: '6px 10px', borderRadius: '4px' }}>
+              <MapPin size={13} color="#2C8C83" />
+              <span>{gpsNotice}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Layout: Interactive Split Map + Cards List */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: viewMode === 'split' ? 'minmax(0, 1.15fr) minmax(0, 0.85fr)' : '1fr',
+          gap: '24px',
+          alignItems: 'start'
+        }}>
+          
+          {/* Left Column: Hospital Cards Grid */}
+          <div ref={cardListRef} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ fontSize: '0.9rem', color: '#64717D' }}>
+                Showing <strong>{facilities.length}</strong> matching verified hospitals
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ fontSize: '0.78rem', color: '#64717D' }}>Sort:</span>
+                <select
+                  value={sortBy}
+                  onChange={e => setSortBy(e.target.value)}
+                  style={{ border: '1px solid #CBD5E1', borderRadius: '4px', padding: '4px 8px', fontSize: '0.8rem' }}
+                >
+                  <option value="nearest">Nearest Distance</option>
+                  <option value="lowest_cost">Lowest Estimated Tariff</option>
+                  <option value="rating">Highest Verified Rating</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Error State with Retry Button */}
+            {loadError ? (
+              <div style={{ 
+                textAlign: 'center', 
+                padding: '48px 24px', 
+                backgroundColor: '#FFFFFF', 
+                borderRadius: '16px', 
+                border: '1px solid #E2E8F0',
+                boxShadow: '0 2px 8px rgba(18, 48, 74, 0.05)'
+              }}>
+                <AlertTriangle size={36} color="#D97706" style={{ marginBottom: '12px' }} />
+                <h3 style={{ fontSize: '1.2rem', color: '#12304A', marginBottom: '8px' }}>
+                  {loadError}
+                </h3>
+                <p style={{ color: '#64717D', fontSize: '0.88rem', marginBottom: '18px' }}>
+                  Unable to connect to the hospital directory. Please check your network and retry.
+                </p>
+                <button 
+                  onClick={fetchFacilities} 
+                  className="btn btn-primary btn-sm" 
+                  style={{ padding: '8px 22px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <RefreshCw size={14} />
+                  <span>Retry</span>
+                </button>
+              </div>
+            ) : isLoading ? (
+              <div style={{ textAlign: 'center', padding: '60px', color: '#64717D' }}>
+                <RefreshCw size={24} className="spin" style={{ margin: '0 auto 10px', display: 'block', color: '#2C8C83' }} />
+                <span>Loading verified hospitals...</span>
+              </div>
+            ) : facilities.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '60px', backgroundColor: '#FFFFFF', borderRadius: '12px', border: '1px solid var(--color-border)' }}>
+                <Building2 size={40} color="#94A3B8" style={{ marginBottom: '10px' }} />
+                <h3 style={{ fontSize: '1.2rem', color: '#12304A', marginBottom: '6px' }}>No Facilities Found in Selected Radius</h3>
+                <p style={{ color: '#64717D', fontSize: '0.88rem' }}>Try expanding your distance radius filter or selecting "All Hospital Types".</p>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: viewMode === 'split' ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', gap: '18px' }}>
+                {facilities.map(fac => (
+                  <div
+                    key={fac.id}
+                    onMouseEnter={() => setHoveredFacilityId(fac.id)}
+                    onMouseLeave={() => setHoveredFacilityId(null)}
+                    style={{
+                      transform: hoveredFacilityId === fac.id ? 'translateY(-2px)' : 'none',
+                      transition: 'transform 0.2s ease'
+                    }}
+                  >
+                    <HospitalCard
+                      facility={fac}
+                      activeTreatmentId={selectedTreatmentId}
+                      userLat={userCoords.lat}
+                      userLng={userCoords.lng}
+                      onViewDetails={setSelectedFacilityForModal}
+                      onBookAppointment={setBookingFacility}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Right Column: Interactive Map */}
+          {viewMode === 'split' && (
+            <div style={{
+              position: 'sticky',
+              top: '90px',
+              backgroundColor: '#FFFFFF',
+              borderRadius: '16px',
+              border: '1px solid var(--color-border)',
+              padding: '12px',
+              boxShadow: '0 2px 12px rgba(18, 48, 74, 0.08)'
+            }}>
+              <HospitalMapContainer
+                facilities={facilities}
+                userLat={userCoords.lat}
+                userLng={userCoords.lng}
+                radiusKm={radiusKm === 999 ? 30 : radiusKm}
+                selectedFacilityId={selectedFacilityId}
+                hoveredFacilityId={hoveredFacilityId}
+                onSelectFacility={handleSelectFacilityFromMap}
+                onHoverFacility={setHoveredFacilityId}
+                onBookAppointment={setBookingFacility}
+                onViewDetails={setSelectedFacilityForModal}
+                onSearchThisArea={handleSearchThisArea}
+                height="620px"
+              />
+            </div>
+          )}
+
+        </div>
       </div>
+
+      {/* Hospital Detail Modal */}
+      {selectedFacilityForModal && (
+        <HospitalDetailModal
+          facility={selectedFacilityForModal}
+          onClose={() => setSelectedFacilityForModal(null)}
+          onEstimateHere={(fac) => {
+            window.location.hash = `#estimate?treatment=${selectedTreatmentId}&hospital=${fac.id}`;
+          }}
+          onBookAppointment={(fac) => {
+            setSelectedFacilityForModal(null);
+            setBookingFacility(fac);
+          }}
+        />
+      )}
+
+      {/* Appointment Booking Modal */}
+      {bookingFacility && (
+        <BookingModal
+          isOpen={Boolean(bookingFacility)}
+          facility={bookingFacility}
+          treatmentName={treatmentsList.find(t => t.id === selectedTreatmentId)?.name}
+          onClose={() => setBookingFacility(null)}
+        />
+      )}
     </div>
   );
 };

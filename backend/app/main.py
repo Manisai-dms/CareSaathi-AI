@@ -169,7 +169,9 @@ def list_facilities(
     treatment_id: Optional[str] = Query(None),
     ownership: Optional[str] = Query("All"),
     scheme: Optional[str] = Query("All"),
-    sort: Optional[str] = Query("nearest")
+    radius: Optional[float] = Query(None),
+    sort: Optional[str] = Query("nearest"),
+    treatment_available_only: Optional[bool] = Query(False)
 ):
     return search_facilities(
         user_lat=lat,
@@ -180,7 +182,9 @@ def list_facilities(
         treatment_id=treatment_id,
         ownership_filter=ownership,
         scheme_filter=scheme,
-        sort_by=sort or "nearest"
+        radius_km=radius,
+        sort_by=sort or "nearest",
+        treatment_available_only=bool(treatment_available_only)
     )
 
 @app.get("/api/facilities/{facility_id}")

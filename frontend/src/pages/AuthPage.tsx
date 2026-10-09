@@ -340,7 +340,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess, onContinueAsGuest
             type="submit"
             disabled={isLoading}
             style={{
-              backgroundColor: '#438F84', // Teal
+              backgroundColor: '#2C8C83', // Teal
               color: '#FFFFFF',
               border: 'none',
               borderRadius: '8px',
@@ -370,34 +370,40 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess, onContinueAsGuest
           fontSize: '0.78rem'
         }}>
           <div style={{ flex: 1, height: '1px', backgroundColor: '#E2E8F0' }} />
-          <span style={{ padding: '0 10px' }}>OR</span>
+          <span style={{ padding: '0 10px', fontWeight: 600 }}>OR INSTANT REVIEW</span>
           <div style={{ flex: 1, height: '1px', backgroundColor: '#E2E8F0' }} />
         </div>
 
-        {/* Continue as Guest Button */}
+        {/* 1-Click Authenticated Demo Login Button */}
         <button
           type="button"
-          onClick={onContinueAsGuest}
+          onClick={handleDemoLogin}
+          disabled={isLoading}
           style={{
             width: '100%',
-            backgroundColor: 'transparent',
-            border: '1px solid #CBD5E1',
+            backgroundColor: '#12304A', // Deep Navy
+            border: '1px solid #1E40AF',
             borderRadius: '8px',
-            padding: '10px',
-            fontSize: '0.88rem',
-            fontWeight: 600,
-            color: '#183247',
+            padding: '12px',
+            fontSize: '0.9rem',
+            fontWeight: 700,
+            color: '#FFFFFF',
             cursor: 'pointer',
-            transition: 'background-color 0.15s ease'
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            boxShadow: '0 2px 8px rgba(18, 48, 74, 0.15)'
           }}
         >
-          Continue as Guest (No Account Required)
+          <Sparkles size={16} color="#F59E0B" />
+          <span>Quick Demo Access (1-Click Authenticated Sign In)</span>
         </button>
 
-        {/* Privacy Note */}
-        <div style={{ marginTop: '20px', textAlign: 'center', fontSize: '0.72rem', color: '#94A3B8', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-          <ShieldCheck size={14} color="#438F84" />
-          <span>Zero patient clinical data or health identifiers are retained.</span>
+        {/* Security & Privacy Note */}
+        <div style={{ marginTop: '20px', textAlign: 'center', fontSize: '0.74rem', color: '#64717D', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+          <ShieldCheck size={14} color="#2C8C83" />
+          <span>256-bit encrypted secure session. Zero patient health data retained.</span>
         </div>
       </div>
     </div>

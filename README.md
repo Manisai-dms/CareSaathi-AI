@@ -213,10 +213,87 @@ python test_integration.py
 
 ---
 
-## 🔒 Responsible AI Principles
+## 🗺️ Enable Google Maps in 10 Minutes
+
+CareSaathi AI features an enterprise **MapProvider abstraction** that defaults cleanly to OpenStreetMap / Leaflet and branded fallback photography when keys are absent, but seamlessly elevates to Google Maps (Advanced Markers, Places API New, photo lightbox, and travel-time matrix) when keys are configured.
+
+Follow these steps to activate Google Maps in under 10 minutes:
+
+### 1. Create Google Cloud Project & Enable APIs
+1. Go to the [Google Cloud Console](https://console.cloud.google.com/).
+2. Create a new project named `CareSaathi-AI` (or select an existing one).
+3. Navigate to **APIs & Services > Library** and enable the following APIs:
+   - **Maps JavaScript API** (Frontend map rendering & Advanced Markers)
+   - **Places API (New)** (Hospital details, ratings, opening hours, photos, autocomplete)
+   - **Routes API** / **Distance Matrix API** (Driving/Transit travel times & directions)
+   - **Geocoding API** (Reverse geocoding and location resolution)
+
+### 2. Create Two Restricted API Keys
+Never use an unrestricted API key. Create two distinct keys:
+
+#### Key A: Browser Client Key (`VITE_GOOGLE_MAPS_API_KEY`)
+- **API Restrictions**: Restrict strictly to **Maps JavaScript API** and **Places API**.
+- **Application Restrictions**: Set **HTTP Referrers (web sites)** to:
+  - `http://localhost:5173/*`
+  - `http://127.0.0.1:5173/*`
+  - `http://127.0.0.1:8000/*`
+  - `https://your-production-domain.com/*`
+- Add to `frontend/.env`:
+  ```bash
+  VITE_GOOGLE_MAPS_API_KEY="AIzaSyYourBrowserClientKeyHere"
+  ```
+
+#### Key B: Server Secret Key (`GOOGLE_MAPS_SERVER_KEY`)
+- **API Restrictions**: Restrict strictly to **Places API (New)**, **Routes API**, and **Geocoding API**.
+- **Application Restrictions**: Set **IP addresses** to your Supabase Edge Function outbound IP range or Supabase project.
+- **SECURITY RULE**: *NEVER prefix this key with `VITE_` and NEVER expose it in the frontend client.*
+
+### 3. Set Billing Alerts & Cost Guards
+To prevent unexpected Google Cloud billing:
+1. In Cloud Console, go to **Billing > Budgets & alerts**.
+2. Create a monthly budget of **$10 USD** (or ₹800 INR) with alerts at 50%, 80%, and 100%.
+3. In **APIs & Services > Quotas**, set daily per-user and per-project request caps (e.g., 500 requests/day for Places API New).
+4. CareSaathi AI includes client-side debouncing, memory caching for photo URLs, request de-duplication, and automatic fallback to Leaflet if rate limits or quota errors occur.
+
+### 4. Add Server Secrets to Supabase & Deploy Edge Functions
+1. Set the secret in your Supabase project:
+   ```bash
+   supabase secrets set GOOGLE_MAPS_SERVER_KEY="AIzaSyYourServerSecretKeyHere"
+   ```
+2. Deploy the 6 CareSaathi Edge Functions:
+   ```bash
+   supabase functions deploy send-appointment-reminder
+   supabase functions deploy places-nearby
+   supabase functions deploy place-details
+   supabase functions deploy place-photo
+   supabase functions deploy route-matrix
+   supabase functions deploy geocode
+   ```
+
+### 5. Run Database Migration
+Apply the atomic appointment and slot schema:
+```bash
+supabase db push
+# or run the SQL in supabase/migrations/20261009_appointments_and_slots.sql in Supabase SQL Editor
+```
+
+---
+
+## 🔒 Responsible AI & Honest Booking Principles
 
 1. **Non-Diagnostic:** CareSaathi AI does not provide medical diagnoses or replace consultations with licensed physicians.
-2. **Transparent Confidence:** Confidence ratings are strictly tied to whether tariffs are officially published or reference-derived.
-3. **No Hallucinated Pricing:** Costs are strictly bounded by official government benefit schedules (PM-JAY HBP 2.2, Aarogyasri) and statutory price orders (NPPA).
-4. **Emergency First:** When emergency symptoms appear, cost comparisons are superseded by immediate emergency medical instructions (Call 108).
-5. **Zero Data Retention:** No personal patient data, prescriptions, or identity credentials are saved or tracked.
+2. **Honest Booking Rule:**
+   - **Demo Facilities:** Bookings are marked with an amber `Demo Facility` chip.
+   - **Real Facilities:** Bookings are submitted as `"Appointment request sent to hospital, awaiting official confirmation"`. We never claim a booking is officially confirmed by a hospital without a verified direct hospital API integration.
+   - **No Payments Collected:** No online payments, advance booking fees, or financial transactions are collected.
+3. **Transparent Confidence & Data Quality Chips:**
+   - `Demo Facility`
+   - `Google Maps Verified`
+   - `Published Price`
+   - `Reference Estimate`
+4. **Google Rating Attribution:**
+   - Google ratings and review counts are labeled as `"Google rating, not a quality guarantee"` and are display-only. They are **never** used to re-rank hospital recommendation scores.
+   - Required `"Powered by Google"` attribution is maintained throughout.
+5. **Atomic Double-Booking Guard:**
+   - Concurrent bookings against the same slot are guarded at the database level via PostgreSQL row locking (`FOR UPDATE`) and `slot_capacity_check` constraints, preventing over-capacity race conditions.
+6. **Zero Health PII Retention:** No personal patient Aadhaar numbers, prescriptions, or private clinical records are retained in database logs.

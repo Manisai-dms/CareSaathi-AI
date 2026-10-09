@@ -14,13 +14,16 @@ SEED_FACILITIES: List[Facility] = [
         lat=17.4227,
         lng=78.4526,
         ownership="Government",
+        facility_class="Standard",
+        recommendation_reason="Apex state autonomous tertiary teaching institute with statutory 100% cashless scheme coverage under Aarogyasri and PM-JAY.",
         phone="+91-40-23489000",
         website="https://nims.edu.in",
         rating=4.3,
         verified_treatments=[
             "knee_replacement", "cataract_surgery", "mri_brain", "mri_knee", 
             "mri_spine", "angioplasty", "laparoscopic_cholecystectomy", 
-            "appendectomy", "hemodialysis", "inpatient_fever_management", "doctor_consultation"
+            "appendectomy", "hemodialysis", "inpatient_fever_management", "doctor_consultation",
+            "diabetes_care", "kidney_stones", "blood_tests"
         ],
         empanelled_schemes=["pm_jay", "aarogyasri", "cghs", "esic"],
         room_types={
@@ -43,6 +46,8 @@ SEED_FACILITIES: List[Facility] = [
         lat=17.4243,
         lng=78.5032,
         ownership="Government",
+        facility_class="Standard",
+        recommendation_reason="Premier state government teaching hospital offering completely free super-specialty surgical and inpatient medical care.",
         phone="+91-40-27505566",
         website="http://gandhihospital.telangana.gov.in",
         rating=4.0,
@@ -50,7 +55,8 @@ SEED_FACILITIES: List[Facility] = [
             "knee_replacement", "cataract_surgery", "mri_brain", "mri_spine", 
             "normal_delivery", "caesarean_delivery", "angioplasty", 
             "laparoscopic_cholecystectomy", "appendectomy", "hemodialysis", 
-            "hernia_repair", "inpatient_fever_management", "doctor_consultation"
+            "hernia_repair", "inpatient_fever_management", "doctor_consultation",
+            "diabetes_care", "kidney_stones", "blood_tests"
         ],
         empanelled_schemes=["pm_jay", "aarogyasri"],
         room_types={
@@ -72,13 +78,16 @@ SEED_FACILITIES: List[Facility] = [
         lat=17.3773,
         lng=78.4777,
         ownership="Government",
+        facility_class="Standard",
+        recommendation_reason="Historic government general hospital with comprehensive round-the-clock emergency, trauma, and surgical services.",
         phone="+91-40-24600121",
         website="http://osmaniahospital.telangana.gov.in",
         rating=3.9,
         verified_treatments=[
             "knee_replacement", "cataract_surgery", "mri_brain", "normal_delivery",
             "caesarean_delivery", "laparoscopic_cholecystectomy", "appendectomy",
-            "hemodialysis", "hernia_repair", "inpatient_fever_management"
+            "hemodialysis", "hernia_repair", "inpatient_fever_management",
+            "diabetes_care", "kidney_stones", "blood_tests"
         ],
         empanelled_schemes=["pm_jay", "aarogyasri"],
         room_types={
@@ -100,6 +109,8 @@ SEED_FACILITIES: List[Facility] = [
         lat=17.4194,
         lng=78.4116,
         ownership="Private",
+        facility_class="Premium",
+        recommendation_reason="JCI and NABH accredited quaternary super-specialty hospital with advanced robotic orthopedic and cardiac wings and corporate TPA coverage.",
         phone="+91-40-23607777",
         website="https://hyderabad.apollohospitals.com",
         rating=4.6,
@@ -107,7 +118,8 @@ SEED_FACILITIES: List[Facility] = [
             "knee_replacement", "cataract_surgery", "mri_brain", "mri_knee", 
             "mri_spine", "normal_delivery", "caesarean_delivery", "angioplasty", 
             "laparoscopic_cholecystectomy", "appendectomy", "hemodialysis", 
-            "hernia_repair", "inpatient_fever_management", "doctor_consultation"
+            "hernia_repair", "inpatient_fever_management", "doctor_consultation",
+            "diabetes_care", "kidney_stones", "blood_tests"
         ],
         empanelled_schemes=["cghs", "private_tpa"],
         room_types={
@@ -190,6 +202,8 @@ SEED_FACILITIES: List[Facility] = [
         lat=17.4172,
         lng=78.3444,
         ownership="Private",
+        facility_class="Premium",
+        recommendation_reason="JCI-accredited corporate tertiary center in Financial District with state-of-the-art critical care and international patient wing.",
         phone="+91-40-67000000",
         website="https://continentalhospitals.com",
         rating=4.5,
@@ -197,7 +211,8 @@ SEED_FACILITIES: List[Facility] = [
             "knee_replacement", "mri_brain", "mri_knee", "mri_spine", 
             "normal_delivery", "caesarean_delivery", "angioplasty", 
             "laparoscopic_cholecystectomy", "appendectomy", "hemodialysis", 
-            "hernia_repair", "inpatient_fever_management", "doctor_consultation"
+            "hernia_repair", "inpatient_fever_management", "doctor_consultation",
+            "diabetes_care", "kidney_stones", "blood_tests"
         ],
         empanelled_schemes=["cghs", "private_tpa"],
         room_types={
@@ -375,6 +390,37 @@ SEED_FACILITIES: List[Facility] = [
         last_verified_date="2026-03-14",
         pricing_status="Official Tiered Trust Tariff",
         price_confidence="High"
+    ),
+    Facility(
+        id="fac_aig_gachibowli",
+        name="AIG Hospitals (Asian Institute of Gastroenterology)",
+        address="1-66/AIG/2/3, Mindspace Road, Gachibowli, Hyderabad, Telangana",
+        locality="Gachibowli",
+        city="Hyderabad",
+        state="Telangana",
+        pin_code="500032",
+        lat=17.4419,
+        lng=78.3688,
+        ownership="Private",
+        facility_class="Premium",
+        recommendation_reason="World-renowned quaternary gastroenterology & hepatology institute with advanced clinical imaging, surgery, and liver transplant suites.",
+        phone="+91-40-42444222",
+        website="https://aighospitals.com",
+        rating=4.6,
+        verified_treatments=[
+            "knee_replacement", "mri_brain", "mri_knee", "laparoscopic_cholecystectomy", 
+            "appendectomy", "hemodialysis", "inpatient_fever_management", "doctor_consultation",
+            "diabetes_care", "kidney_stones", "blood_tests"
+        ],
+        empanelled_schemes=["aarogyasri", "cghs", "private_tpa"],
+        room_types={
+            "Economy Sharing": 3000,
+            "Single Deluxe": 6500,
+            "Executive Suite": 12500
+        },
+        last_verified_date="2026-03-15",
+        pricing_status="Reference Package Rates",
+        price_confidence="Medium"
     )
 ]
 

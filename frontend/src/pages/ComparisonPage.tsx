@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useSearch } from '../context/SearchContext';
 import { useLanguage } from '../context/LanguageContext';
 import { 
@@ -12,8 +12,11 @@ import {
   ShieldCheck, 
   Bed, 
   DollarSign,
-  ArrowRight
+  ArrowRight,
+  Calendar
 } from 'lucide-react';
+import { FacilityDTO } from '../services/api';
+import { BookingModal } from '../components/BookingModal';
 
 interface ComparisonPageProps {
   onBackToSearch: () => void;
@@ -23,6 +26,8 @@ export const ComparisonPage: React.FC<ComparisonPageProps> = ({ onBackToSearch }
   const { t } = useLanguage();
   const { searchState, removeFromComparison, clearComparison } = useSearch();
   const { comparisonList, treatmentName } = searchState;
+
+  const [bookingFacility, setBookingFacility] = useState<FacilityDTO | null>(null);
 
   if (comparisonList.length === 0) {
     return (
@@ -97,7 +102,10 @@ export const ComparisonPage: React.FC<ComparisonPageProps> = ({ onBackToSearch }
                 Hospital Facility
               </div>
               <div style={{ padding: '14px 0', borderTop: '1px solid var(--color-border)', fontWeight: 600, fontSize: '0.9rem', color: 'var(--color-navy)' }}>
-                Ownership Type
+                Ownership & Classification
+              </div>
+              <div style={{ padding: '14px 0', borderTop: '1px solid var(--color-border)', fontWeight: 600, fontSize: '0.9rem', color: 'var(--color-navy)' }}>
+                Why Recommended
               </div>
               <div style={{ padding: '14px 0', borderTop: '1px solid var(--color-border)', fontWeight: 600, fontSize: '0.9rem', color: 'var(--color-navy)' }}>
                 Distance
@@ -119,82 +127,78 @@ export const ComparisonPage: React.FC<ComparisonPageProps> = ({ onBackToSearch }
               </div>
             </div>
 
-            {/* Hospital Columns */}
+            {/* Facility Columns */}
             {comparisonList.map(fac => (
-              <div
-                key={fac.id}
-                className="card"
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '16px',
-                  backgroundColor: 'var(--color-white)',
-                  border: '1px solid var(--color-border)'
-                }}
-              >
-                {/* Hospital Header */}
-                <div style={{ height: '140px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <span className="badge badge-teal">{fac.ownership}</span>
-                    <button
-                      onClick={() => removeFromComparison(fac.id)}
-                      style={{
-                        background: 'transparent',
-                        border: 'none',
-                        color: 'var(--color-text-grey)',
-                        cursor: 'pointer',
-                        padding: '4px'
-                      }}
-                      title="Remove from comparison"
-                    >
-                      <X size={18} />
-                    </button>
-                  </div>
-                  <div>
-                    <h4 style={{ fontSize: '1.15rem', color: 'var(--color-navy)', lineHeight: 1.25 }}>
-                      {fac.name}
-                    </h4>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--color-text-grey)', marginTop: '4px' }}>
-                      {fac.locality}, {fac.city}
-                    </div>
+              <div key={fac.id} className="card" style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '18px', position: 'relative' }}>
+                
+                {/* Remove button */}
+                <button
+                  onClick={() => removeFromComparison(fac.id)}
+                  style={{
+                    position: 'absolute',
+                    top: '12px',
+                    right: '12px',
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'var(--color-text-grey)',
+                    cursor: 'pointer'
+                  }}
+                  title="Remove from comparison"
+                >
+                  <X size={18} />
+                </button>
+
+                {/* Facility Name & Header */}
+                <div style={{ height: '140px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', paddingBottom: '12px' }}>
+                  <h3 style={{ fontSize: '1.15rem', color: 'var(--color-navy)', lineHeight: 1.3, marginBottom: '6px' }}>
+                    {fac.name}
+                  </h3>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--color-text-grey)' }}>
+                    {fac.locality}, {fac.city}
                   </div>
                 </div>
 
-                {/* Ownership */}
-                <div style={{ padding: '14px 0', borderTop: '1px solid var(--color-border)', fontSize: '0.9rem', color: 'var(--color-navy)', fontWeight: 600 }}>
-                  {fac.ownership} Sector
+                {/* Ownership & Classification */}
+                <div style={{ padding: '14px 0', borderTop: '1px solid var(--color-border)', display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+                  <span className={`badge ${fac.ownership === 'Government' ? 'badge-teal' : fac.ownership === 'Charitable/Trust' ? 'badge-navy' : 'badge-secondary'}`}>
+                    {fac.ownership}
+                  </span>
+                  {fac.facility_class === 'Premium' && (
+                    <span className="badge" style={{ backgroundColor: '#FEF3C7', color: '#92400E', border: '1px solid #F59E0B' }}>
+                      ⭐ Premium
+                    </span>
+                  )}
+                </div>
+
+                {/* Why Recommended */}
+                <div style={{ padding: '14px 0', borderTop: '1px solid var(--color-border)', fontSize: '0.8rem', color: 'var(--color-navy)', lineHeight: 1.4 }}>
+                  {fac.recommendation_reason || `${fac.ownership} hospital with verified departments and established clinical capabilities.`}
                 </div>
 
                 {/* Distance */}
-                <div style={{ padding: '14px 0', borderTop: '1px solid var(--color-border)', fontSize: '0.9rem', color: 'var(--color-navy)' }}>
-                  📍 {fac.distance_km !== undefined ? `${fac.distance_km} km` : 'Central Hyderabad'}
+                <div style={{ padding: '14px 0', borderTop: '1px solid var(--color-border)', fontSize: '0.9rem', color: 'var(--color-navy)', fontWeight: 600 }}>
+                  {fac.distance_km ? `📍 ${fac.distance_km} km away` : 'Within City'}
                 </div>
 
-                {/* Cost Range */}
+                {/* Estimated Cost Range */}
                 <div style={{ padding: '14px 0', borderTop: '1px solid var(--color-border)' }}>
-                  <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--color-navy)' }}>
-                    {fac.estimated_cost_min === 0 ? "₹0 (Free / Govt)" : `₹${fac.estimated_cost_min?.toLocaleString('en-IN')}`}
+                  <div style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--color-navy)' }}>
+                    {fac.estimated_cost_min === 0 ? "₹0 (Free / Subsidized)" : `₹${fac.estimated_cost_min?.toLocaleString('en-IN')}`}
                     {fac.estimated_cost_max ? ` - ₹${fac.estimated_cost_max.toLocaleString('en-IN')}` : ''}
                   </div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--color-text-grey)', marginTop: '2px' }}>
-                    {fac.pricing_status || "Standard Reference"}
+                  <div style={{ fontSize: '0.72rem', color: 'var(--color-teal-dark)', marginTop: '2px' }}>
+                    {fac.price_confidence || 'Medium'} Confidence
                   </div>
                 </div>
 
-                {/* Daily Bed Charges */}
+                {/* Daily Bed / Room Rent */}
                 <div style={{ padding: '14px 0', borderTop: '1px solid var(--color-border)', fontSize: '0.82rem' }}>
-                  {fac.room_types && Object.keys(fac.room_types).length > 0 ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      {Object.entries(fac.room_types).slice(0, 2).map(([r, p]) => (
-                        <div key={r}>
-                          <span style={{ color: 'var(--color-text-grey)' }}>{r}: </span>
-                          <strong style={{ color: 'var(--color-navy)' }}>{p === 0 ? "Free" : `₹${p}`}</strong>
-                        </div>
-                      ))}
+                  {Object.entries(fac.room_types).map(([type, price]) => (
+                    <div key={type} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
+                      <span style={{ color: 'var(--color-text-grey)' }}>{type}:</span>
+                      <strong style={{ color: 'var(--color-navy)' }}>₹{price}/day</strong>
                     </div>
-                  ) : (
-                    <span style={{ color: 'var(--color-text-grey)' }}>Not published</span>
-                  )}
+                  ))}
                 </div>
 
                 {/* Empanelled Schemes */}
@@ -219,28 +223,52 @@ export const ComparisonPage: React.FC<ComparisonPageProps> = ({ onBackToSearch }
                 </div>
 
                 {/* Action Links */}
-                <div style={{ padding: '14px 0', borderTop: '1px solid var(--color-border)', display: 'flex', gap: '8px' }}>
-                  {fac.phone && (
-                    <a href={`tel:${fac.phone}`} className="btn btn-secondary btn-sm" style={{ flex: 1 }}>
-                      <Phone size={13} color="var(--color-teal)" />
-                      <span>Call</span>
-                    </a>
-                  )}
-                  <a
-                    href={`https://www.google.com/maps/dir/?api=1&destination=${fac.lat},${fac.lng}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                <div style={{ padding: '14px 0', borderTop: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {/* Book Appointment Action */}
+                  <button
+                    onClick={() => setBookingFacility(fac as any)}
                     className="btn btn-primary btn-sm"
-                    style={{ flex: 1 }}
+                    style={{ width: '100%', fontWeight: 700 }}
                   >
-                    <ExternalLink size={13} />
-                    <span>Map</span>
-                  </a>
+                    <Calendar size={13} />
+                    <span>Book Appointment</span>
+                  </button>
+
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    {fac.phone && (
+                      <a href={`tel:${fac.phone}`} className="btn btn-secondary btn-sm" style={{ flex: 1 }}>
+                        <Phone size={13} color="var(--color-teal)" />
+                        <span>Call</span>
+                      </a>
+                    )}
+                    <a
+                      href={`https://www.google.com/maps/dir/?api=1&destination=${fac.lat},${fac.lng}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btn-secondary btn-sm"
+                      style={{ flex: 1 }}
+                    >
+                      <ExternalLink size={13} />
+                      <span>Map</span>
+                    </a>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         </div>
+
+        {/* Booking Modal */}
+        {bookingFacility && (
+          <BookingModal
+            isOpen={Boolean(bookingFacility)}
+            facility={bookingFacility}
+            onClose={() => setBookingFacility(null)}
+            treatmentName={treatmentName}
+            matchedSchemeName="Aarogyasri / PM-JAY"
+          />
+        )}
+
       </div>
     </div>
   );

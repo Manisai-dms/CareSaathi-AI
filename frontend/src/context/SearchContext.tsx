@@ -20,9 +20,16 @@ export interface FacilityItem {
   last_verified_date: string;
   pricing_status?: string;
   price_confidence?: string;
+  facility_class?: string;
+  recommendation_reason?: string;
   distance_km?: number;
   estimated_cost_min?: number;
   estimated_cost_max?: number;
+  image_url?: string;
+  image_source?: string;
+  image_attribution?: string;
+  image_license?: string;
+  initials?: string;
 }
 
 export interface SearchState {
@@ -31,6 +38,7 @@ export interface SearchState {
   treatmentName: string;
   city: string;
   locality: string;
+  pinCode?: string;
   hospitalName: string;
   comparisonList: FacilityItem[];
   recentSearches: string[];
@@ -40,7 +48,7 @@ interface SearchContextType {
   searchState: SearchState;
   setSearchQuery: (query: string) => void;
   setTreatment: (id: string, name: string) => void;
-  setLocation: (city: string, locality?: string) => void;
+  setLocation: (city: string, locality?: string, pinCode?: string) => void;
   setHospitalName: (name: string) => void;
   addToComparison: (facility: FacilityItem) => void;
   removeFromComparison: (facilityId: string) => void;
@@ -54,6 +62,7 @@ const defaultState: SearchState = {
   treatmentName: "Total Knee Replacement (TKR)",
   city: "Hyderabad",
   locality: "",
+  pinCode: "",
   hospitalName: "",
   comparisonList: [],
   recentSearches: ["Knee replacement in Hyderabad", "MRI brain scan", "Cataract surgery near me"]
@@ -90,8 +99,13 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setState(prev => ({ ...prev, treatmentId: id, treatmentName: name }));
   };
 
-  const setLocation = (city: string, locality?: string) => {
-    setState(prev => ({ ...prev, city, locality: locality || "" }));
+  const setLocation = (city: string, locality?: string, pinCode?: string) => {
+    setState(prev => ({ 
+      ...prev, 
+      city, 
+      locality: locality !== undefined ? locality : prev.locality,
+      pinCode: pinCode !== undefined ? pinCode : prev.pinCode 
+    }));
   };
 
   const setHospitalName = (name: string) => {

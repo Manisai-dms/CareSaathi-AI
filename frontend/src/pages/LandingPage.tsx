@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import { useLanguage } from '../context/LanguageContext';
 import { 
   ArrowRight, 
@@ -10,10 +11,11 @@ import {
   Mic, 
   FileText, 
   Layers, 
-  Info,
-  Building2,
-  Sparkles,
-  Heart
+  Info, 
+  Building2, 
+  Sparkles, 
+  Heart,
+  Activity
 } from 'lucide-react';
 
 interface LandingPageProps {
@@ -73,9 +75,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <button
                   onClick={onStartSearch}
                   className="btn btn-primary btn-lg"
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: '10px' }}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', fontWeight: 800 }}
                 >
-                  <span>{t('exploreOptions')}</span>
+                  <span>Get Started</span>
                   <ArrowRight size={18} />
                 </button>
                 <button
@@ -112,24 +114,67 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
 
             {/* Right Hero Realistic Product Preview */}
-            <div>
+            <motion.div
+              initial={{ opacity: 0, y: 25 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+            >
               <div style={{
                 background: 'linear-gradient(135deg, var(--color-mint) 0%, var(--color-light-blue) 100%)',
                 borderRadius: 'var(--radius-lg)',
                 padding: '24px',
                 boxShadow: 'var(--shadow-lg)',
-                border: '1px solid #d2e4f3'
+                border: '1px solid #d2e4f3',
+                position: 'relative'
               }}>
+                {/* Floating Live Badge */}
+                <motion.div
+                  animate={{ y: [0, -6, 0] }}
+                  transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}
+                  style={{
+                    position: 'absolute',
+                    top: '-12px',
+                    right: '24px',
+                    backgroundColor: '#12304A',
+                    color: '#A7F3D0',
+                    border: '1px solid #2C8C83',
+                    borderRadius: '20px',
+                    padding: '4px 12px',
+                    fontSize: '0.74rem',
+                    fontWeight: 700,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    boxShadow: '0 4px 12px rgba(18, 48, 74, 0.25)'
+                  }}
+                >
+                  <Activity size={12} color="#2C8C83" />
+                  <span>Live Indicative Tariffs</span>
+                </motion.div>
+
                 {/* Simulated UI Card */}
                 <div style={{
                   backgroundColor: 'var(--color-white)',
                   borderRadius: 'var(--radius-md)',
-                  padding: '20px',
+                  padding: '22px',
                   boxShadow: 'var(--shadow-sm)'
                 }}>
-                  {/* Top Bar */}
+                  {/* Top Bar with Live ECG pulse */}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                    <span className="badge badge-teal">Live Care Estimation Preview</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span className="badge badge-teal">Live Care Preview</span>
+                      <svg width="40" height="18" viewBox="0 0 40 18" fill="none">
+                        <motion.path
+                          d="M 2 9 L 10 9 L 14 3 L 18 15 L 22 5 L 26 12 L 30 9 L 38 9"
+                          stroke="#2C8C83"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          animate={{ pathLength: [0.3, 1, 0.3] }}
+                          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                        />
+                      </svg>
+                    </div>
                     <span style={{ fontSize: '0.78rem', color: 'var(--color-text-grey)' }}>Hyderabad, Telangana</span>
                   </div>
 
@@ -155,7 +200,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                       ₹0 (Govt / Free) — ₹2,90,000 (Private)
                     </div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--color-teal-dark)', fontWeight: 600, marginTop: '2px' }}>
-                      ✓ High Data Confidence • Verified NIMS & Apollo Rates
+                      ✓ High Data Confidence • Verified NIMS &amp; Apollo Rates
                     </div>
                   </div>
 
@@ -188,7 +233,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   </button>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>

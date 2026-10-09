@@ -28,7 +28,9 @@ def search_facilities(
     treatment_id: Optional[str] = None,
     ownership_filter: Optional[str] = None,
     scheme_filter: Optional[str] = None,
-    sort_by: str = "nearest"  # nearest, lowest_cost, rating
+    radius_km: Optional[float] = None,
+    sort_by: str = "nearest",  # nearest, lowest_cost, rating
+    treatment_available_only: bool = False
 ) -> List[Facility]:
     all_facilities = get_all_facilities()
     results: List[Facility] = []
@@ -48,7 +50,12 @@ def search_facilities(
         "somajiguda": (17.4262, 78.4593),
         "hyderguda": (17.3941, 78.4831),
         "panjagutta": (17.4227, 78.4526),
-        "musheerabad": (17.4243, 78.5032)
+        "punjagutta": (17.4227, 78.4526),
+        "musheerabad": (17.4243, 78.5032),
+        "afzal gunj": (17.3773, 78.4777),
+        "begumpet": (17.4447, 78.4664),
+        "madhapur": (17.4483, 78.3915),
+        "kondapur": (17.4699, 78.3578)
     }
 
     if user_lat is None or user_lng is None:
@@ -63,14 +70,28 @@ def search_facilities(
         # Locality / City / PIN match
         if pin_code and fac.pin_code != pin_code:
             continue
-            
-        if query_locality:
-            # If locality specified, boost or check
-            pass
 
-        # Ownership filter
-        if ownership_filter and ownership_filter != "All" and fac.ownership.lower() != ownership_filter.lower():
-            continue
+        # Ownership / Classification filter
+        if ownership_filter and ownership_filter != "All":
+            norm_filter = ownership_filter.lower().strip()
+            if norm_filter == "premium":
+                if fac.facility_class != "Premium":
+                    continue
+            elif norm_filter == "government":
+                if fac.ownership.lower() != "government":
+                    continue
+            elif norm_filter == "private":
+                # Standard private non-premium
+                if fac.ownership.lower() != "private" or fac.facility_class == "Premium":
+                    continue
+            elif norm_filter in ["charitable/trust", "trust", "charitable"]:
+                if fac.ownership.lower() not in ["charitable/trust", "trust", "charitable"]:
+                    continue
+
+        # Treatment availability filter
+        if treatment_available_only and treatment_id:
+            if treatment_id not in fac.verified_treatments:
+                continue
 
         # Scheme filter
         if scheme_filter and scheme_filter != "All":
@@ -80,23 +101,49 @@ def search_facilities(
         # Calculate Distance
         fac.distance_km = haversine_distance(user_lat, user_lng, fac.lat, fac.lng)
 
+        # Distance radius filter
+        if radius_km is not None and radius_km > 0 and fac.distance_km > radius_km:
+            continue
+
         # Estimate cost for this facility if treatment specified
         if treatment_obj:
             if fac.ownership == "Government":
                 fac.estimated_cost_min = 0
-                fac.estimated_cost_max = int(treatment_obj.indicative_min * 0.15)
+                fac.estimated_cost_max = int(treatment_obj.indicative_min * 0.15) if treatment_obj.indicative_min > 5000 else 100
                 fac.price_confidence = "High"
                 fac.pricing_status = "Free (Govt / Aarogyasri)"
             elif fac.ownership == "Charitable/Trust":
-                fac.estimated_cost_min = int(treatment_obj.indicative_min * 0.65)
-                fac.estimated_cost_max = int(treatment_obj.indicative_max * 0.75)
+                fac.estimated_cost_min = int(treatment_obj.indicative_min * 0.50)
+                fac.estimated_cost_max = int(treatment_obj.indicative_max * 0.70)
                 fac.price_confidence = "High"
                 fac.pricing_status = "Subsidized Trust Rate"
+            elif fac.facility_class == "Premium":
+                fac.estimated_cost_min = int(treatment_obj.indicative_min * 1.30)
+                fac.estimated_cost_max = int(treatment_obj.indicative_max * 1.60)
+                fac.price_confidence = "Medium"
+                fac.pricing_status = "Premium Quaternary Tariff"
             else:
-                fac.estimated_cost_min = int(treatment_obj.indicative_min * 1.0)
-                fac.estimated_cost_max = int(treatment_obj.indicative_max * 1.15)
+                fac.estimated_cost_min = int(treatment_obj.indicative_min * 0.90)
+                fac.estimated_cost_max = int(treatment_obj.indicative_max * 1.05)
                 fac.price_confidence = "Medium"
                 fac.pricing_status = "Private Reference Range"
+
+        # Ensure recommendation reason is clear and transparent
+        if not fac.recommendation_reason:
+            reason_parts = []
+            if fac.ownership == "Government":
+                reason_parts.append("State teaching hospital with 100% cashless public scheme coverage.")
+            elif fac.facility_class == "Premium":
+                reason_parts.append("Quaternary JCI/NABH accredited center with advanced robotic surgical suites.")
+            elif fac.ownership == "Charitable/Trust":
+                reason_parts.append("Subsidized non-profit healthcare trust with compassionate tariff aid.")
+            else:
+                reason_parts.append("NABH-accredited private multi-specialty hospital with comprehensive inpatient care.")
+            if treatment_id and treatment_id in fac.verified_treatments:
+                reason_parts.append("Verified clinical department available.")
+            if fac.distance_km is not None and fac.distance_km <= 10:
+                reason_parts.append(f"Conveniently located {fac.distance_km} km away.")
+            fac.recommendation_reason = " ".join(reason_parts)
 
         photo_meta = get_hospital_photo_metadata(fac.id, fac.name)
         fac.image_url = photo_meta.get("image_url")

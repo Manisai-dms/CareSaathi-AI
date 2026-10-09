@@ -55,9 +55,19 @@ def init_db():
         room_types TEXT,
         last_verified_date TEXT,
         pricing_status TEXT,
-        price_confidence TEXT
+        price_confidence TEXT,
+        facility_class TEXT DEFAULT 'Standard',
+        recommendation_reason TEXT
     )
     """)
+
+    # Ensure schema migrations for existing database
+    cursor.execute("PRAGMA table_info(facilities)")
+    columns = [row[1] for row in cursor.fetchall()]
+    if "facility_class" not in columns:
+        cursor.execute("ALTER TABLE facilities ADD COLUMN facility_class TEXT DEFAULT 'Standard'")
+    if "recommendation_reason" not in columns:
+        cursor.execute("ALTER TABLE facilities ADD COLUMN recommendation_reason TEXT")
 
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS schemes (
@@ -145,31 +155,28 @@ def init_db():
         """, (f"{demo_salt}${demo_hash}",))
         conn.commit()
 
-    # Populate Treatments
-    cursor.execute("SELECT COUNT(*) FROM treatments")
-    if cursor.fetchone()[0] == 0:
-        for t in TREATMENT_CATALOGUE.values():
-            cursor.execute("""
-            INSERT INTO treatments VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                t.id, t.name, t.category, json.dumps(t.aliases), t.description,
-                t.indicative_min, t.indicative_max, t.package_code_pmjay,
-                t.package_code_aarogyasri, t.standard_stay_duration,
-                json.dumps(t.common_diagnostics_required)
-            ))
+    # Populate Treatments (Upsert to ensure newly added procedures like diabetes_care, kidney_stones, blood_tests are populated)
+    for t in TREATMENT_CATALOGUE.values():
+        cursor.execute("""
+        INSERT OR REPLACE INTO treatments VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            t.id, t.name, t.category, json.dumps(t.aliases), t.description,
+            t.indicative_min, t.indicative_max, t.package_code_pmjay,
+            t.package_code_aarogyasri, t.standard_stay_duration,
+            json.dumps(t.common_diagnostics_required)
+        ))
 
-    # Populate Facilities
-    cursor.execute("SELECT COUNT(*) FROM facilities")
-    if cursor.fetchone()[0] == 0:
-        for f in SEED_FACILITIES:
-            cursor.execute("""
-            INSERT INTO facilities VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                f.id, f.name, f.address, f.locality, f.city, f.state, f.pin_code,
-                f.lat, f.lng, f.ownership, f.phone, f.website, f.rating,
-                json.dumps(f.verified_treatments), json.dumps(f.empanelled_schemes),
-                json.dumps(f.room_types), f.last_verified_date, f.pricing_status, f.price_confidence
-            ))
+    # Populate Facilities (Upsert to ensure all genuine facilities are populated)
+    for f in SEED_FACILITIES:
+        cursor.execute("""
+        INSERT OR REPLACE INTO facilities VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            f.id, f.name, f.address, f.locality, f.city, f.state, f.pin_code,
+            f.lat, f.lng, f.ownership, f.phone, f.website, f.rating,
+            json.dumps(f.verified_treatments), json.dumps(f.empanelled_schemes),
+            json.dumps(f.room_types), f.last_verified_date, f.pricing_status, f.price_confidence,
+            getattr(f, 'facility_class', 'Standard'), getattr(f, 'recommendation_reason', None)
+        ))
 
     # Populate Schemes
     cursor.execute("SELECT COUNT(*) FROM schemes")
@@ -254,6 +261,7 @@ def get_all_facilities() -> List[Facility]:
     rows = cursor.fetchall()
     facilities = []
     for r in rows:
+        col_names = r.keys()
         facilities.append(Facility(
             id=r["id"],
             name=r["name"],
@@ -265,6 +273,8 @@ def get_all_facilities() -> List[Facility]:
             lat=r["lat"],
             lng=r["lng"],
             ownership=r["ownership"],
+            facility_class=r["facility_class"] if "facility_class" in col_names and r["facility_class"] else "Standard",
+            recommendation_reason=r["recommendation_reason"] if "recommendation_reason" in col_names else None,
             phone=r["phone"],
             website=r["website"],
             rating=r["rating"],
@@ -286,6 +296,7 @@ def get_facility_by_id(facility_id: str) -> Optional[Facility]:
     conn.close()
     if not r:
         return None
+    col_names = r.keys()
     return Facility(
         id=r["id"],
         name=r["name"],
@@ -297,6 +308,8 @@ def get_facility_by_id(facility_id: str) -> Optional[Facility]:
         lat=r["lat"],
         lng=r["lng"],
         ownership=r["ownership"],
+        facility_class=r["facility_class"] if "facility_class" in col_names and r["facility_class"] else "Standard",
+        recommendation_reason=r["recommendation_reason"] if "recommendation_reason" in col_names else None,
         phone=r["phone"],
         website=r["website"],
         rating=r["rating"],

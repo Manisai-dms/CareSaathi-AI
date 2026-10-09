@@ -125,6 +125,20 @@ def build_canonical_request(req: GuidedChatRequest) -> CanonicalHealthcareReques
 
     # 4. Check Prescription Attachment / OCR Input
     has_attached_rx = bool(req.prescription_filename) or bool(req.prescription_text)
+
+    # Empty Input / Silent Audio Check
+    if not clean_msg and not has_attached_rx:
+        return CanonicalHealthcareRequest(
+            raw_input="",
+            input_source=req.input_source or "text",
+            detected_language=user_lang,
+            primary_intent="empty_input",
+            user_actual_question="",
+            requested_outcome="clarify_empty_input",
+            is_emergency=False,
+            conversation_context=history
+        )
+
     rx_ocr_data = None
     extracted_meds: List[Dict[str, Any]] = []
 
@@ -285,6 +299,32 @@ def _execute_canonical_request_internal(creq: CanonicalHealthcareRequest) -> Gui
     """
     user_lang = creq.detected_language
     db_available = check_database_available()
+
+    # -------------------------------------------------------------
+    # INTENT 0: EMPTY INPUT / SILENT SPEECH
+    # -------------------------------------------------------------
+    if creq.primary_intent == "empty_input":
+        if user_lang in ["te", "te-en"]:
+            empty_reply = (
+                "🎙️ మీ మాట లేదా సందేశం రికార్డు కాలేదు (No speech or text detected).\n\n"
+                "దయచేసి మైక్రోఫోన్ బటన్ నొక్కి స్పష్టంగా మాట్లాడండి లేదా మీ ఆరోగ్య సందేహాన్ని క్రింద టైప్ చేయండి."
+            )
+            chips = ["మళ్లీ మాట్లాడండి (Speak)", "టైప్ చేయండి", "108 ఎమర్జెన్సీ"]
+        else:
+            empty_reply = (
+                "🎙️ No spoken audio or text was detected.\n\n"
+                "Please press the microphone button to speak clearly, or type your healthcare question below."
+            )
+            chips = ["Try Speaking Again", "Type Question", "Call 108 Emergency"]
+
+        return GuidedChatResponse(
+            reply=empty_reply,
+            reply_language=user_lang,
+            emergency_detected=False,
+            suggested_chips=chips,
+            canonical_intent="empty_input",
+            audio_tts_text=clean_tts_text(empty_reply)
+        )
 
     # -------------------------------------------------------------
     # INTENT 1: EMERGENCY RED-FLAG PROTOCOL (PHASE 11)
@@ -580,6 +620,32 @@ def _execute_canonical_request_internal(creq: CanonicalHealthcareRequest) -> Gui
         if not facilities:
             # Fallback to broader city query if specific locality yielded zero results
             facilities = search_facilities(query_city=target_city, ownership_filter=creq.ownership_preference)[:3]
+
+        if not facilities:
+            if user_lang in ["te", "te-en"]:
+                no_hosp_reply = (
+                    f"ℹ️ '{target_city}' లో మా అధికారిక డేటాబేస్‌లో ధృవీకరించబడిన ఆసుపత్రులు ప్రస్తుతం అందుబాటులో లేవు.\n\n"
+                    "రోగుల భద్రత దృష్ట్యా CareSaathi ఊహాత్మక ఆసుపత్రులను లేదా నకిలీ వివరాలను చూపించదు.\n\n"
+                    "👉 సమీప జిల్లా ఆసుపత్రి వివరాల కోసం జాతీయ ఆరోగ్య హెల్ప్‌లైన్ 104 కి కాల్ చేయండి లేదా హైదరాబాద్ పరిసరాలను ఎంచుకోండి."
+                )
+                chips = ["104 హెల్ప్‌లైన్", "హైదరాబాద్ ఆసుపత్రులు", "మళ్లీ వెతకండి"]
+            else:
+                no_hosp_reply = (
+                    f"ℹ️ No verified hospitals were found for '{target_city}' in our authenticated registry.\n\n"
+                    "CareSaathi strictly refuses to invent fake clinics, unknown doctors, or unverified healthcare facilities.\n\n"
+                    "👉 Call National Health Helpline 104 for official district referral centres or search regional hubs like Hyderabad."
+                )
+                chips = ["104 Health Helpline", "Search Hyderabad Facilities", "Retry Search"]
+
+            return GuidedChatResponse(
+                reply=no_hosp_reply,
+                reply_language=user_lang,
+                emergency_detected=False,
+                suggested_chips=chips,
+                canonical_intent="hospital_discovery",
+                hospitals_card=[],
+                audio_tts_text=clean_tts_text(no_hosp_reply)
+            )
 
         hospitals_card_data = [{
             "id": f.id,

@@ -80,7 +80,9 @@ def is_explicit_follow_up(msg: str) -> bool:
     follow_up_tokens = [
         "what about", "how about", "what if", "and in", "in government", "in private",
         "మరి", "మరియు", "ప్రభుత్వంలో అయితే", "ప్రైవేట్‌లో అయితే", "అక్కడ", "అయితే",
-        "then", "there", "for that", "దానికి", "దాని ఖర్చు", "same for"
+        "then", "there", "for that", "దానికి", "దాని ఖర్చు", "same for",
+        "ప్రభుత్వ", "ప్రభుత్వంలో", "హాస్పిటల్లో", "తక్కువ ఖర్చు", "తక్కువ ఖర్చుతో",
+        "ఏమైనా అవకాశం", "అవకాశం ఉందా", "ఉచితంగా", "free", "cheaper"
     ]
     return any(tok in clean for tok in follow_up_tokens) or len(clean.split()) <= 4
 
@@ -276,7 +278,7 @@ def check_database_available() -> bool:
         pass
     return is_database_available()
 
-def execute_canonical_request(creq: CanonicalHealthcareRequest) -> GuidedChatResponse:
+def _execute_canonical_request_internal(creq: CanonicalHealthcareRequest) -> GuidedChatResponse:
     """
     PHASE 2 & 5: Executes the specific clinical workflow matched to the user's canonical request.
     Produces evidence-backed, traceable answers without hallucination or fake data.
@@ -954,3 +956,26 @@ def execute_canonical_request(creq: CanonicalHealthcareRequest) -> GuidedChatRes
         canonical_intent="general_health_query",
         audio_tts_text=clean_tts_text(gen_reply)
     )
+
+def execute_canonical_request(creq: CanonicalHealthcareRequest) -> GuidedChatResponse:
+    """
+    Public entry point for Canonical Request execution.
+    Executes the clinical workflow and guarantees extracted_data presence for complete traceability.
+    """
+    db_available = check_database_available()
+    resp = _execute_canonical_request_internal(creq)
+
+    if resp.extracted_data is None:
+        resp.extracted_data = {
+            "treatment_id": creq.treatment_id,
+            "treatment_name": creq.treatment_name,
+            "city": creq.location_city,
+            "locality": creq.location_locality,
+            "ownership_preference": creq.ownership_preference,
+            "primary_intent": creq.primary_intent,
+            "canonical_intent": creq.primary_intent,
+            "confidence": "Verified Database" if db_available else "Reference Catalogue",
+            "database_connected": db_available,
+            "is_emergency": creq.is_emergency
+        }
+    return resp

@@ -15,6 +15,7 @@ from .models.schemas import (
     Treatment, Facility, Scheme, CostEstimateRequest, CostEstimateResponse,
     NLPParseRequest, NLPParseResponse, PrescriptionOCRRequest, PrescriptionOCRResponse,
     SpeechTranscribeRequest, SpeechTranscribeResponse,
+    SpeechSynthesizeRequest, SpeechSynthesizeResponse,
     SchemeMatchRequest, SchemeMatchResult, FacilityCompareRequest, MetadataResponse,
     GuidedChatRequest, GuidedChatResponse, TrustDashboardData,
     RegisterRequest, LoginRequest, AuthResponse, UserProfile,
@@ -321,10 +322,19 @@ async def ocr_prescription(
 def ocr_prescription_json(req: PrescriptionOCRRequest):
     return process_prescription_ocr(req)
 
-# --- Speech Recognition ---
+# --- Speech Recognition & Synthesis ---
 @app.post("/api/speech/transcribe", response_model=SpeechTranscribeResponse)
 def speech_transcribe(req: SpeechTranscribeRequest):
     return transcribe_audio(req)
+
+@app.post("/api/speech/synthesize", response_model=SpeechSynthesizeResponse)
+def speech_synthesize(req: SpeechSynthesizeRequest):
+    return SpeechSynthesizeResponse(
+        audio_base64=None,
+        language=req.language,
+        status="client_speech_synthesis_preferred",
+        notice=f"Phonetic text prepared for {req.language} voice engine"
+    )
 
 # --- Phase 3 Authentication & User Management ---
 def get_current_user(authorization: Optional[str] = Header(None)) -> Dict[str, Any]:

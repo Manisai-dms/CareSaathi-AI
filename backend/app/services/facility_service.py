@@ -62,11 +62,14 @@ def search_facilities(
             if city_filter_term and city_filter_term not in fac.city.lower():
                 continue
 
-        # City / State filter if city parameter is provided and no GPS radius is set
+        # City / State / Locality filter if city parameter is provided and no GPS radius is set
         if city_filter_term and radius_km is None:
             matches_city = (city_filter_term in fac.city.lower() or 
                             fac.city.lower() in city_filter_term or
-                            city_filter_term in fac.state.lower())
+                            (fac.locality and city_filter_term in fac.locality.lower()) or
+                            (fac.locality and fac.locality.lower() in city_filter_term) or
+                            city_filter_term in fac.state.lower() or
+                            (city_filter_term in ["secunderabad", "kukatpally", "gachibowli", "banjara hills"] and fac.city.lower() == "hyderabad"))
             if not matches_city:
                 continue
 

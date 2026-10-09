@@ -193,7 +193,8 @@ def build_canonical_request(req: GuidedChatRequest) -> CanonicalHealthcareReques
     # Hospital Discovery
     elif any(w in clean_lower for w in [
         "హాస్పిటల్", "హాస్పిటల్స్", "ఆసుపత్రి", "ఆసుపత్రులు", "hospital", "hospitals",
-        "clinic", "క్లినిక్", "అస్సపతాల్", "अस्पताल"
+        "clinic", "క్లినిక్", "అస్సపతాల్", "अस्पताल", "specialist", "specialists",
+        "cardiolog", "orthopedic", "centre", "center", "centres", "centers", "nursing home"
     ]) and not any(t in clean_lower for t in ["cost", "ఖర్చు", "ధర", "రేటు", "ఫీజు"]):
         primary_intent = "hospital_discovery"
         requested_outcome = "facility_directory"
@@ -1030,6 +1031,9 @@ def execute_canonical_request(creq: CanonicalHealthcareRequest) -> GuidedChatRes
     """
     db_available = check_database_available()
     resp = _execute_canonical_request_internal(creq)
+
+    if resp.hospitals_card is None:
+        resp.hospitals_card = []
 
     if resp.extracted_data is None:
         resp.extracted_data = {

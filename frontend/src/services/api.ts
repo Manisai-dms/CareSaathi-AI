@@ -290,6 +290,29 @@ export interface GuidedChatResponseDTO {
   audio_tts_text?: string;
   is_clarification?: boolean;
   clarification_options?: string[];
+  action_plan?: PatientActionPlanDTO;
+}
+
+export interface PatientActionPlanDTO {
+  title: string;
+  user_stated_concern: string;
+  confirmed_details: Record<string, any>;
+  cost_estimate_summary: {
+    procedure_name: string;
+    government_cost: string;
+    private_indicative_min: number;
+    private_indicative_max: number;
+    private_range_display: string;
+    statutory_price_caps: string[];
+  };
+  estimate_limitations: string[];
+  verified_hospitals: HospitalCardDTO[];
+  official_lookup_routes: Array<{ name: string; url: string; purpose: string }>;
+  applicable_schemes: Array<{ name: string; coverage_limit: string; eligibility_rule: string; empanelled_route: string }>;
+  questions_to_ask_hospital: string[];
+  documents_to_carry: string[];
+  next_step_checklist: Array<{ step: number; task: string; done: boolean }>;
+  printable_text: string;
 }
 
 export const api = {
@@ -677,6 +700,23 @@ export const api = {
   async getPaymentStatus(orderId: string): Promise<PaymentOrderDTO> {
     const res = await fetch(`${API_BASE}/payments/status/${orderId}`);
     if (!res.ok) throw new Error("Failed to fetch payment status");
+    return res.json();
+  },
+
+  async generateActionPlan(data: {
+    user_concern: string;
+    treatment_id?: string;
+    city?: string;
+    ownership_preference?: string;
+    language?: string;
+    user_budget?: number;
+  }): Promise<PatientActionPlanDTO> {
+    const res = await fetch(`${API_BASE}/action-plan/generate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) throw new Error("Failed to generate patient action plan");
     return res.json();
   }
 };

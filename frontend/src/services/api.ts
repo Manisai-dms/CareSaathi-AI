@@ -187,6 +187,24 @@ export interface SchemeMatchDTO {
   helpline: string;
 }
 
+export interface DetectedMedicineDetailDTO {
+  medicine_id: string;
+  name: string;
+  generic_name: string;
+  strength: string;
+  formulation: string;
+  frequency: string;
+  duration: string;
+  quantity: number;
+  cost_branded: number;
+  cost_jan_aushadhi: number;
+  generic_alternative: string;
+  source: string;
+  is_verified: boolean;
+  is_uncertain: boolean;
+  visibly_extracted_text: string;
+}
+
 export interface PrescriptionOCRDTO {
   extracted_raw_text: string;
   confidence_score: number;
@@ -196,6 +214,25 @@ export interface PrescriptionOCRDTO {
   requires_user_confirmation: boolean;
   notice: string;
   suggested_search_query?: string;
+  detected_language?: string;
+  detected_medicines_detailed?: DetectedMedicineDetailDTO[];
+  uncertain_regions?: string[];
+  is_handwritten?: boolean;
+  image_quality_notes?: string;
+  visibly_extracted_lines?: string[];
+}
+
+export interface SpeechTranscribeDTO {
+  transcript: string;
+  detected_language: string;
+  confidence?: number | null;
+  confidence_label: string;
+  is_code_switched: boolean;
+  original_script: string;
+  provider: string;
+  is_fallback: boolean;
+  status: string;
+  message?: string | null;
 }
 
 export interface TrustDashboardDataDTO {
@@ -379,6 +416,28 @@ export const api = {
       method: 'POST',
       body: formData
     });
+    return res.json();
+  },
+
+  async transcribeSpeech(params: {
+    audio_base64?: string;
+    transcript_hint?: string;
+    language?: string;
+    format?: string;
+  }): Promise<SpeechTranscribeDTO> {
+    const res = await fetch(`${API_BASE}/speech/transcribe`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        audio_base64: params.audio_base64,
+        transcript_hint: params.transcript_hint,
+        language: params.language || 'te-IN',
+        format: params.format || 'webm'
+      })
+    });
+    if (!res.ok) {
+      throw new Error(`Speech transcription failed: ${res.statusText}`);
+    }
     return res.json();
   },
 

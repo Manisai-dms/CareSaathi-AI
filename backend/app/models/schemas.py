@@ -281,9 +281,37 @@ class FacilityCompareRequest(BaseModel):
     facility_ids: List[str]
     treatment_id: str
 
+# --- Canonical Healthcare Problem-Solving Request ---
+class CanonicalHealthcareRequest(BaseModel):
+    raw_input: str
+    input_source: str = "text"  # "text", "voice", "ocr", "combined"
+    detected_language: str = "en"
+    primary_intent: str = "general_query"
+    symptoms: List[str] = []
+    treatment_id: Optional[str] = None
+    treatment_name: Optional[str] = None
+    medicine_query: Optional[str] = None
+    extracted_medicines: List[Dict[str, Any]] = []
+    location_city: Optional[str] = None
+    location_locality: Optional[str] = None
+    ownership_preference: Optional[str] = None  # "Government", "Private", "All"
+    budget_limit: Optional[int] = None
+    scheme_name: Optional[str] = None
+    ration_card_type: Optional[str] = None
+    user_actual_question: str
+    requested_outcome: str = "general_advice"
+    extracted_facts: Dict[str, Any] = {}
+    confidence_score: float = 1.0
+    missing_required_fields: List[str] = []
+    clarification_prompt: Optional[str] = None
+    is_emergency: bool = False
+    data_limitations: List[str] = []
+    conversation_context: List[Dict[str, str]] = []
+
 # Guided Chat Request / Response (Voice-First Conversational Assistant)
 class GuidedChatRequest(BaseModel):
     message: str
+    input_source: Optional[str] = "text"  # "text", "voice", "ocr", "combined"
     treatment_id: Optional[str] = None
     city: Optional[str] = "Hyderabad"
     history: List[Dict[str, str]] = []
@@ -296,10 +324,12 @@ class GuidedChatResponse(BaseModel):
     reply_language: str = "en"
     emergency_detected: bool = False
     suggested_chips: List[str] = []
+    canonical_intent: Optional[str] = None
     extracted_data: Optional[Dict[str, Any]] = None
     structured_estimate: Optional[CostEstimateResponse] = None
     hospitals_card: Optional[List[Dict[str, Any]]] = None
     prescription_card: Optional[Dict[str, Any]] = None
+    medicine_price_card: Optional[Dict[str, Any]] = None
     audio_tts_text: Optional[str] = None
     is_clarification: bool = False
     clarification_options: List[str] = []

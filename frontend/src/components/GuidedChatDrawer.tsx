@@ -317,12 +317,46 @@ export const GuidedChatDrawer: React.FC<GuidedChatDrawerProps> = ({
           playSpeech(botMsgId, res.audio_tts_text || res.reply);
         }, 300);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Chat error:", err);
+      const isNetworkErr = err?.message?.includes("Failed to fetch") || 
+                           err?.message?.includes("NetworkError") || 
+                           (typeof navigator !== 'undefined' && !navigator.onLine);
+
+      let errMsgText: string;
+      let chips: string[];
+
+      if (chatLang.startsWith('te')) {
+        if (isNetworkErr) {
+          errMsgText = "నెట్‌వర్క్ కనెక్షన్ లోపం: దయచేసి మీ ఇంటర్నెట్ కనెక్షన్‌ను తనిఖీ చేసి మళ్లీ ప్రయత్నించండి.";
+          chips = ["మళ్లీ ప్రయత్నించండి (Retry)", "టైప్ చేయండి"];
+        } else {
+          errMsgText = "అసిస్టెంట్ సేవ తాత్కాలికంగా స్పందించడం లేదు. దయచేసి మళ్లీ మాట్లాడండి లేదా మీ ప్రశ్నను క్రింద టైప్ చేయండి.";
+          chips = ["మళ్లీ మాట్లాడండి (Retry)", "టైప్ చేయండి", "108 ఎమర్జెన్సీ"];
+        }
+      } else if (chatLang.startsWith('hi')) {
+        if (isNetworkErr) {
+          errMsgText = "नेटवर्क कनेक्शन समस्या: कृपया अपना इंटरनेट कनेक्शन जांचें और पुनः प्रयास करें।";
+          chips = ["पुनः प्रयास करें (Retry)", "टाइप करें"];
+        } else {
+          errMsgText = "असिस्टेंट सेवा अस्थायी रूप से प्रतिक्रिया नहीं दे रही है। कृपया पुनः बोलें या टाइप करें।";
+          chips = ["पुनः बोलें (Retry)", "टाइप करें", "108 इमरजेंसी"];
+        }
+      } else {
+        if (isNetworkErr) {
+          errMsgText = "Network connection issue. Please check your internet connectivity and try again.";
+          chips = ["Retry", "Type Question"];
+        } else {
+          errMsgText = "The assistant service is temporarily not responding. Please retry or type your question below.";
+          chips = ["Retry", "Type Question", "Call 108 Emergency"];
+        }
+      }
+
       const errMsg: ChatMessage = {
         id: (Date.now() + 1).toString(),
         sender: 'bot',
-        text: "కనెక్టివిటీ లోపం: డేటాబేస్ అందుబాటులో లేదు. దయచేసి మళ్లీ ప్రయత్నించండి.",
+        text: errMsgText,
+        chips,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
       setMessages(prev => [...prev, errMsg]);

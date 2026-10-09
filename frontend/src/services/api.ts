@@ -322,6 +322,10 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(params)
     });
+    if (!res.ok) {
+      const errJson = await res.json().catch(() => ({}));
+      throw new Error(errJson.detail || `Server returned error ${res.status}`);
+    }
     return res.json();
   },
 

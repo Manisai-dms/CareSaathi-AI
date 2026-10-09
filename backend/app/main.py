@@ -9,7 +9,7 @@ from .config import settings
 from .data.database import (
     init_db, get_all_treatments, get_treatment_by_id,
     get_all_facilities, get_facility_by_id, get_all_schemes,
-    get_cost_observations, get_connection
+    get_cost_observations, get_connection, is_database_available
 )
 from .models.schemas import (
     Treatment, Facility, Scheme, CostEstimateRequest, CostEstimateResponse,
@@ -104,12 +104,14 @@ def compute_trust_metrics() -> TrustDashboardData:
 # --- Health & Metadata ---
 @app.get("/api/health")
 def health_check():
+    db_ok = is_database_available()
     return {
         "status": "healthy",
         "app": settings.APP_NAME,
         "version": settings.APP_VERSION,
         "demo_mode": settings.DEMO_MODE,
-        "database": "SQLite (Initialized & Seeded)"
+        "database": "SQLite (Connected)" if db_ok else "Fallback (In-Memory Catalogue Mode)",
+        "database_connected": db_ok
     }
 
 @app.get("/api/metadata", response_model=MetadataResponse)

@@ -7,12 +7,28 @@ from .catalogue import TREATMENT_CATALOGUE
 from .seed_data import SEED_FACILITIES, SEED_SCHEMES, SEED_COST_OBSERVATIONS
 from ..models.schemas import Facility, Treatment, Scheme, CostObservation, CostBreakdown
 
+import logging
+
+logger = logging.getLogger("caresaathi.database")
+
 DB_FILE = settings.DATABASE_PATH
 
 def get_connection():
     conn = sqlite3.connect(DB_FILE)
     conn.row_factory = sqlite3.Row
     return conn
+
+def is_database_available() -> bool:
+    """Checks whether the database connection is healthy and responsive."""
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT 1 FROM facilities LIMIT 1")
+        conn.close()
+        return True
+    except Exception as e:
+        logger.warning(f"Database availability check failed: {e}")
+        return False
 
 def init_db():
     conn = get_connection()
@@ -208,13 +224,42 @@ def init_db():
 
 # Database Query Functions
 def get_all_treatments() -> List[Treatment]:
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM treatments ORDER BY name ASC")
-    rows = cursor.fetchall()
-    treatments = []
-    for r in rows:
-        treatments.append(Treatment(
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM treatments ORDER BY name ASC")
+        rows = cursor.fetchall()
+        treatments = []
+        for r in rows:
+            treatments.append(Treatment(
+                id=r["id"],
+                name=r["name"],
+                category=r["category"],
+                aliases=json.loads(r["aliases"] or "[]"),
+                description=r["description"],
+                indicative_min=r["indicative_min"],
+                indicative_max=r["indicative_max"],
+                package_code_pmjay=r["package_code_pmjay"],
+                package_code_aarogyasri=r["package_code_aarogyasri"],
+                standard_stay_duration=r["standard_stay_duration"],
+                common_diagnostics_required=json.loads(r["common_diagnostics_required"] or "[]")
+            ))
+        conn.close()
+        return treatments
+    except Exception as e:
+        logger.warning(f"Database query failed in get_all_treatments: {e}. Falling back to catalogue master.")
+        return list(TREATMENT_CATALOGUE.values())
+
+def get_treatment_by_id(treatment_id: str) -> Optional[Treatment]:
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM treatments WHERE id = ?", (treatment_id,))
+        r = cursor.fetchone()
+        conn.close()
+        if not r:
+            return TREATMENT_CATALOGUE.get(treatment_id)
+        return Treatment(
             id=r["id"],
             name=r["name"],
             category=r["category"],
@@ -226,41 +271,60 @@ def get_all_treatments() -> List[Treatment]:
             package_code_aarogyasri=r["package_code_aarogyasri"],
             standard_stay_duration=r["standard_stay_duration"],
             common_diagnostics_required=json.loads(r["common_diagnostics_required"] or "[]")
-        ))
-    conn.close()
-    return treatments
-
-def get_treatment_by_id(treatment_id: str) -> Optional[Treatment]:
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM treatments WHERE id = ?", (treatment_id,))
-    r = cursor.fetchone()
-    conn.close()
-    if not r:
-        return None
-    return Treatment(
-        id=r["id"],
-        name=r["name"],
-        category=r["category"],
-        aliases=json.loads(r["aliases"] or "[]"),
-        description=r["description"],
-        indicative_min=r["indicative_min"],
-        indicative_max=r["indicative_max"],
-        package_code_pmjay=r["package_code_pmjay"],
-        package_code_aarogyasri=r["package_code_aarogyasri"],
-        standard_stay_duration=r["standard_stay_duration"],
-        common_diagnostics_required=json.loads(r["common_diagnostics_required"] or "[]")
-    )
+        )
+    except Exception as e:
+        logger.warning(f"Database query failed in get_treatment_by_id({treatment_id}): {e}. Falling back to catalogue.")
+        return TREATMENT_CATALOGUE.get(treatment_id)
 
 def get_all_facilities() -> List[Facility]:
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM facilities ORDER BY name ASC")
-    rows = cursor.fetchall()
-    facilities = []
-    for r in rows:
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM facilities ORDER BY name ASC")
+        rows = cursor.fetchall()
+        facilities = []
+        for r in rows:
+            col_names = r.keys()
+            facilities.append(Facility(
+                id=r["id"],
+                name=r["name"],
+                address=r["address"],
+                locality=r["locality"],
+                city=r["city"],
+                state=r["state"],
+                pin_code=r["pin_code"],
+                lat=r["lat"],
+                lng=r["lng"],
+                ownership=r["ownership"],
+                facility_class=r["facility_class"] if "facility_class" in col_names and r["facility_class"] else "Standard",
+                recommendation_reason=r["recommendation_reason"] if "recommendation_reason" in col_names else None,
+                phone=r["phone"],
+                website=r["website"],
+                rating=r["rating"],
+                verified_treatments=json.loads(r["verified_treatments"] or "[]"),
+                empanelled_schemes=json.loads(r["empanelled_schemes"] or "[]"),
+                room_types=json.loads(r["room_types"] or "{}"),
+                last_verified_date=r["last_verified_date"],
+                pricing_status=r["pricing_status"],
+                price_confidence=r["price_confidence"]
+            ))
+        conn.close()
+        return facilities
+    except Exception as e:
+        logger.warning(f"Database query failed in get_all_facilities: {e}. Falling back to verified seed facilities.")
+        return list(SEED_FACILITIES)
+
+def get_facility_by_id(facility_id: str) -> Optional[Facility]:
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM facilities WHERE id = ?", (facility_id,))
+        r = cursor.fetchone()
+        conn.close()
+        if not r:
+            return next((f for f in SEED_FACILITIES if f.id == facility_id), None)
         col_names = r.keys()
-        facilities.append(Facility(
+        return Facility(
             id=r["id"],
             name=r["name"],
             address=r["address"],
@@ -282,97 +346,73 @@ def get_all_facilities() -> List[Facility]:
             last_verified_date=r["last_verified_date"],
             pricing_status=r["pricing_status"],
             price_confidence=r["price_confidence"]
-        ))
-    conn.close()
-    return facilities
-
-def get_facility_by_id(facility_id: str) -> Optional[Facility]:
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM facilities WHERE id = ?", (facility_id,))
-    r = cursor.fetchone()
-    conn.close()
-    if not r:
-        return None
-    col_names = r.keys()
-    return Facility(
-        id=r["id"],
-        name=r["name"],
-        address=r["address"],
-        locality=r["locality"],
-        city=r["city"],
-        state=r["state"],
-        pin_code=r["pin_code"],
-        lat=r["lat"],
-        lng=r["lng"],
-        ownership=r["ownership"],
-        facility_class=r["facility_class"] if "facility_class" in col_names and r["facility_class"] else "Standard",
-        recommendation_reason=r["recommendation_reason"] if "recommendation_reason" in col_names else None,
-        phone=r["phone"],
-        website=r["website"],
-        rating=r["rating"],
-        verified_treatments=json.loads(r["verified_treatments"] or "[]"),
-        empanelled_schemes=json.loads(r["empanelled_schemes"] or "[]"),
-        room_types=json.loads(r["room_types"] or "{}"),
-        last_verified_date=r["last_verified_date"],
-        pricing_status=r["pricing_status"],
-        price_confidence=r["price_confidence"]
-    )
+        )
+    except Exception as e:
+        logger.warning(f"Database query failed in get_facility_by_id({facility_id}): {e}. Falling back to seed facilities.")
+        return next((f for f in SEED_FACILITIES if f.id == facility_id), None)
 
 def get_all_schemes() -> List[Scheme]:
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM schemes WHERE is_active = 1")
-    rows = cursor.fetchall()
-    schemes = []
-    for r in rows:
-        schemes.append(Scheme(
-            id=r["id"],
-            name=r["name"],
-            full_name=r["full_name"],
-            authority=r["authority"],
-            coverage_limit_inr=r["coverage_limit_inr"],
-            eligibility_summary=r["eligibility_summary"],
-            eligible_categories=json.loads(r["eligible_categories"] or "[]"),
-            states=json.loads(r["states"] or "[]"),
-            official_portal=r["official_portal"],
-            helpline=r["helpline"],
-            required_documents=json.loads(r["required_documents"] or "[]"),
-            is_active=bool(r["is_active"]),
-            last_verified_date=r["last_verified_date"]
-        ))
-    conn.close()
-    return schemes
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM schemes WHERE is_active = 1")
+        rows = cursor.fetchall()
+        schemes = []
+        for r in rows:
+            schemes.append(Scheme(
+                id=r["id"],
+                name=r["name"],
+                full_name=r["full_name"],
+                authority=r["authority"],
+                coverage_limit_inr=r["coverage_limit_inr"],
+                eligibility_summary=r["eligibility_summary"],
+                eligible_categories=json.loads(r["eligible_categories"] or "[]"),
+                states=json.loads(r["states"] or "[]"),
+                official_portal=r["official_portal"],
+                helpline=r["helpline"],
+                required_documents=json.loads(r["required_documents"] or "[]"),
+                is_active=bool(r["is_active"]),
+                last_verified_date=r["last_verified_date"]
+            ))
+        conn.close()
+        return schemes
+    except Exception as e:
+        logger.warning(f"Database query failed in get_all_schemes: {e}. Falling back to seed schemes.")
+        return [s for s in SEED_SCHEMES if s.is_active]
 
 def get_cost_observations(treatment_id: str, facility_id: Optional[str] = None) -> List[CostObservation]:
-    conn = get_connection()
-    cursor = conn.cursor()
-    if facility_id:
-        cursor.execute("SELECT * FROM cost_observations WHERE treatment_id = ? AND facility_id = ?", (treatment_id, facility_id))
-    else:
-        cursor.execute("SELECT * FROM cost_observations WHERE treatment_id = ?", (treatment_id,))
-    rows = cursor.fetchall()
-    obs = []
-    for r in rows:
-        b_dict = json.loads(r["breakdown"])
-        obs.append(CostObservation(
-            id=r["id"],
-            treatment_id=r["treatment_id"],
-            facility_id=r["facility_id"],
-            facility_name=r["facility_name"],
-            city=r["city"],
-            min_price=r["min_price"],
-            max_price=r["max_price"],
-            currency=r["currency"],
-            price_type=r["price_type"],
-            confidence=r["confidence"],
-            confidence_explanation=r["confidence_explanation"],
-            breakdown=CostBreakdown(**b_dict),
-            source_name=r["source_name"],
-            source_url=r["source_url"],
-            last_updated=r["last_updated"],
-            key_assumptions=json.loads(r["key_assumptions"] or "[]"),
-            exclusions=json.loads(r["exclusions"] or "[]")
-        ))
-    conn.close()
-    return obs
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        if facility_id:
+            cursor.execute("SELECT * FROM cost_observations WHERE treatment_id = ? AND facility_id = ?", (treatment_id, facility_id))
+        else:
+            cursor.execute("SELECT * FROM cost_observations WHERE treatment_id = ?", (treatment_id,))
+        rows = cursor.fetchall()
+        obs = []
+        for r in rows:
+            b_dict = json.loads(r["breakdown"])
+            obs.append(CostObservation(
+                id=r["id"],
+                treatment_id=r["treatment_id"],
+                facility_id=r["facility_id"],
+                facility_name=r["facility_name"],
+                city=r["city"],
+                min_price=r["min_price"],
+                max_price=r["max_price"],
+                currency=r["currency"],
+                price_type=r["price_type"],
+                confidence=r["confidence"],
+                confidence_explanation=r["confidence_explanation"],
+                breakdown=CostBreakdown(**b_dict),
+                source_name=r["source_name"],
+                source_url=r["source_url"],
+                last_updated=r["last_updated"],
+                key_assumptions=json.loads(r["key_assumptions"] or "[]"),
+                exclusions=json.loads(r["exclusions"] or "[]")
+            ))
+        conn.close()
+        return obs
+    except Exception as e:
+        logger.warning(f"Database query failed in get_cost_observations: {e}. Falling back to seed observations.")
+        return [c for c in SEED_COST_OBSERVATIONS if c.treatment_id == treatment_id and (not facility_id or c.facility_id == facility_id)]

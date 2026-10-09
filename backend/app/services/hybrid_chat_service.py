@@ -39,43 +39,10 @@ WHITELISTED_DOMAINS = [
     "google.com/maps"
 ]
 
-def clean_tts_text(text: str) -> str:
-    """Strips markdown asterisks, hashes, and formatting for clean natural speech synthesis."""
-    clean = re.sub(r'[*#_`~]', '', text)
-    clean = re.sub(r'•\s*', '', clean)
-    clean = re.sub(r'https?://\S+', '', clean)
-    clean = re.sub(r'\n+', ' ', clean)
-    return clean.strip()
-
-def extract_context_from_history(history: List[Dict[str, str]]) -> Tuple[Optional[str], Optional[str], Optional[str]]:
-    """Extracts treatment, city, and prescription mentions from past chat turns."""
-    prev_treatment = None
-    prev_city = None
-    prev_rx = None
-
-    for msg in reversed(history):
-        content = msg.get("content", "").lower()
-        # Look for treatments
-        if "cataract" in content or "కంటి" in content or "మోతియా" in content or "eye" in content:
-            if not prev_treatment: prev_treatment = "cataract_surgery"
-        elif "knee" in content or "మోకాలి" in content or "घुटना" in content or "tkr" in content:
-            if not prev_treatment: prev_treatment = "knee_replacement"
-        elif "mri" in content or "ఎంఆర్ఐ" in content or "एमआरआई" in content:
-            if not prev_treatment: prev_treatment = "mri_brain"
-        elif "gallbladder" in content or "పిత్తాశయ" in content or "पथरी" in content:
-            if not prev_treatment: prev_treatment = "laparoscopic_cholecystectomy"
-        elif "stent" in content or "గుండె" in content or "हार्ट" in content:
-            if not prev_treatment: prev_treatment = "angioplasty"
-
-        # Look for cities
-        for city in ["hyderabad", "secunderabad", "kukatpally", "visakhapatnam", "vijayawada", "tirupati", "warangal", "bengaluru", "mumbai", "delhi"]:
-            if city in content:
-                if not prev_city: prev_city = city.capitalize()
-
-        if "prescription" in content or "rx" in content or "మందులు" in content or "दवा" in content:
-            if not prev_rx: prev_rx = content
-
-    return prev_treatment, prev_city, prev_rx
+from .canonical_engine import (
+    build_canonical_request, execute_canonical_request,
+    clean_tts_text, extract_context_from_history, WHITELISTED_DOMAINS
+)
 
 def validate_against_database(explanation: str, verified_facts: Dict[str, Any]) -> Tuple[str, bool]:
     """STRICT VALIDATOR: prevents price hallucination & unverified links."""
@@ -108,16 +75,37 @@ def validate_against_database(explanation: str, verified_facts: Dict[str, Any]) 
     return validated_text, is_safe
 
 def process_guided_chat(req: GuidedChatRequest) -> GuidedChatResponse:
+    """
+    PHASE 2 & PHASE 5: Canonical Healthcare Problem-Solving Engine.
+    All inputs (typed, spoken voice, OCR document, or combined) are normalized into a
+    structured CanonicalHealthcareRequest and dispatched to the evidence-backed solver.
+    """
     try:
-        clean_msg = req.message.lower().strip()
-        history = req.history or []
-
-        # 0. Detect Language of interaction
-        detected_lang, _ = detect_text_language(req.message)
-        if req.language and req.language != "auto":
-            user_lang = req.language[:2]
+        canonical_req = build_canonical_request(req)
+        return execute_canonical_request(canonical_req)
+    except Exception as e:
+        logger.error(f"Unexpected error in process_guided_chat: {e}", exc_info=True)
+        user_lang = req.language[:2] if (req.language and req.language != "auto") else "te"
+        if user_lang in ["te", "te-en"]:
+            fallback_msg = (
+                "నేను మీ ప్రశ్నను అర్థం చేసుకున్నాను. అయితే సమాచారాన్ని పొందేందుకు తాత్కాలిక సమస్య ఎదురైంది.\n\n"
+                "సాధారణ సమాచారం లేదా ఆసుపత్రుల కోసం దయచేసి మళ్లీ ప్రయత్నించండి."
+            )
+            chips = ["మళ్లీ ప్రయత్నించండి", "104 హెల్ప్‌లైన్", "108 ఎమర్జెన్సీ"]
         else:
-            user_lang = detected_lang  # te, hi, en, te-en
+            fallback_msg = (
+                "I understood your query, but encountered a temporary issue processing live medical information.\n\n"
+                "Please retry or consult 104 National Health Helpline."
+            )
+            chips = ["Retry Query", "104 Health Helpline", "108 Emergency Ambulance"]
+
+        return GuidedChatResponse(
+            reply=fallback_msg,
+            reply_language=user_lang,
+            emergency_detected=False,
+            suggested_chips=chips,
+            audio_tts_text=clean_tts_text(fallback_msg)
+        )
 
         # STEP 1: Emergency Interrupt Check
         for em in EMERGENCY_KEYWORDS:

@@ -2,9 +2,10 @@ import React, { useState, useRef, useEffect } from 'react';
 import {
   Send, X, MessageSquare, ShieldCheck, CheckCheck, Sparkles, RefreshCw,
   AlertTriangle, PhoneCall, Mic, MicOff, Paperclip, Volume2, VolumeX,
-  Play, Pause, Square, Languages, Pill, Building2, Check, ArrowRight, Image as ImageIcon
+  Play, Pause, Square, Languages, Pill, Building2, Check, ArrowRight, Image as ImageIcon,
+  Printer, CheckSquare, ListChecks, HelpCircle, FileText
 } from 'lucide-react';
-import { api, GuidedChatResponseDTO, HospitalCardDTO, PrescriptionCardDTO } from '../services/api';
+import { api, GuidedChatResponseDTO, HospitalCardDTO, PrescriptionCardDTO, PatientActionPlanDTO } from '../services/api';
 import { useLanguage } from '../context/LanguageContext';
 
 interface GuidedChatDrawerProps {
@@ -25,6 +26,7 @@ interface ChatMessage {
   emergency?: boolean;
   hospitals_card?: HospitalCardDTO[];
   prescription_card?: PrescriptionCardDTO;
+  action_plan?: PatientActionPlanDTO;
   audio_tts_text?: string;
   attached_image_preview?: string;
   attached_filename?: string;
@@ -53,7 +55,8 @@ export const GuidedChatDrawer: React.FC<GuidedChatDrawerProps> = ({
         "నాకు మోకాలి ఆపరేషన్ ఖర్చు ఎంత అవుతుంది?",
         "హైదరాబాద్లో కంటి ఆపరేషన్ ఖర్చు ఎంత?",
         "ప్రభుత్వ హాస్పిటల్లో ఉచితంగా చికిత్స దొరుకుతుందా?",
-        "ఈ ప్రిస్క్రిప్షన్ లో ఉన్న మందుల ఖర్చు చెప్పండి"
+        "ఈ ప్రిస్క్రిప్షన్ లో ఉన్న మందుల ఖర్చు చెప్పండి",
+        "📋 పేషెంట్ యాక్షన్ ప్లాన్ (Action Plan)"
       ],
       audio_tts_text: "నమస్కారం! నేను మీ CareSaathi వాయిస్ అసిస్టెంట్‌ని. ఆపరేషన్ ఖర్చులు, ప్రభుత్వ ఆసుపత్రులు లేదా ప్రిస్క్రిప్షన్ మందుల ఖర్చుల గురించి మాట్లాడవచ్చు."
     }
@@ -113,6 +116,80 @@ export const GuidedChatDrawer: React.FC<GuidedChatDrawerProps> = ({
       }
     };
   }, []);
+
+  // --- Print / Export Patient Action Plan ---
+  const printActionPlan = (plan: PatientActionPlanDTO) => {
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(`<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>${plan.title || 'CareSaathi AI - Patient Action Plan'}</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 24px; color: #1e293b; max-width: 820px; margin: 0 auto; line-height: 1.5; }
+    h1 { color: #0f172a; border-bottom: 2px solid #0d9488; padding-bottom: 8px; font-size: 22px; }
+    h2 { color: #0d9488; font-size: 16px; margin-top: 18px; margin-bottom: 6px; }
+    .card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px; margin-bottom: 12px; font-size: 13px; }
+    ul, ol { margin-top: 4px; padding-left: 20px; }
+    li { margin-bottom: 4px; font-size: 13px; }
+    .disclaimer { font-size: 11px; color: #64748b; margin-top: 24px; border-top: 1px solid #cbd5e1; padding-top: 8px; }
+    @media print {
+      .no-print { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div style="display:flex; justify-content:space-between; align-items:center;">
+    <h1>${plan.title || 'Patient Financial & Clinical Care Navigation Plan'}</h1>
+    <button class="no-print" onclick="window.print()" style="padding: 8px 16px; background:#0d9488; color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">🖨️ Print / Save PDF</button>
+  </div>
+  <div class="card">
+    <strong>User Stated Concern:</strong> ${plan.user_stated_concern || 'Healthcare navigation request'}<br/>
+    <strong>Confirmed Procedure / Context:</strong> ${plan.cost_estimate_summary?.procedure_name || 'Standard Care'}<br/>
+    <strong>Location:</strong> ${plan.confirmed_details?.city || 'Hyderabad, Telangana'}
+  </div>
+  
+  <h2>1. Cost Range & Statutory Protections</h2>
+  <div class="card">
+    <div><strong>Government Hospital:</strong> ${plan.cost_estimate_summary?.government_cost || '₹0 (Aarogyasri / PM-JAY)'}</div>
+    <div><strong>Private Hospital Range:</strong> ${plan.cost_estimate_summary?.private_range_display || 'N/A'}</div>
+    ${plan.cost_estimate_summary?.statutory_price_caps?.length ? `<div><strong>Statutory Price Caps:</strong> ${plan.cost_estimate_summary.statutory_price_caps.join('; ')}</div>` : ''}
+    ${plan.estimate_limitations?.length ? `<div style="margin-top:6px; color:#b45309;">⚠️ Limitations: ${plan.estimate_limitations.join(' | ')}</div>` : ''}
+  </div>
+
+  <h2>2. Questions to Ask the Hospital Billing Desk</h2>
+  <ul>
+    ${plan.questions_to_ask_hospital?.map(q => `<li>${q}</li>`).join('') || ''}
+  </ul>
+
+  <h2>3. Documents Checklist for Admission & Schemes</h2>
+  <ul>
+    ${plan.documents_to_carry?.map(d => `<li>${d}</li>`).join('') || ''}
+  </ul>
+
+  <h2>4. Step-by-Step Action Plan</h2>
+  <ol>
+    ${plan.next_step_checklist?.map(s => `<li><strong>${s.task}</strong></li>`).join('') || ''}
+  </ol>
+
+  <h2>5. Verified Hospitals & Verification Routes</h2>
+  <ul>
+    ${plan.verified_hospitals?.map(h => `<li><strong>${h.name}</strong> (${h.locality ? h.locality + ', ' : ''}${h.city}) — ${h.ownership} [${h.pricing_status}]</li>`).join('') || ''}
+  </ul>
+  <div style="font-size:12px; color:#475569; margin-top:8px;">
+    <strong>Official Helplines:</strong> 104 (Health Helpline), 14555 (PM-JAY), Aarogyasri Trust Portal (aarogyasri.telangana.gov.in).
+  </div>
+
+  <div class="disclaimer">
+    CareSaathi AI Care Navigation Plan. Generated from verified public hospital registries, NPPA statutory price orders, and state empanelment schedules. Always obtain a pre-authorization estimate from the hospital finance desk.
+  </div>
+</body>
+</html>`);
+      printWindow.document.close();
+      printWindow.focus();
+    }
+  };
 
   // --- Text-To-Speech (TTS) Player ---
   const playSpeech = (msgId: string, textToSpeak: string) => {
@@ -379,6 +456,7 @@ export const GuidedChatDrawer: React.FC<GuidedChatDrawerProps> = ({
         emergency: res.emergency_detected,
         hospitals_card: res.hospitals_card,
         prescription_card: res.prescription_card,
+        action_plan: res.action_plan,
         audio_tts_text: res.audio_tts_text || res.reply
       };
 

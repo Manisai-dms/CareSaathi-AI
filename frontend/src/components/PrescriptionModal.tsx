@@ -9,12 +9,14 @@ interface PrescriptionModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirmTreatment: (treatmentName: string) => void;
+  onOpenChatWithRx?: (rxFilename?: string, rxText?: string) => void;
 }
 
 export const PrescriptionModal: React.FC<PrescriptionModalProps> = ({
   isOpen,
   onClose,
-  onConfirmTreatment
+  onConfirmTreatment,
+  onOpenChatWithRx
 }) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
@@ -485,10 +487,23 @@ export const PrescriptionModal: React.FC<PrescriptionModalProps> = ({
           <div style={{ fontSize: '0.75rem', color: 'var(--color-text-grey)' }}>
             Distinguishes visibly extracted text from AI interpretation.
           </div>
-          <div style={{ display: 'flex', gap: '10px' }}>
+          <div style={{ display: 'flex', gap: '8px' }}>
             <button type="button" onClick={onClose} className="btn btn-secondary">
               Cancel
             </button>
+            {onOpenChatWithRx && ocrResult && (
+              <button
+                type="button"
+                onClick={() => {
+                  onOpenChatWithRx(previewName, ocrResult.extracted_raw_text);
+                  onClose();
+                }}
+                className="btn btn-secondary"
+                style={{ borderColor: 'var(--color-teal)', color: 'var(--color-teal-dark)', fontWeight: 600 }}
+              >
+                <span>💬 Ask Voice Assistant</span>
+              </button>
+            )}
             <button
               type="button"
               onClick={() => {

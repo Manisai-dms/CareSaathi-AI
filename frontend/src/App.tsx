@@ -53,6 +53,8 @@ const AppContent: React.FC = () => {
   const [isRxOpen, setIsRxOpen] = useState(false);
   const [isTrustOpen, setIsTrustOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [chatInitialQuery, setChatInitialQuery] = useState<string>("");
+  const [chatInitialRxFilename, setChatInitialRxFilename] = useState<string>("");
   const [isSavedComparisonsOpen, setIsSavedComparisonsOpen] = useState(false);
   const [judgeToast, setJudgeToast] = useState<string | null>(null);
   const [isSimpleMode, setIsSimpleMode] = useState(false);
@@ -198,7 +200,9 @@ const AppContent: React.FC = () => {
 
   const handleVoiceConfirm = (transcript: string) => {
     setSearchQuery(transcript);
+    setChatInitialQuery(transcript);
     navigateToTab('dashboard');
+    setIsChatOpen(true);
   };
 
   const handleRxConfirm = (treatmentName: string) => {
@@ -623,6 +627,12 @@ const AppContent: React.FC = () => {
         isOpen={isRxOpen}
         onClose={() => setIsRxOpen(false)}
         onConfirmTreatment={handleRxConfirm}
+        onOpenChatWithRx={(filename) => {
+          setIsRxOpen(false);
+          setChatInitialRxFilename(filename || "prescription.jpg");
+          setChatInitialQuery("ఈ ప్రిస్క్రిప్షన్‌ను పరిశీలించి మందుల ఖర్చు చెప్పండి");
+          setIsChatOpen(true);
+        }}
       />
 
       <TrustDashboardModal
@@ -641,12 +651,18 @@ const AppContent: React.FC = () => {
 
       <GuidedChatDrawer
         isOpen={isChatOpen}
-        onClose={() => setIsChatOpen(false)}
+        onClose={() => {
+          setIsChatOpen(false);
+          setChatInitialQuery("");
+          setChatInitialRxFilename("");
+        }}
         onTriggerEmergency={triggerEmergency}
         onSelectEstimate={_tId => {
           navigateToTab('dashboard');
           setIsChatOpen(false);
         }}
+        initialQuery={chatInitialQuery}
+        initialRxFilename={chatInitialRxFilename}
       />
     </div>
   );

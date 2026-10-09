@@ -258,12 +258,38 @@ export interface MetadataResponse {
   trust_metrics?: TrustDashboardDataDTO;
 }
 
+export interface HospitalCardDTO {
+  id: string;
+  name: string;
+  ownership: string;
+  locality?: string;
+  city: string;
+  pricing_status: string;
+  phone?: string;
+}
+
+export interface PrescriptionCardDTO {
+  is_handwritten?: boolean;
+  uncertain_regions?: string[];
+  notice?: string;
+  total_branded?: number;
+  total_jan_aushadhi?: number;
+  savings?: number;
+  medicines?: DetectedMedicineDetailDTO[];
+}
+
 export interface GuidedChatResponseDTO {
   reply: string;
+  reply_language?: string;
   emergency_detected: boolean;
   suggested_chips: string[];
   extracted_data?: Record<string, any>;
   structured_estimate?: CostEstimateDTO;
+  hospitals_card?: HospitalCardDTO[];
+  prescription_card?: PrescriptionCardDTO;
+  audio_tts_text?: string;
+  is_clarification?: boolean;
+  clarification_options?: string[];
 }
 
 export const api = {
@@ -287,11 +313,31 @@ export const api = {
     treatment_id?: string;
     city?: string;
     history?: Array<{ role: string; content: string }>;
+    prescription_text?: string;
+    prescription_filename?: string;
+    language?: string;
   }): Promise<GuidedChatResponseDTO> {
     const res = await fetch(`${API_BASE}/chat/guided`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(params)
+    });
+    return res.json();
+  },
+
+  async synthesizeSpeech(params: {
+    text: string;
+    language?: string;
+    gender?: string;
+  }): Promise<{ audio_base64?: string; language: string; status: string; notice: string }> {
+    const res = await fetch(`${API_BASE}/speech/synthesize`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        text: params.text,
+        language: params.language || 'te-IN',
+        gender: params.gender || 'female'
+      })
     });
     return res.json();
   },

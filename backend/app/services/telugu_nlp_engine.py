@@ -165,6 +165,9 @@ def normalize_multilingual_text(text: str) -> str:
         norm = norm.replace(h_char, d_char)
     return norm
 
+# Alias for backwards compatibility
+normalize_telugu_text = normalize_multilingual_text
+
 def extract_multilingual_budget(text: str) -> Optional[int]:
     """
     Extracts budget in Telugu, Hindi, or English numerals and words (e.g., 2 లక్షలు, 50 వేలు, 2.5 lakh, 50000).

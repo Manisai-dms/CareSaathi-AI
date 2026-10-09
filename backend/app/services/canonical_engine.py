@@ -254,7 +254,7 @@ def build_canonical_request(req: GuidedChatRequest) -> CanonicalHealthcareReques
         medicine_query=medicine_query,
         extracted_medicines=extracted_meds,
         location_city=target_city,
-        location_locality=parsed_geo.extracted_locality or None,
+        location_locality=getattr(parsed_geo, "extracted_locality", None),
         ownership_preference=ownership_pref,
         user_actual_question=clean_msg,
         requested_outcome=requested_outcome,
@@ -262,9 +262,19 @@ def build_canonical_request(req: GuidedChatRequest) -> CanonicalHealthcareReques
         missing_required_fields=missing_fields,
         clarification_prompt=clarification_prompt,
         is_emergency=False,
-        data_limitations=[] if is_database_available() else ["Live facility database unavailable; statutory reference mode active"],
+        data_limitations=[] if check_database_available() else ["Live facility database unavailable; statutory reference mode active"],
         conversation_context=history
     )
+
+def check_database_available() -> bool:
+    """Checks database availability, respecting active mock patches."""
+    try:
+        from . import hybrid_chat_service
+        if hasattr(hybrid_chat_service, 'is_database_available'):
+            return hybrid_chat_service.is_database_available()
+    except Exception:
+        pass
+    return is_database_available()
 
 def execute_canonical_request(creq: CanonicalHealthcareRequest) -> GuidedChatResponse:
     """
@@ -272,7 +282,7 @@ def execute_canonical_request(creq: CanonicalHealthcareRequest) -> GuidedChatRes
     Produces evidence-backed, traceable answers without hallucination or fake data.
     """
     user_lang = creq.detected_language
-    db_available = is_database_available()
+    db_available = check_database_available()
 
     # -------------------------------------------------------------
     # INTENT 1: EMERGENCY RED-FLAG PROTOCOL (PHASE 11)

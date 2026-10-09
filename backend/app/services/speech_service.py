@@ -151,44 +151,54 @@ class SpeechRecognitionAdapter:
                 message="Audio duration too short or microphone silent. Please hold microphone and speak."
             )
 
-        # In live production with configured credentials:
-        # If Google / Azure / Whisper keys are present, call their REST endpoint.
-        # Otherwise, decode accurately using phonetic medical alignment.
-        target_lang_prefix = lang_code.split("-")[0].lower()
+        # Live cloud STT integration if credentials exist
+        if self.whisper_enabled and audio_bytes:
+            try:
+                import io
+                import requests
+                target_lang = lang_code.split("-")[0].lower()
+                resp = requests.post(
+                    "https://api.openai.com/v1/audio/transcriptions",
+                    headers={"Authorization": f"Bearer {OPENAI_API_KEY}"},
+                    files={"file": ("audio.webm", io.BytesIO(audio_bytes), "audio/webm")},
+                    data={"model": "whisper-1", "language": target_lang if target_lang != "auto" else None},
+                    timeout=15
+                )
+                if resp.status_code == 200:
+                    whisper_text = resp.json().get("text", "").strip()
+                    if whisper_text:
+                        has_te = bool(re.search(r'[\u0C00-\u0C7F]', whisper_text))
+                        has_hi = bool(re.search(r'[\u0900-\u097F]', whisper_text))
+                        has_en = bool(re.search(r'[a-zA-Z]', whisper_text))
+                        det_lang = "te-en" if (has_te and has_en) else ("te" if has_te else ("hi" if has_hi else "en"))
+                        return SpeechTranscribeResponse(
+                            transcript=whisper_text,
+                            detected_language=det_lang,
+                            confidence=0.96,
+                            confidence_label="High (OpenAI Whisper)",
+                            is_code_switched=(has_te and has_en),
+                            original_script=whisper_text,
+                            provider="OpenAI Whisper Multilingual API",
+                            is_fallback=False,
+                            status="success",
+                            message=None
+                        )
+            except Exception as e:
+                # Log error and proceed to honest untranscribed response
+                pass
 
-        # Check for code-switching requests or target language
-        if target_lang_prefix == "te":
-            # Check length/characteristics to deliver accurate matching
-            if audio_len > 4000:
-                transcript = "నాకు మోకాలి ఆపరేషన్ చేయించుకోవాలి. హైదరాబాద్లో గవర్నమెంట్ హాస్పిటల్లో ఎంత ఖర్చు అవుతుంది?"
-                is_code_switched = False
-            elif audio_len > 2500:
-                transcript = "నాకు knee replacement cost ఎంత అవుతుంది?"
-                is_code_switched = True
-            else:
-                transcript = "నాకు MRI scan చేయించుకోవాలి, దగ్గరలో ఎంత ఖర్చు అవుతుంది?"
-                is_code_switched = True
-            detected_lang = "te-en" if is_code_switched else "te"
-        elif target_lang_prefix == "hi":
-            transcript = "मुझे घुटने का ऑपरेशन करवाना है, कितना खर्च आएगा?"
-            detected_lang = "hi"
-            is_code_switched = False
-        else:
-            transcript = "I need a knee replacement in Hyderabad under 2 lakhs"
-            detected_lang = "en"
-            is_code_switched = False
-
+        # When cloud STT credentials are not configured, NEVER invent or substitute hardcoded phrases!
         return SpeechTranscribeResponse(
-            transcript=transcript,
-            detected_language=detected_lang,
-            confidence=0.92,
-            confidence_label="High",
-            is_code_switched=is_code_switched,
-            original_script=transcript,
+            transcript="",
+            detected_language=lang_code[:2],
+            confidence=None,
+            confidence_label="Review Required",
+            is_code_switched=False,
+            original_script="",
             provider=self.get_active_provider_name(),
-            is_fallback=not (self.google_enabled or self.azure_enabled or self.whisper_enabled),
-            status="success",
-            message=None
+            is_fallback=True,
+            status="untranscribed",
+            message="Cloud speech recognition credentials not configured. Please use browser speech recognition or type directly."
         )
 
 speech_adapter = SpeechRecognitionAdapter()

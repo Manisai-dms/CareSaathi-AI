@@ -166,7 +166,20 @@ def process_prescription_ocr(req: PrescriptionOCRRequest) -> PrescriptionOCRResp
 
     # If raw_text is empty and user uploaded an image / preset
     if not raw_text:
-        if "knee" in filename or "ortho" in filename:
+        if "handwriting" in filename or "unclear" in filename or "cursive" in filename or "blurry" in filename:
+            is_handwritten = True
+            image_quality_notes = "Challenging cursive handwriting with low ink contrast"
+            uncertain_regions.append("Line 3: Illegible clinical procedure shorthand")
+            uncertain_regions.append("Line 5: Incomplete medicine strength notation")
+            raw_text = (
+                "Rx [Cursive Doctor Handwriting]\n"
+                "Pt: Adult\n"
+                "Dx: [Partially illegible orthopedic note: ...arthr...]\n"
+                "Adv: Specialized evaluation & MRI scan\n"
+                "Med: [Unreadable drug name] 500mg\n"
+                "Please verify clinical procedure and medicine details with your doctor."
+            )
+        elif "knee" in filename or "ortho" in filename or "sample" in filename:
             raw_text = (
                 "Rx Dr. K. Rama Rao, MS (Ortho), NIMS\n"
                 "Patient: 62 Y / Female\n"
@@ -203,19 +216,6 @@ def process_prescription_ocr(req: PrescriptionOCRRequest) -> PrescriptionOCRResp
                 "Med: Tab Dolo 650mg TDS x 5 days\n"
                 "Med: Tab Pantoprazole 40mg OD x 5 days\n"
                 "Adv: Hospital admission if platelet count < 100,000"
-            )
-        elif "handwriting" in filename or "unclear" in filename:
-            is_handwritten = True
-            image_quality_notes = "Challenging cursive handwriting with low ink contrast"
-            uncertain_regions.append("Line 3: Illegible clinical procedure shorthand")
-            uncertain_regions.append("Line 5: Incomplete medicine strength notation")
-            raw_text = (
-                "Rx [Cursive Doctor Handwriting]\n"
-                "Pt: Adult\n"
-                "Dx: [Partially illegible orthopedic note: ...arthr...]\n"
-                "Adv: Specialized evaluation & MRI scan\n"
-                "Med: [Unreadable drug name] 500mg\n"
-                "Please verify clinical procedure and medicine details with your doctor."
             )
         else:
             raw_text = (

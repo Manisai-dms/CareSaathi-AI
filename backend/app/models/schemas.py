@@ -1,0 +1,297 @@
+from typing import Optional, List, Dict, Any
+from pydantic import BaseModel, Field
+
+# --- Treatment Schema ---
+class Treatment(BaseModel):
+    id: str
+    name: str
+    category: str
+    aliases: List[str] = []
+    description: str
+    indicative_min: int
+    indicative_max: int
+    package_code_pmjay: Optional[str] = None
+    package_code_aarogyasri: Optional[str] = None
+    standard_stay_duration: str = "1-3 days"
+    common_diagnostics_required: List[str] = []
+
+# --- Facility Schema ---
+class Facility(BaseModel):
+    id: str
+    name: str
+    address: str
+    locality: str
+    city: str
+    state: str
+    pin_code: str
+    lat: float
+    lng: float
+    ownership: str  # Government, Private, Charitable/Trust
+    phone: Optional[str] = None
+    website: Optional[str] = None
+    rating: Optional[float] = None
+    verified_treatments: List[str] = []
+    empanelled_schemes: List[str] = []
+    room_types: Dict[str, int] = {}
+    last_verified_date: str = "2026-03-01"
+    distance_km: Optional[float] = None
+    pricing_status: Optional[str] = None
+    estimated_cost_min: Optional[int] = None
+    estimated_cost_max: Optional[int] = None
+    price_confidence: Optional[str] = None
+    image_url: Optional[str] = None
+    image_source: Optional[str] = None
+    image_attribution: Optional[str] = None
+    image_license: Optional[str] = None
+    initials: Optional[str] = None
+
+# --- Cost Component Detail (Itemized with public references & NPPA caps) ---
+class CostComponentItem(BaseModel):
+    component_name: str
+    min_cost: int
+    max_cost: int
+    source_name: str
+    source_url: str
+    effective_date: str
+    is_verified: bool
+    status_label: str  # "Official Published Rate", "Public Reference Rate", "Illustrative"
+    description: str
+
+class OutOfPocketStep(BaseModel):
+    name: str
+    amount_min: int
+    amount_max: int
+    type: str  # "baseline", "deduction", "addition", "final"
+    note: str
+
+class OutOfPocketWaterfall(BaseModel):
+    total_cost_min: int
+    total_cost_max: int
+    scheme_coverage_min: int
+    scheme_coverage_max: int
+    scheme_name: str
+    patient_share_min: int
+    patient_share_max: int
+    verification_status: str  # "Official Verification Required by Hospital Aarogyamitra / TPA"
+    steps: List[OutOfPocketStep]
+
+class ChecklistData(BaseModel):
+    questions_to_ask: List[str]
+    documents_to_carry: List[str]
+
+class TierComparisonItem(BaseModel):
+    tier_name: str  # Government, Charitable / Trust, Private Corporate
+    min_price: int
+    max_price: int
+    ward_amenity: str
+    scheme_support: str
+    waiting_time: str
+    key_advantage: str
+    exemplar_facility: str
+
+class CostBreakdown(BaseModel):
+    consultation_and_registration: int = 0
+    diagnostics_and_lab: int = 0
+    room_and_nursing: int = 0
+    surgeon_ot_anesthesia: int = 0
+    medicines_and_consumables: int = 0
+    implant_or_prosthesis: int = 0
+    rehabilitation_physiotherapy: int = 0
+    tax_and_admin: int = 0
+
+class CostObservation(BaseModel):
+    id: str
+    treatment_id: str
+    facility_id: Optional[str] = None
+    facility_name: Optional[str] = None
+    city: str
+    min_price: int
+    max_price: int
+    currency: str = "INR"
+    price_type: str  # Official Published Price, Reference-Based Estimate, Illustrative Demo Estimate
+    confidence: str  # High, Medium, Low
+    confidence_explanation: str
+    breakdown: CostBreakdown
+    source_name: str
+    source_url: Optional[str] = None
+    last_updated: str
+    key_assumptions: List[str] = []
+    exclusions: List[str] = []
+
+# --- Scheme Schema ---
+class Scheme(BaseModel):
+    id: str
+    name: str
+    full_name: str
+    authority: str
+    coverage_limit_inr: str
+    eligibility_summary: str
+    eligible_categories: List[str] = []
+    states: List[str] = []
+    official_portal: str
+    helpline: str
+    required_documents: List[str] = []
+    is_active: bool = True
+    last_verified_date: str = "2026-03-15"
+
+# --- Request / Response Models ---
+class CostEstimateRequest(BaseModel):
+    treatment: str
+    city: str = "Hyderabad"
+    locality: Optional[str] = None
+    hospital_name: Optional[str] = None
+    budget_limit: Optional[int] = None
+    room_category_preference: Optional[str] = "General / Semi-Private"
+    ownership_preference: Optional[str] = None
+    annual_income: Optional[float] = 2.5
+    ration_card_type: Optional[str] = "White Card"
+
+class CostEstimateResponse(BaseModel):
+    query_treatment: str
+    canonical_treatment: Optional[Treatment] = None
+    workflow: str  # Hospital-based or Location-based
+    selected_facility: Optional[Facility] = None
+    overall_min: int
+    overall_max: int
+    currency: str = "INR"
+    price_type: str
+    confidence: str
+    confidence_explanation: str
+    cost_breakdown: CostBreakdown
+    detailed_components: List[CostComponentItem] = []
+    waterfall: Optional[OutOfPocketWaterfall] = None
+    checklists: ChecklistData
+    tier_comparisons: List[TierComparisonItem] = []
+    comparable_facilities: List[Facility] = []
+    applicable_schemes: List[Dict[str, Any]] = []
+    assumptions_and_exclusions: List[str] = []
+    disclaimer: str
+    data_freshness_date: str
+
+class NLPParseRequest(BaseModel):
+    text: str
+    current_location: Optional[str] = None
+
+class NLPParseResponse(BaseModel):
+    raw_query: str
+    detected_intent: str
+    extracted_treatment: Optional[str] = None
+    matched_treatment_id: Optional[str] = None
+    extracted_location: Optional[str] = None
+    extracted_budget: Optional[int] = None
+    extracted_hospital_preference: Optional[str] = None
+    detected_symptoms: List[str] = []
+    is_symptom_not_diagnosis: bool = False
+    emergency_detected: bool = False
+    emergency_interrupt_required: bool = False
+    triage_guidance: Optional[str] = None
+    clarification_question: Optional[str] = None
+    suggested_action: str
+
+class PrescriptionOCRRequest(BaseModel):
+    image_base64: Optional[str] = None
+    filename: Optional[str] = None
+    raw_text: Optional[str] = None
+
+class PrescriptionOCRResponse(BaseModel):
+    extracted_raw_text: str
+    confidence_score: float
+    detected_treatments: List[str] = []
+    detected_diagnostics: List[str] = []
+    detected_medicines: List[str] = []
+    requires_user_confirmation: bool = True
+    notice: str
+    suggested_search_query: Optional[str] = None
+
+class SchemeMatchRequest(BaseModel):
+    treatment_id: Optional[str] = None
+    treatment_name: Optional[str] = None
+    state: str = "Telangana"
+    annual_income: Optional[float] = None
+    ration_card_type: Optional[str] = None
+    is_formal_sector_employed: Optional[bool] = None
+    is_central_govt_employee: Optional[bool] = None
+    selected_facility_id: Optional[str] = None
+
+class SchemeMatchResult(BaseModel):
+    scheme: Scheme
+    match_status: str
+    status_color: str
+    matching_reasons: List[str]
+    caution_notes: List[str]
+    package_reimbursement_estimate: Optional[str] = None
+    empanelment_status: Optional[str] = None
+    official_verification_url: str
+    helpline: str
+
+class FacilityCompareRequest(BaseModel):
+    facility_ids: List[str]
+    treatment_id: str
+
+# Guided Chat Request / Response
+class GuidedChatRequest(BaseModel):
+    message: str
+    treatment_id: Optional[str] = None
+    city: Optional[str] = "Hyderabad"
+    history: List[Dict[str, str]] = []
+
+class GuidedChatResponse(BaseModel):
+    reply: str
+    emergency_detected: bool = False
+    suggested_chips: List[str] = []
+    extracted_data: Optional[Dict[str, Any]] = None
+    structured_estimate: Optional[CostEstimateResponse] = None
+
+# Trust Dashboard Data
+class TrustDashboardData(BaseModel):
+    official_count: int
+    reference_count: int
+    illustrative_count: int
+    total_facilities: int
+    total_treatments: int
+    data_freshness_records: List[Dict[str, str]]
+    city_coverage: Dict[str, int]
+    audit_completeness_pct: int
+    last_audit_date: str
+
+class MetadataResponse(BaseModel):
+    app_name: str
+    version: str
+    total_facilities: int
+    total_treatments: int
+    supported_schemes: int
+    demo_mode: bool
+    data_sources: List[Dict[str, str]]
+    trust_metrics: Optional[TrustDashboardData] = None
+
+# --- Phase 3 Auth Schemas ---
+class RegisterRequest(BaseModel):
+    name: str
+    email: str
+    password: str
+    language: str = "en"
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+class UserProfile(BaseModel):
+    id: str
+    name: str
+    email: str
+    language: str = "en"
+
+class AuthResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user: UserProfile
+
+class SaveComparisonRequest(BaseModel):
+    facility_ids: List[str]
+    treatment_name: str
+
+class SavedComparisonItem(BaseModel):
+    id: str
+    facility_ids: List[str]
+    treatment_name: str
+    created_at: str

@@ -8,6 +8,9 @@ import os
 import sys
 import json
 import re
+
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
 from typing import List, Dict, Any, Tuple
 
 # Add repository root to path

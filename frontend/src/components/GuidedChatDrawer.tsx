@@ -861,6 +861,139 @@ export const GuidedChatDrawer: React.FC<GuidedChatDrawerProps> = ({
                 </div>
               )}
 
+              {/* Visual Patient Action Plan Card */}
+              {m.action_plan && (
+                <div style={{
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: '8px',
+                  border: '1.5px solid var(--color-teal)',
+                  padding: '12px',
+                  marginTop: '10px',
+                  boxShadow: '0 3px 8px rgba(13,148,136,0.12)'
+                }}>
+                  {/* Header & Print Button */}
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    borderBottom: '1px solid #E2E8F0',
+                    paddingBottom: '8px',
+                    marginBottom: '8px'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <FileText size={16} color="var(--color-teal)" />
+                      <span style={{ fontWeight: 700, fontSize: '0.84rem', color: 'var(--color-teal-dark)' }}>
+                        {m.action_plan.title || "Patient Care & Action Plan"}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => printActionPlan(m.action_plan!)}
+                      style={{
+                        background: 'var(--color-teal)',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        padding: '3px 8px',
+                        fontSize: '0.72rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px'
+                      }}
+                      title="Print or save as PDF"
+                    >
+                      <Printer size={12} />
+                      <span>Print / PDF</span>
+                    </button>
+                  </div>
+
+                  {/* Stated Concern & Confirmed Details */}
+                  <div style={{
+                    backgroundColor: '#F8FAFC',
+                    borderRadius: '6px',
+                    padding: '6px 8px',
+                    marginBottom: '8px',
+                    fontSize: '0.73rem',
+                    color: '#334155'
+                  }}>
+                    <div><strong>చికిత్స (Procedure):</strong> {m.action_plan.cost_estimate_summary?.procedure_name} ({m.action_plan.confirmed_details?.city || 'Hyderabad'})</div>
+                  </div>
+
+                  {/* Cost Summary Box */}
+                  <div style={{
+                    backgroundColor: '#F0FDFA',
+                    border: '1px solid #CCFBF1',
+                    borderRadius: '6px',
+                    padding: '8px',
+                    marginBottom: '8px',
+                    fontSize: '0.74rem'
+                  }}>
+                    <div style={{ fontWeight: 700, color: '#0F766E', marginBottom: '3px' }}>
+                      💰 అంచనా ఖర్చులు & చట్టబద్ధమైన రక్షణలు (Costs & Caps):
+                    </div>
+                    <div>• <strong>ప్రభుత్వ ఆసుపత్రి:</strong> {m.action_plan.cost_estimate_summary?.government_cost}</div>
+                    <div>• <strong>ప్రైవేట్ ఆసుపత్రి:</strong> {m.action_plan.cost_estimate_summary?.private_range_display}</div>
+                    {m.action_plan.cost_estimate_summary?.statutory_price_caps?.length > 0 && (
+                      <div style={{ color: '#0D9488', marginTop: '2px' }}>
+                        ⚖️ <strong>NPPA ప్రైస్ క్యాప్:</strong> {m.action_plan.cost_estimate_summary.statutory_price_caps[0]}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Pre-admission Hospital Questions */}
+                  {m.action_plan.questions_to_ask_hospital && m.action_plan.questions_to_ask_hospital.length > 0 && (
+                    <div style={{ marginBottom: '8px' }}>
+                      <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-navy)', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px' }}>
+                        <HelpCircle size={13} color="var(--color-coral)" />
+                        <span>హాస్పిటల్‌ను అడగవలసిన ప్రశ్నలు (Pre-Admission Questions):</span>
+                      </div>
+                      <ul style={{ margin: 0, paddingLeft: '16px', fontSize: '0.71rem', color: '#374151', lineHeight: 1.4 }}>
+                        {m.action_plan.questions_to_ask_hospital.slice(0, 3).map((q, idx) => (
+                          <li key={idx} style={{ marginBottom: '2px' }}>{q}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Mandatory Documents Checklist */}
+                  {m.action_plan.documents_to_carry && m.action_plan.documents_to_carry.length > 0 && (
+                    <div style={{ marginBottom: '8px' }}>
+                      <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-navy)', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px' }}>
+                        <CheckSquare size={13} color="var(--color-teal)" />
+                        <span>తీసుకెళ్లవలసిన పత్రాలు (Documents Checklist):</span>
+                      </div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                        {m.action_plan.documents_to_carry.slice(0, 4).map((doc, idx) => (
+                          <span key={idx} style={{ backgroundColor: '#F3F4F6', color: '#1F2937', fontSize: '0.67rem', padding: '2px 6px', borderRadius: '3px' }}>
+                            ✓ {doc}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Next Steps */}
+                  {m.action_plan.next_step_checklist && m.action_plan.next_step_checklist.length > 0 && (
+                    <div>
+                      <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-navy)', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px' }}>
+                        <ListChecks size={13} color="#2563EB" />
+                        <span>తదుపరి చర్యలు (Next Steps):</span>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                        {m.action_plan.next_step_checklist.slice(0, 3).map((step, idx) => (
+                          <div key={idx} style={{ fontSize: '0.71rem', color: '#4B5563', display: 'flex', alignItems: 'flex-start', gap: '4px' }}>
+                            <span style={{ fontWeight: 700, color: 'var(--color-teal)' }}>{step.step}.</span>
+                            <span>{step.task}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Action Chips */}
               {m.chips && m.chips.length > 0 && (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>

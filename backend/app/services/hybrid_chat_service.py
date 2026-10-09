@@ -439,7 +439,11 @@ def process_guided_chat(req: GuidedChatRequest) -> GuidedChatResponse:
 
             else:
                 # Live database is available: fetch genuine hospitals
-                facilities = search_facilities(query_city=target_city)[:3]
+                is_govt_inquiry = any(g in clean_msg for g in [
+                    "ప్రభుత్వ", "గవర్నమెంట్", "సర్కారీ", "सरकारी", "government", "govt", "free", "ఉచిత"
+                ])
+                ownership_filter = "Government" if is_govt_inquiry else None
+                facilities = search_facilities(query_city=target_city, ownership_filter=ownership_filter)[:3]
                 hospitals_card_data = [{
                     "id": f.id,
                     "name": f.name,
@@ -451,19 +455,35 @@ def process_guided_chat(req: GuidedChatRequest) -> GuidedChatResponse:
                 } for f in facilities]
 
                 if user_lang in ["te", "te-en"]:
-                    hosp_reply = (
-                        f"🏥 {target_city} లోని ప్రముఖ మరియు సిఫార్సు చేయబడిన ఆసుపత్రులు క్రింద ఇవ్వబడ్డాయి:\n\n"
-                        "మీకు ఇంకా దగ్గరలోని ఆసుపత్రులను కనుగొనడానికి దయచేసి మీ ప్రాంతాన్ని లేదా పిన్ కోడ్‌ను (ఉదా: కూకట్‌పల్లి, బంజారా హిల్స్, సికింద్రాబాద్) తెలపండి.\n\n"
-                        "ప్రభుత్వ ఆసుపత్రులలో తెల్ల రేషన్ కార్డు / ఆయుష్మాన్ భారత్ కార్డు ఉన్నవారికి ఆరోగ్యశ్రీ కింద ₹0 నగదు రహిత చికిత్స లభిస్తుంది."
-                    )
-                    chips = ["కూకట్‌పల్లి ఆసుపత్రులు", "బంజారా హిల్స్ ఆసుపత్రులు", "ప్రభుత్వ ఆసుపత్రులు (ఉచితం)", "ఆరోగ్యశ్రీ కేంద్రాలు"]
+                    if is_govt_inquiry:
+                        hosp_reply = (
+                            f"🏥 {target_city} లోని ప్రముఖ ప్రభుత్వ ఆసుపత్రులు (Government Hospitals) క్రింద ఇవ్వబడ్డాయి:\n\n"
+                            "ఈ ఆసుపత్రులలో తెల్ల రేషన్ కార్డు / ఆయుష్మాన్ భారత్ కార్డు ఉన్నవారికి ఆరోగ్యశ్రీ కింద ₹0 నగదు రహిత చికిత్స లభిస్తుంది.\n\n"
+                            "మీకు ఇంకా దగ్గరలోని ప్రభుత్వ ఆసుపత్రులను కనుగొనడానికి దయచేసి మీ ప్రాంతాన్ని లేదా పిన్ కోడ్‌ను (ఉదా: కూకట్‌పల్లి, సికింద్రాబాద్) తెలపండి."
+                        )
+                        chips = ["గాంధీ ఆసుపత్రి", "ఉస్మానియా జనరల్ ఆసుపత్రి", "నిమ్స్ (NIMS)", "ఆరోగ్యశ్రీ కార్డుతో ఉచితమా?"]
+                    else:
+                        hosp_reply = (
+                            f"🏥 {target_city} లోని ప్రముఖ మరియు సిఫార్సు చేయబడిన ఆసుపత్రులు క్రింద ఇవ్వబడ్డాయి:\n\n"
+                            "మీకు ఇంకా దగ్గరలోని ఆసుపత్రులను కనుగొనడానికి దయచేసి మీ ప్రాంతాన్ని లేదా పిన్ కోడ్‌ను (ఉదా: కూకట్‌పల్లి, బంజారా హిల్స్, సికింద్రాబాద్) తెలపండి.\n\n"
+                            "ప్రభుత్వ ఆసుపత్రులలో తెల్ల రేషన్ కార్డు / ఆయుష్మాన్ భారత్ కార్డు ఉన్నవారికి ఆరోగ్యశ్రీ కింద ₹0 నగదు రహిత చికిత్స లభిస్తుంది."
+                        )
+                        chips = ["కూకట్‌పల్లి ఆసుపత్రులు", "బంజారా హిల్స్ ఆసుపత్రులు", "ప్రభుత్వ ఆసుపత్రులు (ఉచితం)", "ఆరోగ్యశ్రీ కేంద్రాలు"]
                 else:
-                    hosp_reply = (
-                        f"🏥 Verified major healthcare facilities in {target_city} are shown below:\n\n"
-                        "To discover hospitals closest to your exact location, please share your locality or PIN code (e.g. Kukatpally, Banjara Hills, Secunderabad).\n\n"
-                        "Government hospitals offer ₹0 cashless care under PM-JAY / Aarogyasri for eligible ration card holders."
-                    )
-                    chips = ["Kukatpally Hospitals", "Banjara Hills Hospitals", "Government Hospitals (Free)", "Aarogyasri Empanelled"]
+                    if is_govt_inquiry:
+                        hosp_reply = (
+                            f"🏥 Verified Government Hospitals in {target_city} are shown below:\n\n"
+                            "These public facilities offer ₹0 cashless care under PM-JAY / Aarogyasri for eligible ration card holders.\n\n"
+                            "To locate government centres closest to your area, please share your locality or PIN code."
+                        )
+                        chips = ["Gandhi Hospital", "Osmania Hospital", "NIMS Hyderabad", "Check Aarogyasri Eligibility"]
+                    else:
+                        hosp_reply = (
+                            f"🏥 Verified major healthcare facilities in {target_city} are shown below:\n\n"
+                            "To discover hospitals closest to your exact location, please share your locality or PIN code (e.g. Kukatpally, Banjara Hills, Secunderabad).\n\n"
+                            "Government hospitals offer ₹0 cashless care under PM-JAY / Aarogyasri for eligible ration card holders."
+                        )
+                        chips = ["Kukatpally Hospitals", "Banjara Hills Hospitals", "Government Hospitals (Free)", "Aarogyasri Empanelled"]
 
                 return GuidedChatResponse(
                     reply=hosp_reply,

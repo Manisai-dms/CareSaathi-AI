@@ -110,6 +110,7 @@ export const VoiceSearchModal: React.FC<VoiceSearchModalProps> = ({ isOpen, onCl
   const audioChunksRef = useRef<Blob[]>([]);
   const recognitionRef = useRef<any>(null);
   const audioPlayerRef = useRef<HTMLAudioElement | null>(null);
+  const latestTranscriptRef = useRef<string>("");
 
   // Sync initial language if modal opens
   useEffect(() => {
@@ -160,6 +161,8 @@ export const VoiceSearchModal: React.FC<VoiceSearchModalProps> = ({ isOpen, onCl
     setErrorStatus(null);
     setConfidenceText(null);
     setProviderInfo(null);
+    setTranscript("");
+    latestTranscriptRef.current = "";
     if (audioUrl) {
       URL.revokeObjectURL(audioUrl);
       setAudioUrl(null);
@@ -193,7 +196,9 @@ export const VoiceSearchModal: React.FC<VoiceSearchModalProps> = ({ isOpen, onCl
         mediaRecorder.start(250);
       } catch (err: any) {
         console.warn("MediaRecorder / Mic capture warning:", err);
-        // Continue with Web Speech API if getUserMedia is restricted
+        if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+          setErrorStatus("Microphone permission was denied. Please allow microphone access in your browser settings.");
+        }
       }
     }
 
@@ -213,7 +218,7 @@ export const VoiceSearchModal: React.FC<VoiceSearchModalProps> = ({ isOpen, onCl
         recognition.continuous = false;
         recognition.interimResults = true;
 
-        // CRITICAL RULE: Set explicit language code based on user selection
+        // Set explicit language code based on user selection
         if (selectedLang === 'te-IN') {
           recognition.lang = 'te-IN';
         } else if (selectedLang === 'hi-IN') {
@@ -221,27 +226,35 @@ export const VoiceSearchModal: React.FC<VoiceSearchModalProps> = ({ isOpen, onCl
         } else if (selectedLang === 'en-IN') {
           recognition.lang = 'en-IN';
         } else {
-          // Auto-detect default: fallback to Telugu/English
+          // Auto-detect default: prioritize Telugu
           recognition.lang = 'te-IN';
         }
 
         recognition.onresult = (event: any) => {
-          let currentTranscript = "";
+          let finalTranscript = "";
+          let interimTranscript = "";
           let finalConfidence: number | null = null;
 
-          for (let i = event.resultIndex; i < event.results.length; i++) {
-            currentTranscript += event.results[i][0].transcript;
-            if (event.results[i][0].confidence) {
+          for (let i = 0; i < event.results.length; i++) {
+            if (event.results[i].isFinal) {
+              finalTranscript += event.results[i][0].transcript;
+            } else {
+              interimTranscript += event.results[i][0].transcript;
+            }
+            if (event.results[i][0].confidence && event.results[i][0].confidence > 0) {
               finalConfidence = event.results[i][0].confidence;
             }
           }
 
-          if (currentTranscript.trim()) {
+          const currentTranscript = (finalTranscript + " " + interimTranscript).trim() || finalTranscript.trim() || interimTranscript.trim();
+
+          if (currentTranscript) {
             setTranscript(currentTranscript);
+            latestTranscriptRef.current = currentTranscript;
             if (finalConfidence && finalConfidence > 0) {
-              setConfidenceText(`${Math.round(finalConfidence * 100)}% (Web Speech Engine)`);
+              setConfidenceText(`${Math.round(finalConfidence * 100)}% (Browser Speech Engine)`);
             } else {
-              setConfidenceText("Please review the transcript.");
+              setConfidenceText("Recognized Live Speech");
             }
             setProviderInfo("Browser Speech Adapter");
           }
@@ -250,9 +263,11 @@ export const VoiceSearchModal: React.FC<VoiceSearchModalProps> = ({ isOpen, onCl
         recognition.onerror = (event: any) => {
           console.warn("Web Speech API recognition error:", event.error);
           if (event.error === 'not-allowed') {
-            setErrorStatus("Microphone permission was denied. Please allow microphone access or choose a sample / type below.");
+            setErrorStatus("Microphone permission was denied. Please allow microphone access in your browser settings.");
           } else if (event.error === 'no-speech') {
-            setErrorStatus("No speech detected. Please hold microphone and speak clearly.");
+            setErrorStatus("No speech detected. Please hold the microphone and speak clearly.");
+          } else if (event.error === 'network') {
+            setErrorStatus("Speech recognition network error. Please check your internet connection.");
           }
         };
 
@@ -290,13 +305,14 @@ export const VoiceSearchModal: React.FC<VoiceSearchModalProps> = ({ isOpen, onCl
       }
     }
 
-    // If no transcript was captured by Web Speech API, or if user spoke in Telugu/code-switching,
-    // dispatch to backend speech transcription adapter for reliable parsing
-    if (!transcript.trim()) {
-      setIsProcessing(true);
-      try {
-        let b64Audio = "";
-        if (audioChunksRef.current.length > 0) {
+    // Check if live speech recognition captured the user's spoken words
+    const captured = latestTranscriptRef.current.trim() || transcript.trim();
+
+    // If no transcript was captured by Web Speech API, attempt backend audio transcription with recorded audio
+    if (!captured) {
+      if (audioChunksRef.current.length > 0) {
+        setIsProcessing(true);
+        try {
           const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
           const buffer = await blob.arrayBuffer();
           const bytes = new Uint8Array(buffer);
@@ -304,32 +320,35 @@ export const VoiceSearchModal: React.FC<VoiceSearchModalProps> = ({ isOpen, onCl
           for (let i = 0; i < bytes.byteLength; i++) {
             binary += String.fromCharCode(bytes[i]);
           }
-          b64Audio = btoa(binary);
-        }
+          const b64Audio = btoa(binary);
 
-        // Call backend speech adapter with explicit language selection
-        const res: SpeechTranscribeDTO = await api.transcribeSpeech({
-          audio_base64: b64Audio || (recordingSeconds > 1 ? "UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=" : undefined),
-          language: selectedLang,
-          format: 'webm'
-        });
+          // Call backend speech adapter with actual recorded audio
+          const res: SpeechTranscribeDTO = await api.transcribeSpeech({
+            audio_base64: b64Audio,
+            language: selectedLang,
+            format: 'webm'
+          });
 
-        if (res.transcript) {
-          setTranscript(res.transcript);
-          setProviderInfo(res.provider);
-          if (res.confidence) {
-            setConfidenceText(`${Math.round(res.confidence * 100)}% (${res.confidence_label})`);
+          if (res.transcript && res.transcript.trim()) {
+            setTranscript(res.transcript.trim());
+            latestTranscriptRef.current = res.transcript.trim();
+            setProviderInfo(res.provider);
+            if (res.confidence) {
+              setConfidenceText(`${Math.round(res.confidence * 100)}% (${res.confidence_label})`);
+            } else {
+              setConfidenceText("Transcribed Audio");
+            }
           } else {
-            setConfidenceText("Please review the transcript.");
+            setErrorStatus(res.message || "No words recognized from the recording. Please speak clearly and try again.");
           }
-        } else if (res.message) {
-          setErrorStatus(res.message);
+        } catch (err: any) {
+          console.error("Backend speech transcribe error:", err);
+          setErrorStatus("Speech could not be parsed. Please speak again or type your medical inquiry directly.");
+        } finally {
+          setIsProcessing(false);
         }
-      } catch (err: any) {
-        console.error("Backend speech transcribe error:", err);
-        setErrorStatus("Speech could not be parsed automatically. Please review the options below or type your medical inquiry directly.");
-      } finally {
-        setIsProcessing(false);
+      } else {
+        setErrorStatus("No audio was recorded. Please tap the microphone and speak again.");
       }
     }
   };

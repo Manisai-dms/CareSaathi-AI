@@ -68,6 +68,9 @@ export const GuidedChatDrawer: React.FC<GuidedChatDrawerProps> = ({
   const [recordingSeconds, setRecordingSeconds] = useState(0);
   const recognitionRef = useRef<any>(null);
   const timerRef = useRef<any>(null);
+  const latestTranscriptRef = useRef<string>("");
+  const isVoiceSubmittedRef = useRef<boolean>(false);
+  const voiceErrorRef = useRef<string | null>(null);
 
   // Text-To-Speech (TTS) state
   const [speakingMsgId, setSpeakingMsgId] = useState<string | null>(null);
@@ -175,13 +178,39 @@ export const GuidedChatDrawer: React.FC<GuidedChatDrawerProps> = ({
   };
 
   // --- Voice Input (Speech-to-Text) ---
-  const startVoiceRecording = () => {
+  const startVoiceRecording = async () => {
+    stopSpeaking();
     setInputText("");
+    latestTranscriptRef.current = "";
+    isVoiceSubmittedRef.current = false;
+    voiceErrorRef.current = null;
+
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
       alert("Web Speech API is not supported in this browser. Please type directly.");
       return;
+    }
+
+    // Microphone access verification with honest feedback
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        stream.getTracks().forEach(track => track.stop());
+      } catch (err: any) {
+        if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+          const permNotice = chatLang.startsWith('te')
+            ? "🎤 మైక్రోఫోన్ అనుమతి నిరాకరించబడింది. దయచేసి మీ బ్రౌజర్ సెట్టింగ్స్‌లో మైక్రోఫోన్ అనుమతించండి లేదా టైప్ చేయండి."
+            : "🎤 Microphone permission was denied. Please allow microphone access in your browser settings to speak.";
+          setMessages(prev => [...prev, {
+            id: Date.now().toString(),
+            sender: 'bot',
+            text: permNotice,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          }]);
+          return;
+        }
+      }
     }
 
     try {
@@ -200,32 +229,55 @@ export const GuidedChatDrawer: React.FC<GuidedChatDrawerProps> = ({
       };
 
       recognition.onresult = (event: any) => {
-        let currentTranscript = "";
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          currentTranscript += event.results[i][0].transcript;
+        let finalTranscript = "";
+        let interimTranscript = "";
+
+        for (let i = 0; i < event.results.length; i++) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript;
+          } else {
+            interimTranscript += event.results[i][0].transcript;
+          }
         }
-        if (currentTranscript.trim()) {
-          setInputText(currentTranscript);
+
+        const accumulated = (finalTranscript + " " + interimTranscript).trim() || finalTranscript.trim() || interimTranscript.trim();
+        if (accumulated) {
+          latestTranscriptRef.current = accumulated;
+          setInputText(accumulated);
         }
       };
 
       recognition.onerror = (event: any) => {
         console.warn("Speech recognition error:", event.error);
-        stopVoiceRecording();
+        if (event.error === 'not-allowed') {
+          voiceErrorRef.current = chatLang.startsWith('te')
+            ? "మైక్రోఫోన్ అనుమతి నిరాకరించబడింది. దయచేసి అనుమతించండి."
+            : "Microphone permission was denied.";
+        } else if (event.error === 'no-speech') {
+          voiceErrorRef.current = chatLang.startsWith('te')
+            ? "మాటలు వినిపించలేదు. దయచేసి మైక్రోఫోన్ నొక్కి మళ్లీ మాట్లాడండి."
+            : "No speech detected. Please tap the microphone and speak again.";
+        } else if (event.error === 'network') {
+          voiceErrorRef.current = chatLang.startsWith('te')
+            ? "వాయిస్ నెట్‌వర్క్ లోపం. దయచేసి మీ ఇంటర్నెట్ కనెక్షన్ తనిఖీ చేయండి."
+            : "Speech recognition network error. Please check your connection.";
+        }
+        stopVoiceRecording(false);
       };
 
       recognition.onend = () => {
-        stopVoiceRecording();
+        // Automatically submit the spoken words when user finishes speaking
+        stopVoiceRecording(true);
       };
 
       recognition.start();
     } catch (e) {
       console.error("Could not start speech recognition:", e);
-      stopVoiceRecording();
+      stopVoiceRecording(false);
     }
   };
 
-  const stopVoiceRecording = () => {
+  const stopVoiceRecording = (autoSubmit = false) => {
     setIsRecording(false);
     if (timerRef.current) {
       clearInterval(timerRef.current);
@@ -237,6 +289,25 @@ export const GuidedChatDrawer: React.FC<GuidedChatDrawerProps> = ({
       } catch (e) {
         // Ignore
       }
+      recognitionRef.current = null;
+    }
+
+    if (voiceErrorRef.current) {
+      const errMsg = voiceErrorRef.current;
+      voiceErrorRef.current = null;
+      setMessages(prev => [...prev, {
+        id: Date.now().toString(),
+        sender: 'bot',
+        text: `⚠️ ${errMsg}`,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      }]);
+      return;
+    }
+
+    const recognizedText = latestTranscriptRef.current.trim();
+    if (autoSubmit && recognizedText && !isVoiceSubmittedRef.current) {
+      isVoiceSubmittedRef.current = true;
+      handleSendMessage(recognizedText, true);
     }
   };
 
@@ -253,13 +324,15 @@ export const GuidedChatDrawer: React.FC<GuidedChatDrawerProps> = ({
     });
   };
 
-  const handleSendMessage = async (textToSend: string) => {
+  const handleSendMessage = async (textToSend: string, isVoiceOrigin = false) => {
     const trimmed = textToSend.trim();
     if (!trimmed && !attachedRx) return;
 
     // Stop speaking any previous message
     stopSpeaking();
-    stopVoiceRecording();
+    if (isRecording) {
+      stopVoiceRecording(false);
+    }
 
     const userMsg: ChatMessage = {
       id: Date.now().toString(),
@@ -272,6 +345,7 @@ export const GuidedChatDrawer: React.FC<GuidedChatDrawerProps> = ({
 
     setMessages(prev => [...prev, userMsg]);
     setInputText("");
+    latestTranscriptRef.current = "";
     setIsTyping(true);
 
     const currentRx = attachedRx;
@@ -284,7 +358,7 @@ export const GuidedChatDrawer: React.FC<GuidedChatDrawerProps> = ({
       }));
 
       const res = await api.guidedChat({
-        message: trimmed || "ఈ ప్రిస్క్రిప్షన్‌ను పరిశీలించి మందుల ఖర్చు చెప్పండి",
+        message: trimmed || (currentRx ? "దయచేసి ఈ ప్రిస్క్రిప్షన్‌ను విశ్లేషించండి" : ""),
         city: "Hyderabad",
         history: history.slice(-6),
         prescription_filename: currentRx?.filename,
@@ -311,7 +385,7 @@ export const GuidedChatDrawer: React.FC<GuidedChatDrawerProps> = ({
       setMessages(prev => [...prev, botMsg]);
 
       // Auto-play speech in voice-first mode if user sent query via voice
-      if (isRecording || trimmed.includes("చెప్పండి") || trimmed.includes("ఖర్చు")) {
+      if (isVoiceOrigin || trimmed.includes("చెప్పండి") || trimmed.includes("ఖర్చు")) {
         // Smooth audio playback
         setTimeout(() => {
           playSpeech(botMsgId, res.audio_tts_text || res.reply);
@@ -778,7 +852,7 @@ export const GuidedChatDrawer: React.FC<GuidedChatDrawerProps> = ({
           </div>
           <button
             type="button"
-            onClick={stopVoiceRecording}
+            onClick={() => stopVoiceRecording(true)}
             className="btn btn-secondary btn-sm"
             style={{ fontSize: '0.74rem', padding: '3px 8px' }}
           >
@@ -863,7 +937,7 @@ export const GuidedChatDrawer: React.FC<GuidedChatDrawerProps> = ({
         {/* Microphone Button */}
         <button
           type="button"
-          onClick={isRecording ? stopVoiceRecording : startVoiceRecording}
+          onClick={isRecording ? () => stopVoiceRecording(true) : startVoiceRecording}
           style={{
             width: '36px',
             height: '36px',

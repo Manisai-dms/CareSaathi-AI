@@ -2,7 +2,11 @@ import re
 from typing import Optional, List, Dict
 from ..models.schemas import NLPParseResponse, Treatment
 from ..data.catalogue import normalize_treatment_query, TREATMENT_CATALOGUE
-from .telugu_nlp_engine import parse_medical_query_advanced
+from .telugu_nlp_engine import parse_medical_query_advanced, EMERGENCY_LEXICON
+
+EMERGENCY_KEYWORDS = (
+    EMERGENCY_LEXICON["en"] + EMERGENCY_LEXICON["te"] + EMERGENCY_LEXICON["hi"]
+)
 
 def parse_user_query(text: str, current_location: Optional[str] = None) -> NLPParseResponse:
     """

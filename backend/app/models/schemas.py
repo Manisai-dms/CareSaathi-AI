@@ -239,6 +239,7 @@ class PrescriptionOCRResponse(BaseModel):
 
 class SpeechTranscribeRequest(BaseModel):
     audio_base64: Optional[str] = None
+    transcript_hint: Optional[str] = None
     language: str = "te-IN"  # te-IN, en-IN, hi-IN, auto
     sample_rate: int = 16000
     format: str = "webm"  # webm, wav, mp3, ogg

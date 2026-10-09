@@ -14,6 +14,7 @@ from .data.database import (
 from .models.schemas import (
     Treatment, Facility, Scheme, CostEstimateRequest, CostEstimateResponse,
     NLPParseRequest, NLPParseResponse, PrescriptionOCRRequest, PrescriptionOCRResponse,
+    SpeechTranscribeRequest, SpeechTranscribeResponse,
     SchemeMatchRequest, SchemeMatchResult, FacilityCompareRequest, MetadataResponse,
     GuidedChatRequest, GuidedChatResponse, TrustDashboardData,
     RegisterRequest, LoginRequest, AuthResponse, UserProfile,
@@ -24,6 +25,7 @@ from .services.cost_service import estimate_cost
 from .services.facility_service import search_facilities, get_facility_details
 from .services.scheme_service import evaluate_schemes
 from .services.ocr_service import process_prescription_ocr
+from .services.speech_service import transcribe_audio
 from .services.hybrid_chat_service import process_guided_chat
 from .services.auth_service import (
     register_user, login_user, get_demo_user, get_user_by_id,
@@ -314,6 +316,15 @@ async def ocr_prescription(
         raw_text=raw_text
     )
     return process_prescription_ocr(req)
+
+@app.post("/api/ocr/prescription-json", response_model=PrescriptionOCRResponse)
+def ocr_prescription_json(req: PrescriptionOCRRequest):
+    return process_prescription_ocr(req)
+
+# --- Speech Recognition ---
+@app.post("/api/speech/transcribe", response_model=SpeechTranscribeResponse)
+def speech_transcribe(req: SpeechTranscribeRequest):
+    return transcribe_audio(req)
 
 # --- Phase 3 Authentication & User Management ---
 def get_current_user(authorization: Optional[str] = Header(None)) -> Dict[str, Any]:

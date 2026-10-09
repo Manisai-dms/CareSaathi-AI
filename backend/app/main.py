@@ -19,7 +19,8 @@ from .models.schemas import (
     SchemeMatchRequest, SchemeMatchResult, FacilityCompareRequest, MetadataResponse,
     GuidedChatRequest, GuidedChatResponse, TrustDashboardData,
     RegisterRequest, LoginRequest, AuthResponse, UserProfile,
-    SaveComparisonRequest, SavedComparisonItem
+    SaveComparisonRequest, SavedComparisonItem,
+    PatientActionPlanRequest, PatientActionPlanResponse
 )
 from .services.nlp_service import parse_user_query
 from .services.cost_service import estimate_cost
@@ -28,6 +29,7 @@ from .services.scheme_service import evaluate_schemes
 from .services.ocr_service import process_prescription_ocr
 from .services.speech_service import transcribe_audio
 from .services.hybrid_chat_service import process_guided_chat
+from .services.action_plan_service import generate_patient_action_plan
 from .services.auth_service import (
     register_user, login_user, get_demo_user, get_user_by_id,
     decode_access_token, save_comparison, get_saved_comparisons,
@@ -455,6 +457,11 @@ def handle_get_payment_status(order_id: str):
     if not order:
         raise HTTPException(status_code=404, detail="Payment order not found")
     return order
+
+# --- Patient Action Plan Generator ---
+@app.post("/api/action-plan/generate", response_model=PatientActionPlanResponse)
+def handle_generate_action_plan(req: PatientActionPlanRequest):
+    return generate_patient_action_plan(req)
 
 # Serve Frontend static build if present
 frontend_dist = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "dist"))

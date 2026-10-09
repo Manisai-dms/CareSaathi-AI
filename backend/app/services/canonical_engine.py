@@ -25,6 +25,8 @@ from .telugu_nlp_engine import (
     detect_text_language, EMERGENCY_LEXICON, SYMPTOM_LEXICON,
     FACILITY_PREFERENCE_LEXICON, normalize_telugu_text
 )
+from .action_plan_service import generate_patient_action_plan
+from ..models.schemas import PatientActionPlanRequest
 
 logger = logging.getLogger("caresaathi.canonical_engine")
 
@@ -209,6 +211,17 @@ def build_canonical_request(req: GuidedChatRequest) -> CanonicalHealthcareReques
     ]) and not any(t in clean_lower for t in ["cost", "ఖర్చు", "ధర", "రేటు", "ఫీజు"]) and not is_follow_up:
         primary_intent = "hospital_discovery"
         requested_outcome = "facility_directory"
+
+    # Patient Action Plan / Summary Checklist
+    elif any(w in clean_lower for w in [
+        "action plan", "patient plan", "care plan", "summary checklist",
+        "యాక్షన్ ప్లాన్", "ప్లాన్", "సారాంశం", "చెక్‌లిస్ట్"
+    ]):
+        primary_intent = "patient_action_plan"
+        requested_outcome = "generate_action_plan"
+        treatment_id = prev_treatment or "knee_replacement"
+        if treatment_id in TREATMENT_CATALOGUE:
+            treatment_name = TREATMENT_CATALOGUE[treatment_id].name
 
     # Symptom / Home Care
     elif any(st in clean_lower for st in [
@@ -795,13 +808,24 @@ def _execute_canonical_request_internal(creq: CanonicalHealthcareRequest) -> Gui
                 "phone": f.phone or "+91 40 2345 6789"
             } for f in top_facilities]
 
+            plan_req = PatientActionPlanRequest(
+                user_concern=creq.raw_input,
+                treatment_id="cataract_surgery",
+                city=target_city,
+                ownership_preference=creq.ownership_preference,
+                language=user_lang
+            )
+            cataract_plan = generate_patient_action_plan(plan_req).model_dump()
+            chips_cataract = chips + (["పేషెంట్ యాక్షన్ ప్లాన్ (Action Plan)"] if user_lang.startswith('te') else ["Patient Action Plan"])
+
             return GuidedChatResponse(
                 reply=reply_text,
                 reply_language=user_lang,
                 emergency_detected=False,
-                suggested_chips=chips,
+                suggested_chips=chips_cataract,
                 canonical_intent="procedure_cost",
                 hospitals_card=hospitals_card_data,
+                action_plan=cataract_plan,
                 audio_tts_text=clean_tts_text(reply_text)
             )
 
@@ -821,7 +845,7 @@ def _execute_canonical_request_internal(creq: CanonicalHealthcareRequest) -> Gui
                 f"• ఖర్చు ఆధారపడే అంశాలు: ఆసుపత్రి వర్గం, గది రకం (జనరల్ వార్డ్ vs డీలక్స్), మరియు ఇంప్లాంట్ రకం."
                 f"{missing_note}"
             )
-            chips = ["ప్రభుత్వ ఆసుపత్రులు (ఉచితం)", "ప్రైవేట్ ఆసుపత్రులు", "ఆరోగ్యశ్రీ కార్డుతో ఉచితమా?"]
+            chips = ["ప్రభుత్వ ఆసుపత్రులు (ఉచితం)", "ప్రైవేట్ ఆసుపత్రులు", "ఆరోగ్యశ్రీ కార్డుతో ఉచితమా?", "పేషెంట్ యాక్షన్ ప్లాన్"]
         else:
             reply_text = (
                 f"🏥 Estimated Cost for {treatment.name} in {target_city}:\n\n"
@@ -831,7 +855,7 @@ def _execute_canonical_request_internal(creq: CanonicalHealthcareRequest) -> Gui
                 f"• Primary Cost Drivers: Room tier (General vs Private), surgeon experience, and implant specifications."
                 f"{missing_note}"
             )
-            chips = ["What about government hospitals?", "Documents to Carry", "Check Aarogyasri Eligibility"]
+            chips = ["What about government hospitals?", "Documents to Carry", "Check Aarogyasri Eligibility", "Patient Action Plan"]
 
         top_facilities = search_facilities(query_city=target_city, treatment_id=treatment.id)[:3] if db_available else []
         hospitals_card_data = [{
@@ -840,6 +864,14 @@ def _execute_canonical_request_internal(creq: CanonicalHealthcareRequest) -> Gui
             "phone": f.phone or "+91 40 2345 6789"
         } for f in top_facilities]
 
+        general_plan = generate_patient_action_plan(PatientActionPlanRequest(
+            user_concern=creq.raw_input,
+            treatment_id=treatment.id,
+            city=target_city,
+            ownership_preference=creq.ownership_preference,
+            language=user_lang
+        )).model_dump()
+
         return GuidedChatResponse(
             reply=reply_text,
             reply_language=user_lang,
@@ -847,6 +879,7 @@ def _execute_canonical_request_internal(creq: CanonicalHealthcareRequest) -> Gui
             suggested_chips=chips,
             canonical_intent="procedure_cost",
             hospitals_card=hospitals_card_data,
+            action_plan=general_plan,
             audio_tts_text=clean_tts_text(reply_text)
         )
 
@@ -866,7 +899,7 @@ def _execute_canonical_request_internal(creq: CanonicalHealthcareRequest) -> Gui
                 "• ప్రయోజనం: దేశవ్యాప్తంగా నమోదిత ఆసుపత్రులలో సంవత్సరానికి ₹5 లక్షల వరకు ఉచిత కవరేజ్.\n\n"
                 "⚠️ ముఖ్యమైన ధృవీకరణ నిబంధన: ఆసుపత్రిలోని ఆరోగ్యమిత్ర (Aarogyamitra) కౌంటర్‌లో మీ తెల్ల రేషన్ కార్డు మరియు ఆధార్ కార్డును ధృవీకరించిన తర్వాతే ఉచిత చికిత్స వర్తిస్తుంది. ముందస్తు ధృవీకరణ లేకుండా ఉచిత చికిత్సను హామీ ఇవ్వలేము."
             )
-            chips = ["తీసుకెళ్లాల్సిన పత్రాలు", "సమీప ఆరోగ్యశ్రీ ఆసుపత్రులు", "ఆరోగ్యమిత్ర హెల్ప్‌లైన్ 104"]
+            chips = ["తీసుకెళ్లాల్సిన పత్రాలు", "సమీప ఆరోగ్యశ్రీ ఆసుపత్రులు", "ఆరోగ్యమిత్ర హెల్ప్‌లైన్ 104", "పేషెంట్ యాక్షన్ ప్లాన్"]
         else:
             scheme_reply = (
                 "🏛️ Government Scheme Eligibility & Coverage Guidance:\n\n"
@@ -878,7 +911,7 @@ def _execute_canonical_request_internal(creq: CanonicalHealthcareRequest) -> Gui
                 "• Statutory Ceiling: ₹5 Lakhs per family per year nationwide across all SECC-eligible beneficiaries.\n\n"
                 "⚠️ Mandatory Verification Notice: Cashless eligibility is strictly subject to biometric Aadhaar & White Card verification by the on-duty hospital Aarogyamitra prior to admission. CareSaathi cannot independently approve scheme claims."
             )
-            chips = ["Documents to Carry", "Empanelled Hospital List", "National Helpline 104"]
+            chips = ["Documents to Carry", "Empanelled Hospital List", "National Helpline 104", "Patient Action Plan"]
 
         return GuidedChatResponse(
             reply=scheme_reply,
@@ -887,6 +920,54 @@ def _execute_canonical_request_internal(creq: CanonicalHealthcareRequest) -> Gui
             suggested_chips=chips,
             canonical_intent="scheme_guidance",
             audio_tts_text=clean_tts_text(scheme_reply)
+        )
+
+    # -------------------------------------------------------------
+    # INTENT 6.5: PATIENT ACTION PLAN (PHASE 7)
+    # -------------------------------------------------------------
+    if creq.primary_intent == "patient_action_plan":
+        target_city = creq.location_city or "Hyderabad"
+        treatment_id = creq.treatment_id or "knee_replacement"
+
+        plan_req = PatientActionPlanRequest(
+            user_concern=creq.raw_input,
+            treatment_id=treatment_id,
+            city=target_city,
+            ownership_preference=creq.ownership_preference,
+            language=user_lang
+        )
+        action_plan_res = generate_patient_action_plan(plan_req)
+
+        if user_lang in ["te", "te-en"]:
+            plan_intro = (
+                f"📋 మీ వ్యక్తిగత రోగి కార్యాచరణ ప్రణాళిక (Patient Action Plan):\n\n"
+                f"• అంశం: {action_plan_res.confirmed_details.get('stated_concern')}\n"
+                f"• విధానం: {action_plan_res.cost_estimate_summary.get('procedure_name')}\n"
+                f"• ప్రభుత్వ ఆసుపత్రులు: {action_plan_res.cost_estimate_summary.get('government_cost')}\n"
+                f"• ప్రైవేట్ ప్రామాణిక శ్రేణి: {action_plan_res.cost_estimate_summary.get('private_range_display')}\n\n"
+                f"క్రింద ఇవ్వబడిన పత్రాల చెక్‌లిస్ట్ మరియు ఆసుపత్రిని అడగవలసిన ప్రశ్నలను పరిశీలించండి. మీరు ఈ ప్లాన్‌ను నేరుగా డౌన్‌లోడ్ లేదా ప్రింట్ చేసుకోవచ్చు."
+            )
+            chips = ["ప్రింట్ / సేవ్ పిడిఎఫ్ (Print)", "ఆసుపత్రుల జాబితా", "ఆరోగ్యశ్రీ కార్డుతో ఉచితమా?"]
+        else:
+            plan_intro = (
+                f"📋 Your Personalized Patient Action Plan:\n\n"
+                f"• Healthcare Concern: {action_plan_res.confirmed_details.get('stated_concern')}\n"
+                f"• Procedure: {action_plan_res.cost_estimate_summary.get('procedure_name')}\n"
+                f"• Government Hospitals: {action_plan_res.cost_estimate_summary.get('government_cost')}\n"
+                f"• Private Indicative Range: {action_plan_res.cost_estimate_summary.get('private_range_display')}\n\n"
+                f"Review the required documents checklist and pre-admission billing questions below. You can print or export this plan directly."
+            )
+            chips = ["Print / Save PDF Plan", "Empanelled Hospitals", "Check Aarogyasri Rules"]
+
+        return GuidedChatResponse(
+            reply=plan_intro,
+            reply_language=user_lang,
+            emergency_detected=False,
+            suggested_chips=chips,
+            canonical_intent="patient_action_plan",
+            action_plan=action_plan_res.model_dump(),
+            hospitals_card=action_plan_res.verified_hospitals,
+            audio_tts_text=clean_tts_text(plan_intro)
         )
 
     # -------------------------------------------------------------

@@ -333,6 +333,30 @@ class GuidedChatResponse(BaseModel):
     audio_tts_text: Optional[str] = None
     is_clarification: bool = False
     clarification_options: List[str] = []
+    action_plan: Optional[Dict[str, Any]] = None
+
+class PatientActionPlanRequest(BaseModel):
+    user_concern: str
+    treatment_id: Optional[str] = None
+    city: Optional[str] = "Hyderabad"
+    ownership_preference: Optional[str] = None
+    language: Optional[str] = "en"
+    user_budget: Optional[int] = None
+    medicines: Optional[List[Dict[str, Any]]] = None
+
+class PatientActionPlanResponse(BaseModel):
+    title: str
+    user_stated_concern: str
+    confirmed_details: Dict[str, Any]
+    cost_estimate_summary: Dict[str, Any]
+    estimate_limitations: List[str]
+    verified_hospitals: List[Dict[str, Any]]
+    official_lookup_routes: List[Dict[str, str]]
+    applicable_schemes: List[Dict[str, Any]]
+    questions_to_ask_hospital: List[str]
+    documents_to_carry: List[str]
+    next_step_checklist: List[Dict[str, Any]]
+    printable_text: str
 
 class SpeechSynthesizeRequest(BaseModel):
     text: str

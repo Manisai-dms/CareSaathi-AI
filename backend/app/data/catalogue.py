@@ -295,39 +295,39 @@ def normalize_treatment_query(query: str) -> Optional[Treatment]:
                 
     # Keyword token matching
     tokens = set(clean_q.split())
-    if "knee" in tokens and ("replacement" in tokens or "surgery" in tokens or "pain" in tokens):
+    if "knee" in tokens and ("replacement" in tokens or "surgery" in tokens or "pain" in tokens) or "మోకాలి" in clean_q or "మోకాలు" in clean_q or "घुटने" in clean_q:
         return TREATMENT_CATALOGUE["knee_replacement"]
-    if "cataract" in tokens or "eye" in tokens or "motiyabind" in tokens:
+    if "cataract" in tokens or "eye" in tokens or "motiyabind" in tokens or "కంటిశుక్లం" in clean_q or "కంటి శుక్లం" in clean_q or "మోతియాబింద్" in clean_q or "मोतियाबिंद" in clean_q:
         return TREATMENT_CATALOGUE["cataract_surgery"]
-    if "diabetes" in tokens or "sugar" in tokens or "hba1c" in tokens:
+    if "diabetes" in tokens or "sugar" in tokens or "hba1c" in tokens or "మధుమేహం" in clean_q or "షుగర్" in clean_q:
         return TREATMENT_CATALOGUE["diabetes_care"]
-    if "stone" in tokens or "calculi" in tokens or "pcnl" in tokens or "urs" in tokens:
+    if "stone" in tokens or "calculi" in tokens or "pcnl" in tokens or "urs" in tokens or "మూత్రపిండ" in clean_q or "రాళ్లు" in clean_q or "पथरी" in clean_q:
         return TREATMENT_CATALOGUE["kidney_stones"]
-    if "blood" in tokens and ("test" in tokens or "tests" in tokens or "profile" in tokens or "check" in tokens):
+    if ("blood" in tokens and ("test" in tokens or "tests" in tokens or "profile" in tokens or "check" in tokens)) or "రక్త పరీక్ష" in clean_q or "రక్త పరీక్షలు" in clean_q or "खून की जांच" in clean_q:
         return TREATMENT_CATALOGUE["blood_tests"]
-    if "mri" in tokens:
-        if "brain" in tokens or "head" in tokens:
+    if "mri" in tokens or "ఎంఆర్ఐ" in clean_q or "ఎమ్మార్ఐ" in clean_q or "एमआरआई" in clean_q:
+        if "brain" in tokens or "head" in tokens or "మెదడు" in clean_q or "తల" in clean_q or "मस्तिष्क" in clean_q:
             return TREATMENT_CATALOGUE["mri_brain"]
-        elif "knee" in tokens:
+        elif "knee" in tokens or "మోకాలు" in clean_q or "మోకాలి" in clean_q:
             return TREATMENT_CATALOGUE["mri_knee"]
-        elif "spine" in tokens or "back" in tokens:
+        elif "spine" in tokens or "back" in tokens or "వెన్నెముక" in clean_q or "రీఢ్" in clean_q:
             return TREATMENT_CATALOGUE["mri_spine"]
         return TREATMENT_CATALOGUE["mri_brain"]
-    if "delivery" in tokens or "baby" in tokens or "maternity" in tokens:
-        if "c-section" in tokens or "cesarean" in tokens or "operation" in tokens:
+    if "delivery" in tokens or "baby" in tokens or "maternity" in tokens or "ప్రసవం" in clean_q or "ప్రసవ" in clean_q:
+        if "c-section" in tokens or "cesarean" in tokens or "operation" in tokens or "సిజేరియన్" in clean_q or "సి-సెక్షన్" in clean_q:
             return TREATMENT_CATALOGUE["caesarean_delivery"]
         return TREATMENT_CATALOGUE["normal_delivery"]
-    if "stent" in tokens or "angioplasty" in tokens or "heart" in tokens:
+    if "stent" in tokens or "angioplasty" in tokens or "heart" in tokens or "గుండె" in clean_q or "స్టెంట్" in clean_q or "యాంజియోప్లాస్టీ" in clean_q:
         return TREATMENT_CATALOGUE["angioplasty"]
-    if "gallbladder" in tokens or "gallstone" in tokens or "pitta" in tokens:
+    if "gallbladder" in tokens or "gallstone" in tokens or "pitta" in tokens or "పిత్తాశయం" in clean_q or "గాల్ బ్లాడర్" in clean_q:
         return TREATMENT_CATALOGUE["laparoscopic_cholecystectomy"]
-    if "appendix" in tokens or "appendicitis" in tokens:
+    if "appendix" in tokens or "appendicitis" in tokens or "అపెండిక్స్" in clean_q or "అపెండిసైటిస్" in clean_q:
         return TREATMENT_CATALOGUE["appendectomy"]
-    if "dialysis" in tokens:
+    if "dialysis" in tokens or "డయాలసిస్" in clean_q:
         return TREATMENT_CATALOGUE["hemodialysis"]
-    if "hernia" in tokens:
+    if "hernia" in tokens or "హెర్నియా" in clean_q:
         return TREATMENT_CATALOGUE["hernia_repair"]
-    if "fever" in tokens or "dengue" in tokens:
+    if "fever" in tokens or "dengue" in tokens or "జ్వరం" in clean_q or "డెంగ్యూ" in clean_q or "बुखार" in clean_q:
         return TREATMENT_CATALOGUE["inpatient_fever_management"]
         
     return None

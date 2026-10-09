@@ -184,6 +184,7 @@ class CostEstimateResponse(BaseModel):
 class NLPParseRequest(BaseModel):
     text: str
     current_location: Optional[str] = None
+    selected_language: Optional[str] = None  # te, hi, en, auto
 
 class NLPParseResponse(BaseModel):
     raw_query: str
@@ -200,6 +201,19 @@ class NLPParseResponse(BaseModel):
     triage_guidance: Optional[str] = None
     clarification_question: Optional[str] = None
     suggested_action: str
+    # Advanced Multi-lingual Structured NLP fields (Prompt Section 2)
+    detected_language: str = "en"  # te, hi, en, te-en
+    condition: Optional[str] = None
+    procedure: Optional[str] = None
+    diagnostic_test: Optional[str] = None
+    medicine_entities: List[str] = []
+    facility_preference: Optional[str] = None
+    budget: Optional[int] = None
+    missing_fields: List[str] = []
+    ambiguities: List[str] = []
+    confidence_by_field: Dict[str, float] = {}
+    requires_user_confirmation: bool = False
+    canonical_translation: Optional[str] = None
 
 class PrescriptionOCRRequest(BaseModel):
     image_base64: Optional[str] = None
@@ -215,6 +229,31 @@ class PrescriptionOCRResponse(BaseModel):
     requires_user_confirmation: bool = True
     notice: str
     suggested_search_query: Optional[str] = None
+    # Advanced OCR fields (Prompt Section 3 & 4)
+    detected_language: str = "en"
+    detected_medicines_detailed: List[Dict[str, Any]] = []
+    uncertain_regions: List[str] = []
+    is_handwritten: bool = False
+    image_quality_notes: Optional[str] = None
+    visibly_extracted_lines: List[str] = []
+
+class SpeechTranscribeRequest(BaseModel):
+    audio_base64: Optional[str] = None
+    language: str = "te-IN"  # te-IN, en-IN, hi-IN, auto
+    sample_rate: int = 16000
+    format: str = "webm"  # webm, wav, mp3, ogg
+
+class SpeechTranscribeResponse(BaseModel):
+    transcript: str
+    detected_language: str
+    confidence: Optional[float] = None
+    confidence_label: str  # High, Moderate, Review Required
+    is_code_switched: bool = False
+    original_script: str
+    provider: str
+    is_fallback: bool = False
+    status: str  # success, no_speech, unclear, error
+    message: Optional[str] = None
 
 class SchemeMatchRequest(BaseModel):
     treatment_id: Optional[str] = None

@@ -281,19 +281,39 @@ class FacilityCompareRequest(BaseModel):
     facility_ids: List[str]
     treatment_id: str
 
-# Guided Chat Request / Response
+# Guided Chat Request / Response (Voice-First Conversational Assistant)
 class GuidedChatRequest(BaseModel):
     message: str
     treatment_id: Optional[str] = None
     city: Optional[str] = "Hyderabad"
     history: List[Dict[str, str]] = []
+    prescription_text: Optional[str] = None
+    prescription_filename: Optional[str] = None
+    language: Optional[str] = "auto"
 
 class GuidedChatResponse(BaseModel):
     reply: str
+    reply_language: str = "en"
     emergency_detected: bool = False
     suggested_chips: List[str] = []
     extracted_data: Optional[Dict[str, Any]] = None
     structured_estimate: Optional[CostEstimateResponse] = None
+    hospitals_card: Optional[List[Dict[str, Any]]] = None
+    prescription_card: Optional[Dict[str, Any]] = None
+    audio_tts_text: Optional[str] = None
+    is_clarification: bool = False
+    clarification_options: List[str] = []
+
+class SpeechSynthesizeRequest(BaseModel):
+    text: str
+    language: str = "te-IN"
+    gender: str = "female"
+
+class SpeechSynthesizeResponse(BaseModel):
+    audio_base64: Optional[str] = None
+    language: str
+    status: str
+    notice: str
 
 # Trust Dashboard Data
 class TrustDashboardData(BaseModel):

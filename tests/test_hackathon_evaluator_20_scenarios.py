@@ -323,8 +323,10 @@ def run_20_scenarios():
     
     # Verify valid token passes
     demo = get_demo_user()
-    valid_user = get_current_user(f"Bearer {demo.access_token}")
-    s19_pass = unauth_blocked and (valid_user["email"] == "patient@caresaathi.in")
+    token = demo.get("access_token") if isinstance(demo, dict) else demo.access_token
+    valid_user = get_current_user(f"Bearer {token}")
+    expected_email = demo["user"]["email"] if isinstance(demo, dict) else demo.user.email
+    s19_pass = unauth_blocked and (valid_user["email"] == expected_email)
     log_scenario(19, "Protected Endpoint Rejection without Authentication (HTTP 401)", s19_pass,
                  f"Unauthenticated blocked with 401: {unauth_blocked}, Valid token authenticated: {valid_user['email']}")
 

@@ -176,7 +176,10 @@ def build_canonical_request(req: GuidedChatRequest) -> CanonicalHealthcareReques
             requested_outcome = "prescription_overview"
 
     # Medicine Price Lookup without attached file
-    elif any(w in clean_lower for w in ["మందుల ఖర్చు", "మందుల ధర", "medicine price", "tablet cost", "medicine cost", "దవా కా ఖర్చు"]) or any(m["brand_name"].lower() in clean_lower or m["generic_name"].lower() in clean_lower for m in MEDICINE_DATABASE):
+    elif (any(w in clean_lower for w in [
+        "మందుల ఖర్చు", "మందుల ధర", "medicine price", "tablet cost", "medicine cost",
+        "దవా కా ఖర్చు", "price of", "cost of", "rate of", "ఖర్చు", "ధర"
+    ]) and any(d in clean_lower for d in ["drug", "medicine", "tablet", "capsule", "syrup", "drops", "మందు", "దవా", "mg", "ml"])) or any(m["brand_name"].lower() in clean_lower or m["generic_name"].lower() in clean_lower for m in MEDICINE_DATABASE):
         primary_intent = "medicine_pricing"
         requested_outcome = "medicine_price_quote"
         medicine_query = clean_msg
@@ -190,22 +193,22 @@ def build_canonical_request(req: GuidedChatRequest) -> CanonicalHealthcareReques
         primary_intent = "scheme_guidance"
         requested_outcome = "scheme_eligibility_information"
 
+    # Appointment Booking
+    elif any(w in clean_lower for w in [
+        "అపాయింట్‌మెంట్", "appointment", "బుక్", "book doctor", "book an appointment", "book", "డాక్టర్‌ని కలవాలి",
+        "consult doctor", "సమయం", "schedule"
+    ]):
+        primary_intent = "appointment_booking"
+        requested_outcome = "appointment_scheduling"
+
     # Hospital Discovery
     elif any(w in clean_lower for w in [
         "హాస్పిటల్", "హాస్పిటల్స్", "ఆసుపత్రి", "ఆసుపత్రులు", "hospital", "hospitals",
         "clinic", "క్లినిక్", "అస్సపతాల్", "अस्पताल", "specialist", "specialists",
         "cardiolog", "orthopedic", "centre", "center", "centres", "centers", "nursing home"
-    ]) and not any(t in clean_lower for t in ["cost", "ఖర్చు", "ధర", "రేటు", "ఫీజు"]):
+    ]) and not any(t in clean_lower for t in ["cost", "ఖర్చు", "ధర", "రేటు", "ఫీజు"]) and not is_follow_up:
         primary_intent = "hospital_discovery"
         requested_outcome = "facility_directory"
-
-    # Appointment Booking
-    elif any(w in clean_lower for w in [
-        "అపాయింట్‌మెంట్", "appointment", "బుక్", "book doctor", "డాక్టర్‌ని కలవాలి",
-        "consult doctor", "సమయం", "schedule"
-    ]):
-        primary_intent = "appointment_booking"
-        requested_outcome = "appointment_scheduling"
 
     # Symptom / Home Care
     elif any(st in clean_lower for st in [

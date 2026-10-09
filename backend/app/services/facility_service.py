@@ -7,6 +7,8 @@ from ..data.catalogue import TREATMENT_CATALOGUE
 from ..config import settings
 from .photo_service import get_hospital_photo_metadata
 
+from ..data.india_geography import resolve_location, LOCATION_REGISTRY
+
 def haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     """
     Computes great-circle distance between two GPS coordinates in kilometers.
@@ -22,7 +24,7 @@ def haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> fl
 def search_facilities(
     user_lat: Optional[float] = None,
     user_lng: Optional[float] = None,
-    query_city: Optional[str] = "Hyderabad",
+    query_city: Optional[str] = None,
     query_locality: Optional[str] = None,
     pin_code: Optional[str] = None,
     treatment_id: Optional[str] = None,
@@ -35,41 +37,38 @@ def search_facilities(
     all_facilities = get_all_facilities()
     results: List[Facility] = []
 
-    # Center coordinates fallback if user_lat/lng not provided
-    default_lat = 17.4399
-    default_lng = 78.4983  # Central Hyderabad
-
-    # Locality coordinate centroids for Hyderabad
-    LOCALITY_COORDS = {
-        "kukatpally": (17.4938, 78.3995),
-        "banjara hills": (17.4156, 78.4487),
-        "jubilee hills": (17.4194, 78.4116),
-        "gachibowli": (17.4172, 78.3444),
-        "hitec city": (17.4486, 78.3754),
-        "secunderabad": (17.4399, 78.4806),
-        "somajiguda": (17.4262, 78.4593),
-        "hyderguda": (17.3941, 78.4831),
-        "panjagutta": (17.4227, 78.4526),
-        "punjagutta": (17.4227, 78.4526),
-        "musheerabad": (17.4243, 78.5032),
-        "afzal gunj": (17.3773, 78.4777),
-        "begumpet": (17.4447, 78.4664),
-        "madhapur": (17.4483, 78.3915),
-        "kondapur": (17.4699, 78.3578)
-    }
+    # Resolve coordinates dynamically across India without forcing Hyderabad
+    loc_info = resolve_location(
+        city=query_city,
+        district=query_locality,
+        pin_code=pin_code,
+        user_lat=user_lat,
+        user_lng=user_lng
+    )
 
     if user_lat is None or user_lng is None:
-        if query_locality and query_locality.lower().strip() in LOCALITY_COORDS:
-            user_lat, user_lng = LOCALITY_COORDS[query_locality.lower().strip()]
-        else:
-            user_lat, user_lng = default_lat, default_lng
+        user_lat = loc_info["lat"]
+        user_lng = loc_info["lng"]
 
     treatment_obj = TREATMENT_CATALOGUE.get(treatment_id) if treatment_id else None
 
+    # Determine if city/state matching should filter initial list
+    city_filter_term = query_city.strip().lower() if query_city and query_city.strip().lower() not in ["all", "any", ""] else None
+
     for fac in all_facilities:
-        # Locality / City / PIN match
-        if pin_code and fac.pin_code != pin_code:
-            continue
+        # PIN code filter if explicitly requested
+        if pin_code and pin_code.strip() and fac.pin_code != pin_code.strip():
+            # If PIN doesn't match facility exactly, still allow if city matches
+            if city_filter_term and city_filter_term not in fac.city.lower():
+                continue
+
+        # City / State filter if city parameter is provided and no GPS radius is set
+        if city_filter_term and radius_km is None:
+            matches_city = (city_filter_term in fac.city.lower() or 
+                            fac.city.lower() in city_filter_term or
+                            city_filter_term in fac.state.lower())
+            if not matches_city:
+                continue
 
         # Ownership / Classification filter
         if ownership_filter and ownership_filter != "All":
@@ -81,8 +80,7 @@ def search_facilities(
                 if fac.ownership.lower() != "government":
                     continue
             elif norm_filter == "private":
-                # Standard private non-premium
-                if fac.ownership.lower() != "private" or fac.facility_class == "Premium":
+                if fac.ownership.lower() != "private":
                     continue
             elif norm_filter in ["charitable/trust", "trust", "charitable"]:
                 if fac.ownership.lower() not in ["charitable/trust", "trust", "charitable"]:

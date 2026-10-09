@@ -50,8 +50,8 @@ export const JourneyContextBar: React.FC<JourneyContextBarProps> = ({
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
             <MapPin size={14} color="#64717D" />
-            <span style={{ fontSize: '0.82rem', color: '#64717D' }}>
-              {searchState.city || 'Hyderabad'}
+            <span style={{ fontSize: '0.82rem', color: '#64717D', fontWeight: 600 }}>
+              {searchState.city ? `${searchState.city}${searchState.state ? `, ${searchState.state}` : ''}` : 'India'}
             </span>
           </div>
 

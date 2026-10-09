@@ -16,28 +16,44 @@ import { HospitalCard } from '../components/HospitalCard';
 import { HospitalDetailModal } from '../components/HospitalDetailModal';
 import { HospitalMapContainer } from '../components/maps/HospitalMapContainer';
 import { BookingModal } from '../components/BookingModal';
+import { PanIndiaLocationPicker } from '../components/PanIndiaLocationPicker';
 
 export const HospitalDiscoveryPage: React.FC = () => {
   const { t } = useLanguage();
-  const { searchState } = useSearch();
+  const { searchState, setLocation } = useSearch();
 
   const [facilities, setFacilities] = useState<FacilityDTO[]>([]);
   const [treatmentsList, setTreatmentsList] = useState<TreatmentDTO[]>([]);
   const [selectedTreatmentId, setSelectedTreatmentId] = useState<string>(searchState.treatmentId || 'knee_replacement');
   const [city, setCity] = useState<string>(searchState.city || 'Hyderabad');
+  const [stateName, setStateName] = useState<string>(searchState.state || 'Telangana');
   const [locality, setLocality] = useState<string>(searchState.locality || '');
-  const [pinCode, setPinCode] = useState<string>('');
+  const [pinCode, setPinCode] = useState<string>(searchState.pinCode || '');
   
-  // Geolocation (Default to central Hyderabad)
-  const [userCoords, setUserCoords] = useState<{ lat: number; lng: number }>({ lat: 17.4399, lng: 78.4806 });
+  // Geolocation (Default to selected location coords)
+  const [userCoords, setUserCoords] = useState<{ lat: number; lng: number }>({
+    lat: searchState.lat || 17.4399,
+    lng: searchState.lng || 78.4806
+  });
   const [gpsLoading, setGpsLoading] = useState<boolean>(false);
   const [gpsNotice, setGpsNotice] = useState<string | null>(null);
 
   // Filters & Sorting
   const [ownershipFilter, setOwnershipFilter] = useState<string>('All');
   const [schemeFilter, setSchemeFilter] = useState<string>('All');
-  const [radiusKm, setRadiusKm] = useState<number>(15);
+  const [radiusKm, setRadiusKm] = useState<number>(30);
   const [sortBy, setSortBy] = useState<string>('nearest');
+
+  // Sync when searchState updates globally
+  useEffect(() => {
+    if (searchState.city) setCity(searchState.city);
+    if (searchState.state) setStateName(searchState.state);
+    if (searchState.locality !== undefined) setLocality(searchState.locality);
+    if (searchState.pinCode !== undefined) setPinCode(searchState.pinCode);
+    if (searchState.lat && searchState.lng) {
+      setUserCoords({ lat: searchState.lat, lng: searchState.lng });
+    }
+  }, [searchState.city, searchState.state, searchState.locality, searchState.pinCode, searchState.lat, searchState.lng]);
   const [viewMode, setViewMode] = useState<'split' | 'list' | 'map'>('split');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -104,7 +120,7 @@ export const HospitalDiscoveryPage: React.FC = () => {
         if (err.code === 1) {
           setGpsNotice("Location permission was denied. You can manually enter your locality or PIN code in the search field above.");
         } else {
-          setGpsNotice("Unable to retrieve GPS coordinates. Defaulting to central Hyderabad.");
+          setGpsNotice("Unable to retrieve GPS coordinates. Please select your city or PIN code above.");
         }
       },
       { timeout: 8000 }
@@ -140,7 +156,7 @@ export const HospitalDiscoveryPage: React.FC = () => {
               Find Nearby Hospitals & Care
             </h1>
             <p style={{ color: 'var(--color-text-grey)', fontSize: '0.96rem' }}>
-              Discover verified hospitals in Hyderabad with authentic facility photographs, calculated distance, and empanelled scheme support.
+              Discover verified hospitals in {city || 'India'} with authentic facility photographs, calculated distance, and empanelled scheme support.
             </p>
           </div>
 
@@ -185,6 +201,19 @@ export const HospitalDiscoveryPage: React.FC = () => {
               </button>
             </div>
           </div>
+        </div>
+
+        {/* Pan-India Location Selector Card */}
+        <div style={{ marginBottom: '18px' }}>
+          <PanIndiaLocationPicker
+            onLocationSelect={(loc) => {
+              setCity(loc.city);
+              setStateName(loc.state);
+              setLocality(loc.district && loc.district !== loc.city ? loc.district : '');
+              setPinCode(loc.pinCode || '');
+              setUserCoords({ lat: loc.lat, lng: loc.lng });
+            }}
+          />
         </div>
 
         {/* Filter Controls Bar */}
@@ -352,10 +381,30 @@ export const HospitalDiscoveryPage: React.FC = () => {
                 <span>Loading verified hospitals...</span>
               </div>
             ) : facilities.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '60px', backgroundColor: '#FFFFFF', borderRadius: '12px', border: '1px solid var(--color-border)' }}>
+              <div style={{ textAlign: 'center', padding: '48px 24px', backgroundColor: '#FFFFFF', borderRadius: '12px', border: '1px solid var(--color-border)' }}>
                 <Building2 size={40} color="#94A3B8" style={{ marginBottom: '10px' }} />
-                <h3 style={{ fontSize: '1.2rem', color: '#12304A', marginBottom: '6px' }}>No Facilities Found in Selected Radius</h3>
-                <p style={{ color: '#64717D', fontSize: '0.88rem' }}>Try expanding your distance radius filter or selecting "All Hospital Types".</p>
+                <h3 style={{ fontSize: '1.2rem', color: '#12304A', marginBottom: '6px' }}>
+                  No Facilities Found within {radiusKm === 999 ? 'Selected Area' : `${radiusKm} km`}
+                </h3>
+                <p style={{ color: '#64717D', fontSize: '0.88rem', maxWidth: '540px', margin: '0 auto 16px' }}>
+                  In rural or non-metro areas like {city || 'this location'}, specialized inpatient care is typically provided at the nearest District Hospital, CHC, or Medical College.
+                </p>
+                <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                  <button 
+                    onClick={() => setRadiusKm(999)}
+                    className="btn btn-primary btn-sm"
+                    style={{ padding: '8px 18px', fontWeight: 600 }}
+                  >
+                    View All Regional Facilities (No Radius Limit)
+                  </button>
+                  <button 
+                    onClick={() => { setOwnershipFilter('All'); setRadiusKm(50); }}
+                    className="btn btn-secondary btn-sm"
+                    style={{ padding: '8px 18px', fontWeight: 600 }}
+                  >
+                    Expand to 50 km Radius
+                  </button>
+                </div>
               </div>
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: viewMode === 'split' ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', gap: '18px' }}>

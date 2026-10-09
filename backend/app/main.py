@@ -31,6 +31,12 @@ from .services.auth_service import (
     delete_saved_comparison
 )
 from .services.photo_service import get_hospital_photo_metadata
+from .data.medicine_data import search_medicines, get_medicine_by_id, calculate_course_cost
+from .services.payment_service import (
+    create_appointment_payment_order, verify_appointment_payment,
+    get_order_status, is_razorpay_configured
+)
+from pydantic import BaseModel
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -84,9 +90,10 @@ def compute_trust_metrics() -> TrustDashboardData:
             {"source": "National Health Authority PM-JAY HBP 2.2", "date": "March 2026", "authority": "NHA, MoHFW"},
             {"source": "Telangana Aarogyasri Trust Surgical Tariff Schedule", "date": "March 2026", "authority": "Telangana State Trust"},
             {"source": "NIMS Autonomous Gazette & Department of Radiology", "date": "Feb 2026", "authority": "Nizam's Institute of Medical Sciences"},
-            {"source": "CGHS Hyderabad Diagnostic & Pathology Rate Master", "date": "Nov 2023", "authority": "Central Govt Health Scheme"}
+            {"source": "CGHS National Diagnostic & Pathology Rate Master", "date": "Nov 2023", "authority": "Central Govt Health Scheme"},
+            {"source": "Maharashtra MJPJAY & Karnataka SAST Rate Cards", "date": "March 2026", "authority": "State Health Assurance Societies"}
         ],
-        city_coverage=city_counts or {"Hyderabad": 13, "Secunderabad": 3},
+        city_coverage=city_counts or {"National Coverage": total_fac},
         audit_completeness_pct=94,
         last_audit_date="March 15, 2026"
     )
@@ -158,12 +165,75 @@ def nlp_parse(req: NLPParseRequest):
 def get_cost_estimate(req: CostEstimateRequest):
     return estimate_cost(req)
 
+from .data.india_geography import INDIAN_STATES_AND_UTS, resolve_location, LOCATION_REGISTRY
+
+# --- Pan-India Location Services ---
+@app.get("/api/locations/states")
+def get_states():
+    return INDIAN_STATES_AND_UTS
+
+@app.get("/api/locations/search")
+def search_locations(q: str = Query(..., min_length=1)):
+    q_clean = q.strip().lower()
+    results = []
+
+    # 1. Search in PIN prefix map / registry
+    for key, info in LOCATION_REGISTRY.items():
+        if (q_clean in key or 
+            q_clean in info["city"].lower() or 
+            q_clean in info["district"].lower() or 
+            q_clean in info["state"].lower() or
+            any(q_clean.startswith(p) for p in info.get("pin_prefixes", []))):
+            results.append({
+                "label": f"{info['city']}, {info['state']}",
+                "city": info["city"],
+                "district": info["district"],
+                "state": info["state"],
+                "tier": info["tier"],
+                "lat": info["lat"],
+                "lng": info["lng"]
+            })
+
+    # 2. Search States & UTs
+    for st in INDIAN_STATES_AND_UTS:
+        if q_clean in st["name"].lower() or q_clean in st["capital"].lower():
+            label = f"{st['name']} ({st['type']})"
+            if not any(r.get("state") == st["name"] for r in results):
+                resolved = resolve_location(state=st["name"])
+                results.append({
+                    "label": label,
+                    "city": st["capital"],
+                    "district": st["capital"],
+                    "state": st["name"],
+                    "tier": resolved.get("tier", "Tier 2"),
+                    "lat": resolved.get("lat", 0.0),
+                    "lng": resolved.get("lng", 0.0)
+                })
+
+    return results[:10]
+
+@app.get("/api/locations/resolve")
+def resolve_location_endpoint(
+    city: Optional[str] = Query(None),
+    state: Optional[str] = Query(None),
+    pin: Optional[str] = Query(None),
+    lat: Optional[float] = Query(None),
+    lng: Optional[float] = Query(None)
+):
+    return resolve_location(
+        city=city,
+        state=state,
+        pin_code=pin,
+        user_lat=lat,
+        user_lng=lng
+    )
+
 # --- Facility Discovery ---
 @app.get("/api/facilities", response_model=List[Facility])
 def list_facilities(
     lat: Optional[float] = Query(None),
     lng: Optional[float] = Query(None),
-    city: Optional[str] = Query("Hyderabad"),
+    city: Optional[str] = Query(None),
     locality: Optional[str] = Query(None),
     pin: Optional[str] = Query(None),
     treatment_id: Optional[str] = Query(None),
@@ -306,6 +376,62 @@ def get_facility_photo(facility_id: str):
     if not facility:
         raise HTTPException(status_code=404, detail="Facility not found")
     return get_hospital_photo_metadata(facility.id, facility.name)
+
+# --- Medicine & Pharma Sahi Daam Cost Transparency ---
+class MedicineEstimateRequest(BaseModel):
+    items: List[Dict[str, Any]]
+
+class PaymentOrderRequest(BaseModel):
+    appointment_id: str
+    facility_name: str
+    consultation_fee: Optional[int] = 500
+    registration_fee: Optional[int] = 100
+
+class PaymentVerifyRequest(BaseModel):
+    order_id: str
+    payment_id: str
+    signature: Optional[str] = None
+    client_status: Optional[str] = "SUCCESS"
+
+@app.get("/api/medicines/search")
+def handle_medicine_search(q: Optional[str] = Query(None)):
+    return search_medicines(q or "")
+
+@app.post("/api/medicines/estimate-course")
+def handle_medicine_estimate(req: MedicineEstimateRequest):
+    return calculate_course_cost(req.items)
+
+# --- Optional Appointment Payments (Server-Side Verified) ---
+@app.post("/api/payments/create-order")
+def handle_create_payment_order(req: PaymentOrderRequest):
+    res = create_appointment_payment_order(
+        appointment_id=req.appointment_id,
+        facility_name=req.facility_name,
+        consultation_fee=req.consultation_fee or 500,
+        registration_fee=req.registration_fee or 100
+    )
+    if not res.get("success"):
+        raise HTTPException(status_code=400, detail=res.get("error", "Failed to create payment order"))
+    return res
+
+@app.post("/api/payments/verify")
+def handle_verify_payment(req: PaymentVerifyRequest):
+    res = verify_appointment_payment(
+        order_id=req.order_id,
+        payment_id=req.payment_id,
+        signature=req.signature,
+        client_status=req.client_status or "SUCCESS"
+    )
+    if not res.get("verified") and res.get("status") == "FAILED":
+        raise HTTPException(status_code=400, detail=res.get("error", "Payment verification failed"))
+    return res
+
+@app.get("/api/payments/status/{order_id}")
+def handle_get_payment_status(order_id: str):
+    order = get_order_status(order_id)
+    if not order:
+        raise HTTPException(status_code=404, detail="Payment order not found")
+    return order
 
 # Serve Frontend static build if present
 frontend_dist = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "dist"))

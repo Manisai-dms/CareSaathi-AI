@@ -234,22 +234,64 @@ export const HospitalCard: React.FC<HospitalCardProps> = ({
         </div>
       )}
 
-      {/* Why This Hospital is Recommended */}
-      {facility.recommendation_reason && (
-        <div style={{
-          fontSize: '0.74rem',
-          color: '#12304A',
-          backgroundColor: '#F0FDF4',
-          border: '1px solid #BBF7D0',
-          borderRadius: '8px',
-          padding: '6px 10px',
-          marginBottom: '10px',
-          lineHeight: 1.4
-        }}>
-          <strong style={{ color: '#166534' }}>Why Recommended: </strong>
-          <span>{facility.recommendation_reason}</span>
+      {/* Evidence-Based "Why This Hospital?" Explanation */}
+      <div style={{
+        fontSize: '0.74rem',
+        color: '#12304A',
+        backgroundColor: '#F0FDF4',
+        border: '1px solid #BBF7D0',
+        borderRadius: '10px',
+        padding: '8px 10px',
+        marginBottom: '10px',
+        lineHeight: 1.45
+      }}>
+        <div style={{ fontWeight: 700, color: '#166534', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <ShieldCheck size={13} color="#166534" />
+          <span>Why this hospital? (Evidence-Based Match):</span>
         </div>
-      )}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', fontSize: '0.72rem', color: '#1E293B' }}>
+          {/* Cost Evidence */}
+          <div>
+            • <strong>Tariff: </strong>
+            {facility.ownership === 'Government' 
+              ? 'Subsidized government care / free quotas under state gazette'
+              : hasCost 
+                ? `Indicative range ₹${facility.estimated_cost_min?.toLocaleString('en-IN')} – ₹${facility.estimated_cost_max?.toLocaleString('en-IN')}`
+                : 'Tariff: Not verified (contact hospital)'}
+          </div>
+
+          {/* Distance Evidence */}
+          <div>
+            • <strong>Proximity: </strong>
+            {facility.distance_km !== undefined 
+              ? `${facility.distance_km} km away (~${travelMinutes} min drive)`
+              : 'Distance: Location approximate'}
+          </div>
+
+          {/* Treatment Department Evidence */}
+          <div>
+            • <strong>Specialty Department: </strong>
+            {activeTreatmentId && facility.verified_treatments?.includes(activeTreatmentId)
+              ? 'Verified active clinical department'
+              : 'Clinical specialty: Not verified'}
+          </div>
+
+          {/* Scheme Empanelment Evidence */}
+          <div>
+            • <strong>Scheme Support: </strong>
+            {facility.empanelled_schemes && facility.empanelled_schemes.length > 0
+              ? `Verified empanelled (${facility.empanelled_schemes.map(s => s === 'pm_jay' ? 'PM-JAY' : s === 'aarogyasri' ? 'Aarogyasri' : s.toUpperCase()).join(', ')})`
+              : 'Government schemes: Not verified'}
+          </div>
+
+          {/* Custom recommendation reason */}
+          {facility.recommendation_reason && (
+            <div style={{ color: '#065F46', marginTop: '2px', fontWeight: 500 }}>
+              • {facility.recommendation_reason}
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* 4. Honest Treatment Cost Information */}
       <div style={{

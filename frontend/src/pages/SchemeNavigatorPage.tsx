@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { api, SchemeMatchDTO, TreatmentDTO, FacilityDTO } from '../services/api';
 import { SchemeCard } from '../components/SchemeCard';
+import { STATES_AND_UTS, IndianState } from '../data/indiaGeography';
 
 export const SchemeNavigatorPage: React.FC = () => {
   const { t } = useLanguage();
@@ -26,8 +27,12 @@ export const SchemeNavigatorPage: React.FC = () => {
 
   // Form Fields
   const [selectedTreatmentId, setSelectedTreatmentId] = useState<string>(searchState.treatmentId || 'knee_replacement');
-  const [selectedState, setSelectedState] = useState<string>('Telangana');
+  const [selectedState, setSelectedState] = useState<string>(searchState.state || 'Telangana');
   const [annualIncome, setAnnualIncome] = useState<number>(2.5); // Lakhs
+
+  useEffect(() => {
+    if (searchState.state) setSelectedState(searchState.state);
+  }, [searchState.state]);
   const [rationCard, setRationCard] = useState<string>('White Card (Food Security Card)');
   const [isCentralGovt, setIsCentralGovt] = useState<boolean>(false);
   const [isFormalSector, setIsFormalSector] = useState<boolean>(false);
@@ -133,19 +138,19 @@ export const SchemeNavigatorPage: React.FC = () => {
               </select>
             </div>
 
-            {/* Field: State */}
+            {/* Field: State (All 28 States & 8 UTs) */}
             <div className="form-group">
-              <label className="form-label">State of Residence:</label>
+              <label className="form-label">State / Union Territory of Residence:</label>
               <select
                 className="form-select"
                 value={selectedState}
                 onChange={e => setSelectedState(e.target.value)}
               >
-                <option value="Telangana">Telangana (Aarogyasri Active)</option>
-                <option value="Andhra Pradesh">Andhra Pradesh</option>
-                <option value="Karnataka">Karnataka</option>
-                <option value="Delhi">Delhi</option>
-                <option value="Maharashtra">Maharashtra</option>
+                {STATES_AND_UTS.map((st: IndianState) => (
+                  <option key={st.code} value={st.name}>
+                    {st.name} {st.name === 'Telangana' ? '(Aarogyasri)' : st.name === 'Maharashtra' ? '(MJPJAY)' : st.name === 'Karnataka' ? '(AB-ArK)' : st.name === 'Andhra Pradesh' ? '(Dr. YSR Aarogyasri)' : st.name === 'Delhi' ? '(DAK)' : ''}
+                  </option>
+                ))}
               </select>
             </div>
 

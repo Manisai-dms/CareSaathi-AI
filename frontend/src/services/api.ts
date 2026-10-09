@@ -469,6 +469,106 @@ export const api = {
       };
     }
     return res.json();
+  },
+
+  async getStates(): Promise<Array<{ code: string; name: string; type: string; capital: string; lat: number; lng: number }>> {
+    const res = await fetch(`${API_BASE}/locations/states`);
+    if (!res.ok) return [];
+    return res.json();
+  },
+
+  async searchLocations(query: string): Promise<Array<{
+    label: string;
+    city: string;
+    district: string;
+    state: string;
+    tier: string;
+    lat: number;
+    lng: number;
+    pinCode?: string;
+  }>> {
+    const res = await fetch(`${API_BASE}/locations/search?q=${encodeURIComponent(query)}`);
+    if (!res.ok) return [];
+    return res.json();
+  },
+
+  async resolveLocation(params: { lat?: number; lng?: number; pin?: string; city?: string }): Promise<{
+    city: string;
+    state: string;
+    district: string;
+    tier: string;
+    tier_label: string;
+    cost_multiplier: number;
+    lat: number;
+    lng: number;
+    matched_by: string;
+  }> {
+    const qs = new URLSearchParams();
+    if (params.lat !== undefined) qs.set('lat', params.lat.toString());
+    if (params.lng !== undefined) qs.set('lng', params.lng.toString());
+    if (params.pin) qs.set('pin', params.pin);
+    if (params.city) qs.set('city', params.city);
+    const res = await fetch(`${API_BASE}/locations/resolve?${qs.toString()}`);
+    if (!res.ok) throw new Error("Location resolution failed");
+    return res.json();
+  },
+
+  async searchMedicines(query: string): Promise<MedicineDTO[]> {
+    const res = await fetch(`${API_BASE}/medicines/search?q=${encodeURIComponent(query)}`);
+    if (!res.ok) return [];
+    return res.json();
+  },
+
+  async estimateMedicineCourse(items: Array<{ medicine_id?: string; name?: string; quantity: number; strength?: string; formulation?: string }>): Promise<MedicineCourseEstimateDTO> {
+    const res = await fetch(`${API_BASE}/medicines/estimate-course`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items })
+    });
+    if (!res.ok) throw new Error("Medicine course estimation failed");
+    return res.json();
+  },
+
+  async createPaymentOrder(params: {
+    appointment_id: string;
+    facility_name: string;
+    consultation_fee?: number;
+    registration_fee?: number;
+  }): Promise<{ success: boolean; order: PaymentOrderDTO }> {
+    const res = await fetch(`${API_BASE}/payments/create-order`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: 'Payment order creation failed' }));
+      throw new Error(err.detail || 'Payment order creation failed');
+    }
+    return res.json();
+  },
+
+  async verifyPayment(params: {
+    order_id: string;
+    payment_id: string;
+    signature?: string;
+    client_status?: string;
+  }): Promise<PaymentVerificationResultDTO> {
+    const res = await fetch(`${API_BASE}/payments/verify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: 'Payment verification failed' }));
+      throw new Error(err.detail || 'Payment verification failed');
+    }
+    return res.json();
+  },
+
+  async getPaymentStatus(orderId: string): Promise<PaymentOrderDTO> {
+    const res = await fetch(`${API_BASE}/payments/status/${orderId}`);
+    if (!res.ok) throw new Error("Failed to fetch payment status");
+    return res.json();
   }
 };
 
@@ -501,5 +601,86 @@ export interface HospitalPhotoDTO {
   attribution: string;
   license: string;
   is_verified: boolean;
+}
+
+export interface MedicineDTO {
+  id: string;
+  brand_name: string;
+  generic_name: string;
+  strength: string;
+  formulation: string;
+  pack_size: number;
+  mrp_branded: number;
+  nppa_ceiling_per_unit: number;
+  jan_aushadhi_per_unit: number;
+  manufacturer: string;
+  generic_alternative: string;
+  source: string;
+  source_url: string;
+  last_updated: string;
+  is_nlem: boolean;
+}
+
+export interface MedicineCourseItemDTO {
+  medicine_id?: string | null;
+  brand_name: string;
+  generic_name: string;
+  strength: string;
+  formulation: string;
+  quantity: number;
+  cost_branded: number | null;
+  cost_nppa_ceiling: number | null;
+  cost_jan_aushadhi: number | null;
+  savings_potential: number;
+  generic_alternative: string | null;
+  source: string;
+  source_url: string;
+  last_updated: string;
+  verified: boolean;
+  status_note?: string;
+}
+
+export interface MedicineCourseEstimateDTO {
+  items: MedicineCourseItemDTO[];
+  total_estimated_branded_mrp: number;
+  total_estimated_nppa_ceiling: number;
+  total_estimated_jan_aushadhi: number;
+  potential_generic_savings: number;
+  potential_savings_percentage: number;
+  price_source_disclaimer: string;
+  has_unverified_items: boolean;
+}
+
+export interface PaymentFeeBreakdownDTO {
+  doctor_consultation_fee: number;
+  hospital_registration_fee: number;
+  statutory_gst_18pct: number;
+  total_payable_inr: number;
+}
+
+export interface PaymentOrderDTO {
+  order_id: string;
+  appointment_id: string;
+  facility_name: string;
+  currency: string;
+  fee_breakdown: PaymentFeeBreakdownDTO;
+  amount_paise: number;
+  status: string;
+  is_sandbox: boolean;
+  razorpay_key_id: string;
+  gateway_message: string;
+  created_at: number;
+}
+
+export interface PaymentVerificationResultDTO {
+  verified: boolean;
+  status: string;
+  order_id?: string;
+  payment_id?: string;
+  appointment_id?: string;
+  total_paid_inr?: number;
+  receipt?: string;
+  message?: string;
+  error?: string;
 }
 

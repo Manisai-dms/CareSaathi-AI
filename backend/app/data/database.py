@@ -178,18 +178,16 @@ def init_db():
             getattr(f, 'facility_class', 'Standard'), getattr(f, 'recommendation_reason', None)
         ))
 
-    # Populate Schemes
-    cursor.execute("SELECT COUNT(*) FROM schemes")
-    if cursor.fetchone()[0] == 0:
-        for s in SEED_SCHEMES:
-            cursor.execute("""
-            INSERT INTO schemes VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                s.id, s.name, s.full_name, s.authority, s.coverage_limit_inr,
-                s.eligibility_summary, json.dumps(s.eligible_categories),
-                json.dumps(s.states), s.official_portal, s.helpline,
-                json.dumps(s.required_documents), 1 if s.is_active else 0, s.last_verified_date
-            ))
+    # Populate Schemes (Upsert to ensure all pan-India and state schemes are loaded)
+    for s in SEED_SCHEMES:
+        cursor.execute("""
+        INSERT OR REPLACE INTO schemes VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            s.id, s.name, s.full_name, s.authority, s.coverage_limit_inr,
+            s.eligibility_summary, json.dumps(s.eligible_categories),
+            json.dumps(s.states), s.official_portal, s.helpline,
+            json.dumps(s.required_documents), 1 if s.is_active else 0, s.last_verified_date
+        ))
 
     # Populate Cost Observations
     cursor.execute("SELECT COUNT(*) FROM cost_observations")

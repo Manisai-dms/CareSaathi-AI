@@ -32,23 +32,42 @@ export interface FacilityItem {
   initials?: string;
 }
 
+export interface LocationPayload {
+  city: string;
+  state?: string;
+  district?: string;
+  locality?: string;
+  pinCode?: string;
+  lat?: number;
+  lng?: number;
+}
+
 export interface SearchState {
   query: string;
   treatmentId: string;
   treatmentName: string;
   city: string;
+  state: string;
+  district?: string;
   locality: string;
   pinCode?: string;
+  lat?: number;
+  lng?: number;
   hospitalName: string;
   comparisonList: FacilityItem[];
   recentSearches: string[];
 }
 
+export type SetLocationFn = {
+  (city: string, locality?: string, pinCode?: string, state?: string, lat?: number, lng?: number): void;
+  (payload: LocationPayload): void;
+};
+
 interface SearchContextType {
   searchState: SearchState;
   setSearchQuery: (query: string) => void;
   setTreatment: (id: string, name: string) => void;
-  setLocation: (city: string, locality?: string, pinCode?: string) => void;
+  setLocation: SetLocationFn;
   setHospitalName: (name: string) => void;
   addToComparison: (facility: FacilityItem) => void;
   removeFromComparison: (facilityId: string) => void;
@@ -61,8 +80,12 @@ const defaultState: SearchState = {
   treatmentId: "knee_replacement",
   treatmentName: "Total Knee Replacement (TKR)",
   city: "Hyderabad",
+  state: "Telangana",
+  district: "Hyderabad",
   locality: "",
-  pinCode: "",
+  pinCode: "500001",
+  lat: 17.3850,
+  lng: 78.4867,
   hospitalName: "",
   comparisonList: [],
   recentSearches: ["Knee replacement in Hyderabad", "MRI brain scan", "Cataract surgery near me"]
@@ -99,13 +122,36 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setState(prev => ({ ...prev, treatmentId: id, treatmentName: name }));
   };
 
-  const setLocation = (city: string, locality?: string, pinCode?: string) => {
-    setState(prev => ({ 
-      ...prev, 
-      city, 
-      locality: locality !== undefined ? locality : prev.locality,
-      pinCode: pinCode !== undefined ? pinCode : prev.pinCode 
-    }));
+  const setLocation: SetLocationFn = (
+    cityOrPayload: string | LocationPayload,
+    locality?: string,
+    pinCode?: string,
+    state?: string,
+    lat?: number,
+    lng?: number
+  ) => {
+    if (typeof cityOrPayload === 'object' && cityOrPayload !== null) {
+      setState(prev => ({
+        ...prev,
+        city: cityOrPayload.city,
+        state: cityOrPayload.state !== undefined ? cityOrPayload.state : prev.state,
+        district: cityOrPayload.district !== undefined ? cityOrPayload.district : prev.district,
+        locality: cityOrPayload.locality !== undefined ? cityOrPayload.locality : prev.locality,
+        pinCode: cityOrPayload.pinCode !== undefined ? cityOrPayload.pinCode : prev.pinCode,
+        lat: cityOrPayload.lat !== undefined ? cityOrPayload.lat : prev.lat,
+        lng: cityOrPayload.lng !== undefined ? cityOrPayload.lng : prev.lng,
+      }));
+    } else {
+      setState(prev => ({ 
+        ...prev, 
+        city: cityOrPayload, 
+        locality: locality !== undefined ? locality : prev.locality,
+        pinCode: pinCode !== undefined ? pinCode : prev.pinCode,
+        state: state !== undefined ? state : prev.state,
+        lat: lat !== undefined ? lat : prev.lat,
+        lng: lng !== undefined ? lng : prev.lng
+      }));
+    }
   };
 
   const setHospitalName = (name: string) => {

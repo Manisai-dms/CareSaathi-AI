@@ -42,6 +42,7 @@ import { PrintSummaryModal } from '../components/PrintSummaryModal';
 import { CostBreakdownDonut } from '../components/CostBreakdownDonut';
 import { ShareModal } from '../components/ShareModal';
 import { BookingModal } from '../components/BookingModal';
+import { PanIndiaLocationPicker } from '../components/PanIndiaLocationPicker';
 
 interface DashboardPageProps {
   onOpenVoice: () => void;
@@ -82,8 +83,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
     options: Array<{ id: string; name: string }>;
   } | null>(null);
 
-  // Step 2: Location Selection State
+  // Step 2: Location Selection State (Pan-India)
   const [selectedCity, setSelectedCity] = useState(searchState.city || "Hyderabad");
+  const [selectedState, setSelectedState] = useState(searchState.state || "Telangana");
   const [selectedLocality, setSelectedLocality] = useState(searchState.locality || "");
   const [selectedPinCode, setSelectedPinCode] = useState(searchState.pinCode || "");
   const [gpsStatus, setGpsStatus] = useState<{ loading: boolean; message: string | null; error: boolean }>({
@@ -91,7 +93,17 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
     message: null,
     error: false
   });
-  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(
+    searchState.lat && searchState.lng ? { lat: searchState.lat, lng: searchState.lng } : null
+  );
+
+  useEffect(() => {
+    if (searchState.city) setSelectedCity(searchState.city);
+    if (searchState.state) setSelectedState(searchState.state);
+    if (searchState.locality) setSelectedLocality(searchState.locality);
+    if (searchState.pinCode) setSelectedPinCode(searchState.pinCode);
+    if (searchState.lat && searchState.lng) setCoords({ lat: searchState.lat, lng: searchState.lng });
+  }, [searchState.city, searchState.state, searchState.locality, searchState.pinCode, searchState.lat, searchState.lng]);
 
   // Step 3: Treatment Cost Estimation State
   const [costResult, setCostResult] = useState<CostEstimateDTO | null>(null);
@@ -238,7 +250,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
       const matched = await api.matchSchemes({
         treatment_id: tId,
         treatment_name: tName,
-        state: "Telangana",
+        state: selectedState || searchState.state || "Telangana",
         annual_income: annualIncome,
         ration_card_type: rationCardType
       });
@@ -318,7 +330,14 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   };
 
   const handleStep2Continue = async () => {
-    setLocation(selectedCity, selectedLocality, selectedPinCode);
+    setLocation({
+      city: selectedCity,
+      state: selectedState,
+      locality: selectedLocality,
+      pinCode: selectedPinCode,
+      lat: coords?.lat,
+      lng: coords?.lng
+    });
     setCurrentStep(3);
     await loadDataForJourney(selectedTreatmentId, selectedTreatmentName, selectedCity, selectedLocality);
   };
@@ -354,7 +373,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
       const matched = await api.matchSchemes({
         treatment_id: selectedTreatmentId,
         treatment_name: selectedTreatmentName,
-        state: "Telangana",
+        state: selectedState || searchState.state || "Telangana",
         annual_income: annualIncome,
         ration_card_type: rationCardType
       });
@@ -730,116 +749,17 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               </button>
             </div>
 
-            {/* GPS Location Option with Explicit Permission */}
-            <div style={{
-              backgroundColor: '#F8FAFC',
-              border: '1px solid #E2E8F0',
-              borderRadius: '12px',
-              padding: '16px 20px',
-              marginBottom: '24px'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--color-navy)' }}>
-                    📍 Detect Precise Device Location (GPS)
-                  </div>
-                  <div style={{ fontSize: '0.82rem', color: '#64748B' }}>
-                    Requires explicit browser location permission. Never stored on server.
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handleRequestGPS}
-                  disabled={gpsStatus.loading}
-                  className="btn btn-secondary"
-                  style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
-                >
-                  <Navigation size={16} color="var(--color-teal)" />
-                  <span>{gpsStatus.loading ? 'Requesting GPS...' : 'Use My Location'}</span>
-                </button>
-              </div>
-
-              {gpsStatus.message && (
-                <div style={{
-                  marginTop: '12px',
-                  padding: '8px 12px',
-                  borderRadius: '6px',
-                  fontSize: '0.84rem',
-                  backgroundColor: gpsStatus.error ? '#FEF2F2' : '#EFF6FF',
-                  color: gpsStatus.error ? '#991B1B' : '#1E40AF',
-                  border: gpsStatus.error ? '1px solid #FECACA' : '1px solid #DBEAFE'
-                }}>
-                  {gpsStatus.message}
-                </div>
-              )}
-            </div>
-
-            {/* Manual Location Entry Form */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '18px', marginBottom: '28px' }}>
-              <div className="form-group" style={{ margin: 0 }}>
-                <label className="form-label">City:</label>
-                <select
-                  className="form-select"
-                  value={selectedCity}
-                  onChange={e => setSelectedCity(e.target.value)}
-                >
-                  <option value="Hyderabad">Hyderabad (Full Verified Coverage)</option>
-                  <option value="Bengaluru">Bengaluru</option>
-                  <option value="Delhi">Delhi NCR</option>
-                </select>
-              </div>
-
-              <div className="form-group" style={{ margin: 0 }}>
-                <label className="form-label">Locality / Neighborhood:</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  placeholder="e.g. Kukatpally, Banjara Hills, Gachibowli..."
-                  value={selectedLocality}
-                  onChange={e => setSelectedLocality(e.target.value)}
-                />
-              </div>
-
-              <div className="form-group" style={{ margin: 0 }}>
-                <label className="form-label">PIN Code (Optional):</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  placeholder="e.g. 500072, 500034..."
-                  value={selectedPinCode}
-                  onChange={e => setSelectedPinCode(e.target.value)}
-                  maxLength={6}
-                />
-              </div>
-            </div>
-
-            {/* Quick Locality Suggestions for Hyderabad */}
-            <div style={{ marginBottom: '30px' }}>
-              <div style={{ fontSize: '0.82rem', fontWeight: 600, color: '#64748B', marginBottom: '8px' }}>
-                Popular localities in Hyderabad:
-              </div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                {["Kukatpally", "Banjara Hills", "Jubilee Hills", "HITEC City", "Gachibowli", "Secunderabad", "Somajiguda", "Musheerabad", "Nampally"].map(loc => (
-                  <button
-                    key={loc}
-                    type="button"
-                    onClick={() => setSelectedLocality(loc)}
-                    style={{
-                      background: selectedLocality === loc ? 'var(--color-teal)' : '#FFFFFF',
-                      color: selectedLocality === loc ? '#FFFFFF' : 'var(--color-navy)',
-                      border: '1px solid var(--color-border)',
-                      borderRadius: '20px',
-                      padding: '4px 12px',
-                      fontSize: '0.8rem',
-                      cursor: 'pointer',
-                      fontWeight: 600
-                    }}
-                  >
-                    {loc}
-                  </button>
-                ))}
-              </div>
+            {/* Pan-India Location Picker */}
+            <div style={{ marginBottom: '28px' }}>
+              <PanIndiaLocationPicker
+                onLocationSelect={(loc) => {
+                  setSelectedCity(loc.city);
+                  setSelectedState(loc.state);
+                  setSelectedLocality(loc.district && loc.district !== loc.city ? loc.district : '');
+                  setSelectedPinCode(loc.pinCode || '');
+                  setCoords({ lat: loc.lat, lng: loc.lng });
+                }}
+              />
             </div>
 
             {/* Back & Continue Controls */}
@@ -1157,8 +1077,11 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                     }}
                   >
                     <option value="All">All Facilities</option>
-                    <option value="aarogyasri">Telangana Aarogyasri Empanelled</option>
                     <option value="pm_jay">Ayushman Bharat PM-JAY Empanelled</option>
+                    <option value="aarogyasri">Telangana Aarogyasri Empanelled</option>
+                    <option value="mjpjay">Maharashtra MJPJAY Empanelled</option>
+                    <option value="cghs">Central Govt CGHS Empanelled</option>
+                    <option value="esic">ESIC Empanelled</option>
                   </select>
                 </div>
 
@@ -1407,6 +1330,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             costEstimate={costResult}
             facilityName={costResult.selected_facility?.name}
             city={selectedCity}
+            state={selectedState}
           />
         )}
 
@@ -1420,6 +1344,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             maxPrice={costResult.overall_max}
             facilityName={costResult.selected_facility?.name}
             city={selectedCity}
+            state={selectedState}
             priceType={costResult.price_type}
           />
         )}

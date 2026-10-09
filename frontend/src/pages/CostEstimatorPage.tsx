@@ -28,6 +28,12 @@ import { TierComparisonView } from '../components/TierComparisonView';
 import { PrintSummaryModal } from '../components/PrintSummaryModal';
 import { CostBreakdownDonut } from '../components/CostBreakdownDonut';
 import { ShareModal } from '../components/ShareModal';
+import { PanIndiaLocationPicker } from '../components/PanIndiaLocationPicker';
+import { HealthcareCostRiskAlert } from '../components/HealthcareCostRiskAlert';
+import { MedicineCostEstimator } from '../components/MedicineCostEstimator';
+import { CombinedExpenseSummary } from '../components/CombinedExpenseSummary';
+import { PatientSavingsPlan } from '../components/PatientSavingsPlan';
+import { MedicineCourseEstimateDTO } from '../services/api';
 
 export const CostEstimatorPage: React.FC = () => {
   const { t } = useLanguage();
@@ -38,11 +44,23 @@ export const CostEstimatorPage: React.FC = () => {
   const [treatmentsList, setTreatmentsList] = useState<TreatmentDTO[]>([]);
   const [selectedTreatmentId, setSelectedTreatmentId] = useState<string>(searchState.treatmentId || 'knee_replacement');
   const [city, setCity] = useState<string>(searchState.city || 'Hyderabad');
+  const [stateName, setStateName] = useState<string>(searchState.state || 'Telangana');
   const [locality, setLocality] = useState<string>(searchState.locality || '');
+
+  useEffect(() => {
+    if (searchState.city) setCity(searchState.city);
+    if (searchState.state) setStateName(searchState.state);
+    if (searchState.locality) setLocality(searchState.locality);
+  }, [searchState.city, searchState.state, searchState.locality]);
   const [hospitalName, setHospitalName] = useState<string>(searchState.hospitalName || 'NIMS');
   const [ownershipPref, setOwnershipPref] = useState<string>('All');
   const [roomCategory, setRoomCategory] = useState<string>('Twin Sharing / Semi-Private');
   const [budgetLimit, setBudgetLimit] = useState<number>(0);
+
+  // Medicine Cost Estimator State
+  const [medicineCostMin, setMedicineCostMin] = useState<number>(0);
+  const [medicineCostMax, setMedicineCostMax] = useState<number>(0);
+  const [medicineData, setMedicineData] = useState<MedicineCourseEstimateDTO | null>(null);
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [estimateResult, setEstimateResult] = useState<CostEstimateDTO | null>(null);
@@ -214,27 +232,19 @@ export const CostEstimatorPage: React.FC = () => {
               </div>
             )}
 
-            {/* City & Locality */}
-            <div className="grid-2" style={{ gap: '12px' }}>
-              <div className="form-group">
-                <label className="form-label">City:</label>
-                <select className="form-select" value={city} onChange={e => setCity(e.target.value)}>
-                  <option value="Hyderabad">Hyderabad</option>
-                  <option value="Bengaluru">Bengaluru</option>
-                  <option value="Delhi">Delhi NCR</option>
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Locality (Optional):</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  placeholder="e.g. Kukatpally, Banjara Hills..."
-                  value={locality}
-                  onChange={e => setLocality(e.target.value)}
-                />
-              </div>
+            {/* Location Selection (Pan-India) */}
+            <div style={{ marginBottom: '16px' }}>
+              <label className="form-label">Location (Pan-India):</label>
+              <PanIndiaLocationPicker
+                compact={true}
+                showPresets={true}
+                onLocationSelect={(loc) => {
+                  setCity(loc.city);
+                  setStateName(loc.state);
+                  setLocality(loc.district && loc.district !== loc.city ? loc.district : '');
+                  setTimeout(runEstimate, 100);
+                }}
+              />
             </div>
 
             {/* Ownership Preference (Location Workflow) */}
@@ -284,6 +294,20 @@ export const CostEstimatorPage: React.FC = () => {
           {/* Result Card (Right) */}
           {estimateResult && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              {/* 1. Healthcare Cost Risk Alert Component */}
+              <HealthcareCostRiskAlert
+                minTreatmentCost={estimateResult.overall_min}
+                maxTreatmentCost={estimateResult.overall_max}
+                estimatedMedicineCost={medicineCostMin || (estimateResult.cost_breakdown?.medicines_and_consumables)}
+                estimatedDiagnosticCost={estimateResult.cost_breakdown?.diagnostics_and_lab}
+                potentialAdditionalExpenses={5000}
+                userBudget={budgetLimit}
+                confidence={estimateResult.confidence}
+                priceType={estimateResult.price_type}
+                treatmentName={estimateResult.canonical_treatment?.name || estimateResult.query_treatment}
+                onBudgetChange={(b) => setBudgetLimit(b)}
+              />
+
               <div className="card" style={{
                 background: 'var(--color-white)',
                 border: '1px solid var(--color-border)',
@@ -457,13 +481,46 @@ export const CostEstimatorPage: React.FC = () => {
               />
             )}
 
-            {/* 5. Billing & Admission Checklists */}
+            {/* 5. Medicine Cost Estimator (NPPA Pharma Sahi Daam & Jan Aushadhi) */}
+            <MedicineCostEstimator
+              onTotalMedicineCostChange={(min, max, data) => {
+                setMedicineCostMin(min);
+                setMedicineCostMax(max);
+                setMedicineData(data);
+              }}
+            />
+
+            {/* 6. Combined Expense Summary (Grand Total Overview) */}
+            <CombinedExpenseSummary
+              treatmentName={estimateResult.canonical_treatment?.name || estimateResult.query_treatment}
+              hospitalCostMin={estimateResult.overall_min}
+              hospitalCostMax={estimateResult.overall_max}
+              diagnosticCost={estimateResult.cost_breakdown?.diagnostics_and_lab}
+              medicineCostMin={medicineCostMin}
+              medicineCostMax={medicineCostMax}
+              costBreakdown={estimateResult.cost_breakdown}
+              confidence={estimateResult.confidence}
+              matchedSchemeName="PM-JAY (Ayushman Bharat) / Aarogyasri Trust"
+            />
+
+            {/* 7. Billing & Admission Checklists */}
             {estimateResult.checklists && (
               <ChecklistsCard
                 checklists={estimateResult.checklists}
                 treatmentName={estimateResult.canonical_treatment?.name || estimateResult.query_treatment}
               />
             )}
+
+            {/* 8. Patient Savings Plan (Printable Budget & Checklist) */}
+            <PatientSavingsPlan
+              treatmentName={estimateResult.canonical_treatment?.name || estimateResult.query_treatment}
+              treatmentBudgetMin={estimateResult.overall_min}
+              treatmentBudgetMax={estimateResult.overall_max}
+              medicineBudgetMin={medicineCostMin}
+              medicineBudgetMax={medicineCostMax}
+              userBudget={budgetLimit}
+              city={city}
+            />
           </div>
         )}
 
@@ -489,6 +546,7 @@ export const CostEstimatorPage: React.FC = () => {
             costEstimate={estimateResult}
             facilityName={estimateResult.selected_facility?.name}
             city={city}
+            state={stateName}
           />
         )}
 
@@ -502,6 +560,7 @@ export const CostEstimatorPage: React.FC = () => {
             maxPrice={estimateResult.overall_max}
             facilityName={estimateResult.selected_facility?.name}
             city={city}
+            state={stateName}
             priceType={estimateResult.price_type}
           />
         )}

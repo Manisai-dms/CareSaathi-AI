@@ -8,6 +8,7 @@ interface PrintSummaryModalProps {
   costEstimate: CostEstimateDTO | null;
   facilityName?: string;
   city?: string;
+  state?: string;
 }
 
 export const PrintSummaryModal: React.FC<PrintSummaryModalProps> = ({
@@ -15,7 +16,8 @@ export const PrintSummaryModal: React.FC<PrintSummaryModalProps> = ({
   onClose,
   costEstimate,
   facilityName,
-  city = 'Hyderabad'
+  city = 'India',
+  state
 }) => {
   if (!isOpen || !costEstimate) return null;
 
@@ -142,7 +144,7 @@ export const PrintSummaryModal: React.FC<PrintSummaryModalProps> = ({
                   Date: {new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
                 </div>
                 <div style={{ fontSize: '0.74rem', color: '#64748B' }}>
-                  Region: {city} (Telangana)
+                  Region: {city}{state ? ` (${state})` : ''}
                 </div>
                 <div style={{ fontSize: '0.72rem', color: '#0D9488', fontWeight: 600 }}>
                   Statutory Reference Schedule

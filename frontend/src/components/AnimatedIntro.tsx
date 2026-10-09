@@ -282,7 +282,7 @@ export const AnimatedIntro: React.FC<AnimatedIntroProps> = ({ onComplete }) => {
           </span>
           <span style={{ color: '#64748B' }}>•</span>
           <span style={{ fontSize: '0.78rem', color: '#E2E8F0', fontWeight: 600 }}>
-            14 Hyderabad Facilities Verified
+            28+ Facilities Across India Verified
           </span>
         </div>
 
@@ -438,7 +438,7 @@ export const AnimatedIntro: React.FC<AnimatedIntroProps> = ({ onComplete }) => {
               boxShadow: '0 4px 15px rgba(0, 0, 0, 0.3)'
             }}
           >
-            🏥 14+ Hyderabad Hospitals
+            🏥 Pan-India Hospital Discovery
           </div>
         </div>
 

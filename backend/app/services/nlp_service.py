@@ -20,11 +20,15 @@ SYMPTOM_KEYWORDS = {
     "vision_blur": ["blurred vision", "cloudy eyes", "eye strain", "cannot see clearly"]
 }
 
-# Known locations in Hyderabad & India
+# Known locations across India
 COMMON_LOCATIONS = [
     "kukatpally", "banjara hills", "jubilee hills", "secunderabad", "hitec city", "gachibowli",
     "somajiguda", "hyderguda", "panjagutta", "musheerabad", "kondapur", "madhapur", "begumpet",
-    "hyderabad", "bengaluru", "bangalore", "delhi", "mumbai", "chennai"
+    "hyderabad", "bengaluru", "bangalore", "delhi", "new delhi", "mumbai", "chennai", "kolkata",
+    "pune", "ahmedabad", "jaipur", "lucknow", "patna", "visakhapatnam", "kochi", "chandigarh",
+    "barabanki", "ahmednagar", "ralegan siddhi", "warangal", "mysuru", "surat", "bhopal", "indore",
+    "telangana", "maharashtra", "karnataka", "tamil nadu", "uttar pradesh", "gujarat", "kerala",
+    "rajasthan", "west bengal", "bihar", "madhya pradesh", "andhra pradesh"
 ]
 
 def parse_user_query(text: str, current_location: Optional[str] = None) -> NLPParseResponse:
@@ -129,7 +133,7 @@ def parse_user_query(text: str, current_location: Optional[str] = None) -> NLPPa
         detected_intent=detected_intent,
         extracted_treatment=matched_treatment.name if matched_treatment else None,
         matched_treatment_id=matched_treatment.id if matched_treatment else None,
-        extracted_location=extracted_loc or "Hyderabad",
+        extracted_location=extracted_loc or current_location or None,
         extracted_budget=extracted_budget,
         extracted_hospital_preference=None,
         detected_symptoms=detected_symptoms,

@@ -89,7 +89,7 @@ VERIFIED_HOSPITAL_PHOTOS: Dict[str, Dict[str, str]] = {
     }
 }
 
-def get_hospital_photo_metadata(facility_id: str, facility_name: str) -> Dict[str, Any]:
+def get_hospital_photo_metadata(facility_id: str, facility_name: str, city: Optional[str] = None) -> Dict[str, Any]:
     """
     Retrieves verified photo metadata for a hospital.
     Priority:
@@ -103,8 +103,9 @@ def get_hospital_photo_metadata(facility_id: str, facility_name: str) -> Dict[st
     if google_api_key:
         try:
             place_search_url = "https://maps.googleapis.com/maps/api/place/findplacefromtext/json"
+            query_str = f"{facility_name} {city}" if city else facility_name
             params = {
-                "input": f"{facility_name} Hyderabad",
+                "input": query_str,
                 "inputtype": "textquery",
                 "fields": "photos,name",
                 "key": google_api_key

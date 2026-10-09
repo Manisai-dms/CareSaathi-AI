@@ -9,6 +9,7 @@ interface ShareModalProps {
   maxPrice: number;
   facilityName?: string;
   city?: string;
+  state?: string;
   priceType?: string;
 }
 
@@ -19,7 +20,8 @@ export const ShareModal: React.FC<ShareModalProps> = ({
   minPrice,
   maxPrice,
   facilityName,
-  city = 'Hyderabad',
+  city = 'India',
+  state,
   priceType = 'Government Reference & Market Tariffs'
 }) => {
   const [copied, setCopied] = useState(false);
@@ -34,7 +36,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
 `CareSaathi AI Healthcare Cost Estimate
 ---------------------------------------
 🩺 Procedure: ${treatmentName}${facilityName ? `\n🏥 Facility: ${facilityName}` : ''}
-📍 Location: ${city} (Telangana)
+📍 Location: ${city}${state ? `, ${state}` : ''}
 💰 Indicative Tariff Range: ${minFormatted} — ${maxFormatted}
 📊 Tariff Schedule: ${priceType}
 

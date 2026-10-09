@@ -150,6 +150,11 @@ def get_trust_metrics():
 def guided_chat(req: GuidedChatRequest):
     return process_guided_chat(req)
 
+# --- Patient Action Plan Generator ---
+@app.post("/api/action-plan/generate", response_model=PatientActionPlanResponse)
+def generate_action_plan(req: PatientActionPlanRequest):
+    return generate_patient_action_plan(req)
+
 # --- Treatments ---
 @app.get("/api/treatments", response_model=List[Treatment])
 def list_treatments():

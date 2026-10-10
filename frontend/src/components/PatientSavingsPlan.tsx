@@ -14,6 +14,7 @@ import {
   Eye,
   EyeOff
 } from 'lucide-react';
+import { AnimatedRupeeCounter } from './AnimatedRupeeCounter';
 
 export interface PatientSavingsPlanProps {
   treatmentName: string;

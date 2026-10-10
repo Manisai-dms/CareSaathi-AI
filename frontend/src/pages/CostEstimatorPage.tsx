@@ -478,13 +478,18 @@ export const CostEstimatorPage: React.FC = () => {
                   Individual medical bills depend on surgeon discretion, exact implant model selected, days in ICU/ventilator care, and patient clinical stability. Always obtain a binding formal estimate at the hospital billing desk before admission.
                 </div>
               </div>
-            </div>
+            </motion.div>
           )}
         </div>
 
         {/* PHASE 2 & 3: Deep Dive Analysis Sections */}
         {estimateResult && (
-          <div style={{ marginTop: '36px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: 'easeOut', delay: 0.1 }}
+            style={{ marginTop: '36px', display: 'flex', flexDirection: 'column', gap: '24px' }}
+          >
             {/* 1. Interactive Cost Breakdown Donut Chart */}
             {estimateResult.cost_breakdown && (
               <CostBreakdownDonut

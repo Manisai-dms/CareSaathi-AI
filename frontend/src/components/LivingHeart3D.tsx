@@ -11,11 +11,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 
-interface LivingHeart3DProps {
+export interface LivingHeart3DProps {
   className?: string;
   style?: React.CSSProperties;
   interactive?: boolean;
   compact?: boolean;
+  variant?: 'hero' | 'login';
+  loginState?: 'idle' | 'focus' | 'typing' | 'loading' | 'success' | 'error';
 }
 
 // ------------------------------------------------------------------------------
@@ -65,16 +67,22 @@ export const LivingHeart3D: React.FC<LivingHeart3DProps> = ({
   className = '',
   style = {},
   interactive = true,
-  compact = false
+  compact = false,
+  variant = 'hero',
+  loginState = 'idle'
 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
   const [hasWebGL] = useState<boolean>(checkWebGLSupport);
   const mousePos = useRef({ x: 0, y: 0, targetX: 0, targetY: 0 });
   const isVisibleRef = useRef<boolean>(true);
+  const loginStateRef = useRef(loginState);
+  useEffect(() => {
+    loginStateRef.current = loginState;
+  }, [loginState]);
   const [screenCoords, setScreenCoords] = useState<{ [idx: number]: { x: number; y: number } }>({});
   const [dimensions, setDimensions] = useState<{ width: number; height: number }>({
-    width: compact ? 340 : 540,
-    height: compact ? 320 : 480
+    width: compact ? 340 : (variant === 'login' ? 480 : 540),
+    height: compact ? 320 : (variant === 'login' ? 440 : 480)
   });
 
   useEffect(() => {
@@ -89,13 +97,14 @@ export const LivingHeart3D: React.FC<LivingHeart3DProps> = ({
     // --------------------------------------------------------------------------
     // 1. Scene, Camera, Renderer Setup
     // --------------------------------------------------------------------------
-    const width = container.clientWidth || (compact ? 340 : 540);
-    const height = container.clientHeight || (compact ? 320 : 480);
+    const isLogin = variant === 'login';
+    const width = container.clientWidth || (compact ? 340 : (isLogin ? 480 : 540));
+    const height = container.clientHeight || (compact ? 320 : (isLogin ? 440 : 480));
     setDimensions({ width, height });
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 100);
-    camera.position.set(0, 0, compact ? 7.6 : 6.8);
+    camera.position.set(0, 0, isLogin ? 5.8 : (compact ? 7.6 : 6.8));
 
     const renderer = new THREE.WebGLRenderer({
       alpha: true,
@@ -243,9 +252,9 @@ export const LivingHeart3D: React.FC<LivingHeart3DProps> = ({
     scene.add(shockwaveRing2);
 
     // --------------------------------------------------------------------------
-    // 4. Orbiting Tablets and Capsules (14–18 pieces on 3 tilted orbital paths)
+    // 4. Orbiting Tablets and Capsules (calmer 8-10 pieces on 2 orbits for login)
     // --------------------------------------------------------------------------
-    const pieceCount = isMobile ? 9 : 16;
+    const pieceCount = isLogin ? (isMobile ? 6 : 9) : (isMobile ? 9 : 14);
     const pieces: {
       group: THREE.Group;
       mesh: THREE.Object3D;
@@ -281,7 +290,10 @@ export const LivingHeart3D: React.FC<LivingHeart3DProps> = ({
       });
     });
 
-    const orbitConfigs = [
+    const orbitConfigs = isLogin ? [
+      { radius: 2.05, tiltX: 0.30, tiltZ: 0.12, speed: 0.24 },
+      { radius: 2.75, tiltX: -0.36, tiltZ: -0.18, speed: -0.17 }
+    ] : [
       { radius: 2.3, tiltX: 0.35, tiltZ: 0.15, speed: 0.32 },
       { radius: 3.1, tiltX: -0.45, tiltZ: -0.25, speed: -0.22 },
       { radius: 3.9, tiltX: 0.22, tiltZ: -0.38, speed: 0.16 }
@@ -310,7 +322,7 @@ export const LivingHeart3D: React.FC<LivingHeart3DProps> = ({
     });
 
     for (let i = 0; i < pieceCount; i++) {
-      const orbitCfg = orbitConfigs[i % 3];
+      const orbitCfg = orbitConfigs[i % orbitConfigs.length];
       const colorItem = TABLET_PALETTE[i % TABLET_PALETTE.length];
       const mat = paletteMaterials[i % TABLET_PALETTE.length];
       const altMat = paletteMaterials[(i + 3) % TABLET_PALETTE.length];
@@ -538,10 +550,15 @@ export const LivingHeart3D: React.FC<LivingHeart3DProps> = ({
       camera.lookAt(0, 0, 0);
 
       if (!prefersReducedMotion) {
-        // --- HEARTBEAT "LUB-DUB" ANIMATION (~72 cycles/min -> period ~0.833s) ---
-        const bpmCycle = (time % 0.833) / 0.833;
+        // --- HEARTBEAT "LUB-DUB" ANIMATION (~60 BPM login, ~72 BPM hero) ---
+        const curLoginState = loginStateRef.current;
+        const beatPeriod = isLogin ? 1.0 : 0.833;
+        const bpmCycle = (time % beatPeriod) / beatPeriod;
         let pulseScale = 1.0;
         let emissiveBoost = 0.22;
+
+        if (curLoginState === 'loading') emissiveBoost += 0.28;
+        if (curLoginState === 'success') pulseScale += 0.15;
 
         if (bpmCycle < 0.14) {
           // Lub: scale 1.0 -> 1.08 -> 1.0
@@ -557,7 +574,7 @@ export const LivingHeart3D: React.FC<LivingHeart3DProps> = ({
           emissiveBoost += Math.sin(p * Math.PI) * 0.22;
         }
 
-        const baseHeartScale = 1.4;
+        const baseHeartScale = isLogin ? 1.15 : 1.4;
         heartMesh.scale.set(
           baseHeartScale * pulseScale,
           baseHeartScale * pulseScale,
@@ -565,9 +582,10 @@ export const LivingHeart3D: React.FC<LivingHeart3DProps> = ({
         );
         heartMat.emissiveIntensity = emissiveBoost;
 
-        // Gentle float and yaw sway (never harsh back view)
+        // Gentle float and yaw sway (focus eases slightly toward card on right)
+        const targetRotY = isLogin && curLoginState === 'focus' ? 0.24 : 0;
         heartGroup.position.y = 0.1 + Math.sin(time * 1.5) * 0.06;
-        heartGroup.rotation.y = Math.sin(time * 0.7) * 0.42; // ~24° sway
+        heartGroup.rotation.y = targetRotY + Math.sin(time * 0.7) * (isLogin ? 0.25 : 0.42);
         heartGroup.rotation.x = Math.sin(time * 0.5) * 0.08;
 
         // Shockwave rings expansion
@@ -736,7 +754,7 @@ export const LivingHeart3D: React.FC<LivingHeart3DProps> = ({
         container.removeChild(renderer.domElement);
       }
     };
-  }, [interactive, compact, hasWebGL]);
+  }, [interactive, compact, hasWebGL, variant]);
 
   // ============================================================================
   // Static SVG Fallback for WebGL-off / Reduced-Motion
@@ -867,8 +885,8 @@ export const LivingHeart3D: React.FC<LivingHeart3DProps> = ({
         aria-hidden="true"
       />
 
-      {/* Desktop HTML Leader Line Captions (aria-hidden, purely decorative) */}
-      {!compact && (
+      {/* Desktop HTML Leader Line Captions (purely decorative, hero only) */}
+      {!compact && variant !== 'login' && (
         <div
           className="desktop-captions-overlay"
           style={{

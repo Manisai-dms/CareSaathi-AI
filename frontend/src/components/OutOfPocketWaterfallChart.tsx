@@ -1,6 +1,7 @@
 import React from 'react';
 import { ArrowDown, ArrowUp, ShieldCheck, AlertCircle, CheckCircle2, Info } from 'lucide-react';
 import { OutOfPocketWaterfallDTO } from '../services/api';
+import { AnimatedRupeeCounter } from './AnimatedRupeeCounter';
 
 interface OutOfPocketWaterfallProps {
   waterfall: OutOfPocketWaterfallDTO;

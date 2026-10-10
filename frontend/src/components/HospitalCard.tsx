@@ -42,8 +42,28 @@ export const HospitalCard: React.FC<HospitalCardProps> = ({
   const dataQuality = getDataQualityBadge(facility);
 
   // Driving time calculation
-  const travelMinutes = facility.distance_km 
-    ? Math.round((facility.distance_km / 28) * 60) + 4
+  // Haversine fallback distance calculation
+  const calcKm = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const R = 6371;
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return Math.round(R * c * 10) / 10;
+  };
+
+  const effectiveDistanceKm = (facility.distance_km !== undefined && facility.distance_km !== null)
+    ? facility.distance_km
+    : (facility.lat && facility.lng && userLat && userLng)
+      ? calcKm(userLat, userLng, facility.lat, facility.lng)
+      : null;
+
+  // Driving time calculation
+  const travelMinutes = effectiveDistanceKm !== null
+    ? Math.round((effectiveDistanceKm / 28) * 60) + 4
     : googlePlacesService.estimateDrivingTimeMinutes(userLat, userLng, facility.lat, facility.lng);
 
   const getOwnershipBadgeClass = (ownership: string) => {
@@ -173,7 +193,7 @@ export const HospitalCard: React.FC<HospitalCardProps> = ({
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.76rem', color: '#64717D' }}>
-          <span>📍 {facility.distance_km !== undefined ? `${facility.distance_km} km` : 'Nearby'}</span>
+          <span>📍 {effectiveDistanceKm !== null ? `${effectiveDistanceKm} km` : 'Nearby'}</span>
           <span>•</span>
           <span style={{ color: '#2C8C83', fontWeight: 600 }}>🚗 {travelMinutes} min</span>
         </div>
@@ -263,8 +283,8 @@ export const HospitalCard: React.FC<HospitalCardProps> = ({
           {/* Distance Evidence */}
           <div>
             • <strong>Proximity: </strong>
-            {facility.distance_km !== undefined 
-              ? `${facility.distance_km} km away (~${travelMinutes} min drive)`
+            {effectiveDistanceKm !== null
+              ? `${effectiveDistanceKm} km away (~${travelMinutes} min drive)`
               : 'Distance: Location approximate'}
           </div>
 

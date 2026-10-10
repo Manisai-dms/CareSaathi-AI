@@ -262,8 +262,8 @@ export const LeafletMapProvider: React.FC<MapCommonProps> = ({
       {/* Leaflet Attribution & Fallback Badge */}
       <div style={{
         position: 'absolute',
-        top: '12px',
-        left: '12px',
+        bottom: '24px',
+        left: '16px',
         zIndex: 1000,
         backgroundColor: 'rgba(255, 255, 255, 0.94)',
         backdropFilter: 'blur(4px)',

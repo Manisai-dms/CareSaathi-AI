@@ -79,6 +79,14 @@ const AppContent: React.FC = () => {
 
   // Navigation helpers for public and login routes
   const navigateToLogin = (mode: 'login' | 'register' = 'login') => {
+    // If user is already logged in, redirect directly to Home ("/")
+    if (user || token) {
+      pendingRedirectRef.current = null;
+      setActiveTab('landing');
+      setCurrentPath('');
+      window.history.replaceState(null, '', '/');
+      return;
+    }
     setLoginMode(mode);
     setCurrentPath('login');
     const url = mode === 'register' ? '/login?mode=register' : '/login';
@@ -101,8 +109,9 @@ const AppContent: React.FC = () => {
       }
     }
     setActiveTab(targetTab);
-    setCurrentPath(targetTab);
-    const targetPath = `/${targetTab}`;
+    const pathName = targetTab === 'landing' ? '' : targetTab;
+    setCurrentPath(pathName);
+    const targetPath = targetTab === 'landing' ? '/' : `/${targetTab}`;
     if (window.location.pathname !== targetPath) {
       window.history.pushState(null, '', targetPath);
     }
@@ -116,14 +125,13 @@ const AppContent: React.FC = () => {
     setCurrentPath(prev => prev === path ? prev : path);
 
     if (user || token) {
-      // Signed-in users who visit / or /login or /landing go straight to the app
+      // Signed-in users who visit / or /login or /landing go straight to Home (/)
       // /welcome is intentionally preserved for signed-in users to experience the intro!
       if (path === '' || path === 'login' || path === 'landing') {
-        const destination = 'landing';
         pendingRedirectRef.current = null;
-        setActiveTab(destination);
-        setCurrentPath(destination);
-        window.history.replaceState(null, '', `/${destination}`);
+        setActiveTab('landing');
+        setCurrentPath('');
+        window.history.replaceState(null, '', '/');
       } else if (PROTECTED_TABS.includes(path) || path === 'methodology') {
         setActiveTab(path);
       }
@@ -149,9 +157,10 @@ const AppContent: React.FC = () => {
 
       if (user || token) {
         if (path === '' || path === 'login' || path === 'landing') {
-          window.history.replaceState(null, '', '/landing');
+          pendingRedirectRef.current = null;
+          window.history.replaceState(null, '', '/');
           setActiveTab('landing');
-          setCurrentPath('landing');
+          setCurrentPath('');
         } else if (PROTECTED_TABS.includes(path) || path === 'methodology') {
           setActiveTab(path);
         }
@@ -182,13 +191,12 @@ const AppContent: React.FC = () => {
     });
   }, [activeTab]);
 
-  // Successful authentication redirect to target or dashboard
+  // Successful authentication redirect - always redirect user to Home ("/") using replace navigation
   const handleAuthSuccess = () => {
-    const destination = 'landing';
     pendingRedirectRef.current = null;
-    setActiveTab(destination);
-    setCurrentPath(destination);
-    window.history.replaceState(null, '', `/${destination}`);
+    setActiveTab('landing');
+    setCurrentPath('');
+    window.history.replaceState(null, '', '/');
   };
 
   const handleVoiceConfirm = (transcript: string) => {

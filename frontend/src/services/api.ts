@@ -849,6 +849,7 @@ export interface UserProfileDTO {
   name: string;
   email: string;
   language: string;
+  phone?: string;
 }
 
 export interface AuthResponseDTO {

@@ -20,10 +20,12 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess, onContinueAsGuest
   const [selectedLang, setSelectedLang] = useState(language);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
+    setSuccessMsg(null);
     setIsLoading(true);
 
     try {
@@ -32,14 +34,21 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess, onContinueAsGuest
           throw new Error('Please enter both email and password');
         }
         await login(email, password);
+        onSuccess();
       } else {
         if (!name.trim()) throw new Error('Please enter your full name');
         if (!email.trim() || !email.includes('@')) throw new Error('Please enter a valid email address');
         if (password.length < 6) throw new Error('Password must be at least 6 characters');
-        await register(name, email, password, selectedLang);
+        const regResult = await register(name, email, password, selectedLang);
         setLanguage(selectedLang as any);
+
+        if (regResult?.needsEmailConfirmation) {
+          setSuccessMsg(`Account created for ${email}! A confirmation link has been sent to your email. Please verify your email before logging in, or disable "Confirm email" in Supabase Dashboard (Authentication > Providers > Email) for instant login.`);
+          setMode('login');
+          return;
+        }
+        onSuccess();
       }
-      onSuccess();
     } catch (err: any) {
       setErrorMsg(err.message || 'Authentication failed. Please verify credentials.');
     } finally {
@@ -196,7 +205,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess, onContinueAsGuest
           </button>
           <button
             type="button"
-            onClick={() => { setMode('register'); setErrorMsg(null); }}
+            onClick={() => { setMode('register'); setErrorMsg(null); setSuccessMsg(null); }}
             style={{
               flex: 1,
               padding: '8px',
@@ -214,6 +223,26 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess, onContinueAsGuest
             Create Account
           </button>
         </div>
+
+        {/* Success / Email Notice Alert Banner */}
+        {successMsg && (
+          <div style={{
+            backgroundColor: '#F0FDF4',
+            border: '1px solid #BBF7D0',
+            borderRadius: '8px',
+            padding: '10px 14px',
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: '8px',
+            marginBottom: '18px',
+            fontSize: '0.82rem',
+            color: '#166534',
+            lineHeight: 1.45
+          }}>
+            <ShieldCheck size={18} style={{ flexShrink: 0, marginTop: '2px', color: '#16A34A' }} />
+            <span>{successMsg}</span>
+          </div>
+        )}
 
         {/* Error Alert Banner */}
         {errorMsg && (

@@ -546,7 +546,7 @@ export const PublicLandingPage: React.FC<PublicLandingPageProps> = ({
                 lineHeight: 1.62,
                 maxWidth: '540px',
                 marginBottom: '28px',
-                textShadow: '0 1px 2px rgba(255, 255, 255, 0.6)'
+                textShadow: '0 1px 12px rgba(255, 255, 255, 0.65)'
               }}
             >
               Explore indicative procedure costs across Government, Private, and Premium facilities, discover nearby empanelled hospitals, and check schemes you may be eligible for.

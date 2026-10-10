@@ -6,6 +6,9 @@
 # 3. Central Drugs Standard Control Organisation (CDSCO) / National List of Essential Medicines (NLEM 2022)
 
 from typing import List, Dict, Optional, Any
+import difflib
+
+NPPA_PORTAL_URL = "https://nppaipdms.gov.in/NPPA/PharmaSahiDaam/"
 
 MEDICINE_DATABASE: List[Dict[str, Any]] = [
     {
@@ -372,12 +375,35 @@ def search_medicines(query: str) -> List[Dict[str, Any]]:
         return MEDICINE_DATABASE[:6]
     q = query.strip().lower()
     matches = []
+    
+    # 1. Exact prefix or substring matches
     for med in MEDICINE_DATABASE:
-        if (q in med["brand_name"].lower() or 
-            q in med["generic_name"].lower() or 
-            q in med["strength"].lower()):
-            matches.append(med)
-    return matches
+        b_name = med["brand_name"].lower()
+        g_name = med["generic_name"].lower()
+        s_name = med["strength"].lower()
+        
+        if b_name.startswith(q) or g_name.startswith(q):
+            matches.append((100, med))
+        elif q in b_name or q in g_name or q in s_name:
+            matches.append((60, med))
+        else:
+            # Fuzzy match on individual words (e.g. "dola" vs "dolo")
+            all_words = b_name.split() + g_name.split()
+            best_ratio = 0.0
+            for w in all_words:
+                ratio = difflib.SequenceMatcher(None, q, w).ratio()
+                if ratio > best_ratio:
+                    best_ratio = ratio
+                # Prefix fuzzy (e.g. 4-letter query matches 4-letter prefix)
+                if len(w) >= len(q) >= 3:
+                    p_ratio = difflib.SequenceMatcher(None, q, w[:len(q)]).ratio()
+                    if p_ratio > best_ratio:
+                        best_ratio = p_ratio
+            if best_ratio >= 0.75:
+                matches.append((int(best_ratio * 50), med))
+                
+    matches.sort(key=lambda x: x[0], reverse=True)
+    return [m[1] for m in matches]
 
 def get_medicine_by_id(med_id: str) -> Optional[Dict[str, Any]]:
     for med in MEDICINE_DATABASE:
@@ -445,10 +471,10 @@ def calculate_course_cost(items: List[Dict[str, Any]]) -> Dict[str, Any]:
                 "savings_potential": 0.0,
                 "generic_alternative": None,
                 "source": "Price not verified",
-                "source_url": "https://nppaipdms.gov.in/NPPA/PharmaSahiDaam/searchMedicine",
+                "source_url": NPPA_PORTAL_URL,
                 "last_updated": "Not verified",
                 "verified": False,
-                "status_note": "Price not verified in statutory database. Check with your pharmacist."
+                "status_note": "Rate not available, please verify on NPPA portal"
             })
 
     savings = max(0.0, round(total_branded - total_jan_aushadhi, 2))

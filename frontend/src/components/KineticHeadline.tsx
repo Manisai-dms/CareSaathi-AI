@@ -321,6 +321,7 @@ export const KineticHeadline: React.FC<KineticHeadlineProps> = ({
         /* Root & Lines Layout */
         .hk-headline-root {
           color: #102A36;
+          text-shadow: 0 1px 12px rgba(255, 255, 255, 0.65);
         }
 
         .hk-lines-container {

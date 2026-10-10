@@ -41,7 +41,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   onSuccess,
   onNavigateHome
 }) => {
-  const { login, register, demoLogin } = useAuth();
+  const { user, token, login, register, demoLogin } = useAuth();
   const { language, setLanguage } = useLanguage();
 
   const [mode, setMode] = useState<'login' | 'register'>(initialMode);
@@ -57,6 +57,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   // Auth statuses: 'idle' | 'loading' | 'error' | 'success'
   const [status, setStatus] = useState<'idle' | 'loading' | 'error' | 'success'>('idle');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [infoNotice, setInfoNotice] = useState<string | null>(null);
 
   // Google OAuth status
   const [isGoogleLoading, setIsGoogleLoading] = useState<boolean>(false);
@@ -69,6 +70,13 @@ export const LoginPage: React.FC<LoginPageProps> = ({
 
   const prefersReduced = typeof window !== 'undefined' && 
     window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // If an already-logged-in user opens the login page, redirect to Home immediately
+  useEffect(() => {
+    if (user || token) {
+      onSuccess();
+    }
+  }, [user, token, onSuccess]);
 
   // Listen to Supabase auth state change (e.g. after Google OAuth redirect)
   useEffect(() => {
@@ -92,6 +100,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
+    setInfoNotice(null);
     setGoogleNotice(null);
     setStatus('loading');
 
@@ -106,6 +115,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({
           throw new Error('Please enter your password.');
         }
         await login(email, password);
+        setStatus('success');
+        setTimeout(() => {
+          onSuccess();
+        }, 420);
       } else {
         if (!name.trim()) {
           nameInputRef.current?.focus();
@@ -119,14 +132,21 @@ export const LoginPage: React.FC<LoginPageProps> = ({
           passwordInputRef.current?.focus();
           throw new Error('Password must be at least 6 characters.');
         }
-        await register(name, email, password, selectedLang);
+        const regResult = await register(name, email, password, selectedLang);
         setLanguage(selectedLang as any);
-      }
 
-      setStatus('success');
-      setTimeout(() => {
-        onSuccess();
-      }, 420);
+        if (regResult?.needsEmailConfirmation) {
+          setStatus('idle');
+          setInfoNotice(`Account created for ${email}! A confirmation link has been sent to your email. Please check your inbox to verify your email before signing in, or disable "Confirm email" in your Supabase Dashboard (Authentication > Providers > Email) for instant login.`);
+          setMode('login');
+          return;
+        }
+
+        setStatus('success');
+        setTimeout(() => {
+          onSuccess();
+        }, 420);
+      }
     } catch (err: any) {
       setStatus('error');
       setErrorMsg(err.message || 'Authentication failed. Please verify your credentials.');
@@ -208,18 +228,14 @@ export const LoginPage: React.FC<LoginPageProps> = ({
         {/* Left Panel: 2D Animated ECG/BP lines & App Headline */}
         <div className="lg-left-panel">
           <div className="lg-left-inner">
-            {/* Animated 2D ECG & BP Waves with Glowing Lead Tip & Soft Floating Pulses */}
-            <div className="lg-ecg-visual-container" aria-hidden="true">
-              {/* Soft floating background pulse depth circles */}
-              <div className="lg-pulse-circle lg-pulse-circle-1" />
-              <div className="lg-pulse-circle lg-pulse-circle-2" />
-              <div className="lg-pulse-circle lg-pulse-circle-3" />
-
+            {/* Animated 2D ECG Pulse Line Card */}
+            <div className="lg-ecg-visual-container">
               {/* Responsive SVG Heartbeat waveforms */}
               <svg 
                 className="lg-ecg-svg" 
                 viewBox="0 0 600 180" 
                 preserveAspectRatio="none"
+                aria-hidden="true"
               >
                 <defs>
                   <linearGradient id="ecgTealGrad" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -347,6 +363,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                   onClick={() => {
                     setMode('login');
                     setErrorMsg(null);
+                    setInfoNotice(null);
                     setGoogleNotice(null);
                     setStatus('idle');
                   }}
@@ -361,6 +378,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                   onClick={() => {
                     setMode('register');
                     setErrorMsg(null);
+                    setInfoNotice(null);
                     setGoogleNotice(null);
                     setStatus('idle');
                   }}
@@ -378,6 +396,22 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                   aria-hidden="true"
                 />
               </div>
+
+              {/* Info / Email Confirmation Notice Banner */}
+              {infoNotice && (
+                <div 
+                  id="lg-auth-info" 
+                  className="lg-info-banner" 
+                  role="status" 
+                  aria-live="polite"
+                >
+                  <Info size={18} className="lg-info-icon" />
+                  <div className="lg-info-text-wrap">
+                    <strong className="lg-info-heading">Action Needed: Confirm Email</strong>
+                    <p className="lg-info-body">{infoNotice}</p>
+                  </div>
+                </div>
+              )}
 
               {/* Error Message Banner */}
               {errorMsg && (
@@ -684,65 +718,22 @@ export const LoginPage: React.FC<LoginPageProps> = ({
           width: 100%;
           height: 180px;
           margin-bottom: 24px;
-          border-radius: 14px;
-          background: linear-gradient(135deg, rgba(255, 255, 255, 0.5) 0%, rgba(240, 248, 246, 0.3) 100%);
-          border: 1px solid rgba(226, 232, 240, 0.6);
+          border-radius: 16px;
+          background: linear-gradient(135deg, rgba(255, 255, 255, 0.70) 0%, rgba(240, 248, 246, 0.45) 100%);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          border: 1px solid rgba(226, 232, 240, 0.85);
           overflow: hidden;
-          box-shadow: 0 4px 16px -2px rgba(16, 42, 54, 0.03);
+          box-shadow: 0 4px 20px -2px rgba(16, 42, 54, 0.05);
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
 
         .lg-ecg-svg {
           width: 100%;
           height: 100%;
-          position: absolute;
-          inset: 0;
-          z-index: 2;
-        }
-
-        /* Floating Soft Pulse Circles for Depth */
-        .lg-pulse-circle {
-          position: absolute;
-          border-radius: 50%;
-          filter: blur(28px);
-          pointer-events: none;
-          z-index: 1;
-        }
-        .lg-pulse-circle-1 {
-          width: 190px;
-          height: 190px;
-          top: -20px;
-          left: 10%;
-          background: radial-gradient(circle, rgba(47, 143, 131, 0.16) 0%, rgba(47, 143, 131, 0) 70%);
-          animation: lgFloatPulse1 7s ease-in-out infinite alternate;
-        }
-        .lg-pulse-circle-2 {
-          width: 150px;
-          height: 150px;
-          bottom: -15px;
-          right: 15%;
-          background: radial-gradient(circle, rgba(255, 122, 89, 0.14) 0%, rgba(255, 122, 89, 0) 70%);
-          animation: lgFloatPulse2 8.5s ease-in-out infinite alternate;
-        }
-        .lg-pulse-circle-3 {
-          width: 170px;
-          height: 170px;
-          top: 30%;
-          left: 35%;
-          background: radial-gradient(circle, rgba(77, 168, 255, 0.12) 0%, rgba(77, 168, 255, 0) 70%);
-          animation: lgFloatPulse3 9s ease-in-out infinite alternate;
-        }
-
-        @keyframes lgFloatPulse1 {
-          0% { transform: translate(0, 0) scale(1); }
-          100% { transform: translate(18px, -12px) scale(1.15); }
-        }
-        @keyframes lgFloatPulse2 {
-          0% { transform: translate(0, 0) scale(1); }
-          100% { transform: translate(-22px, 15px) scale(1.18); }
-        }
-        @keyframes lgFloatPulse3 {
-          0% { transform: translate(0, 0) scale(1); }
-          100% { transform: translate(14px, 16px) scale(0.92); }
+          display: block;
         }
 
         /* ECG Waveform Draw & Continuous Slide Animations */
@@ -774,17 +765,17 @@ export const LoginPage: React.FC<LoginPageProps> = ({
         .lg-ecg-main {
           stroke-dasharray: 450 750;
           animation: ecgDrawSlideMain 4.2s linear infinite;
-          opacity: 0.52;
+          opacity: 0.88;
         }
         .lg-ecg-coral {
           stroke-dasharray: 380 820;
           animation: ecgDrawSlideCoral 5.6s linear infinite;
-          opacity: 0.38;
+          opacity: 0.55;
         }
         .lg-ecg-ambient {
           stroke-dasharray: 400 800;
           animation: ecgDrawSlideAmbient 6.8s linear infinite;
-          opacity: 0.24;
+          opacity: 0.35;
         }
 
         /* Pulsing Leading Tip Following Main ECG */
@@ -971,11 +962,46 @@ export const LoginPage: React.FC<LoginPageProps> = ({
           transition: left 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        /* Error Banner */
+        /* Info & Error Banners */
         @keyframes lgErrorSlide {
           from { transform: translateY(-6px); opacity: 0; }
           to { transform: translateY(0); opacity: 1; }
         }
+        .lg-info-banner {
+          background-color: #F0FDF4;
+          border: 1px solid #BBF7D0;
+          border-radius: 8px;
+          padding: 12px 14px;
+          display: flex;
+          align-items: flex-start;
+          gap: 10px;
+          margin-bottom: 18px;
+          font-size: 0.84rem;
+          color: #166534;
+          animation: lgErrorSlide 0.2s ease-out both;
+        }
+        .lg-info-icon {
+          flex-shrink: 0;
+          color: #16A34A;
+          margin-top: 2px;
+        }
+        .lg-info-text-wrap {
+          display: flex;
+          flex-direction: column;
+          gap: 3px;
+        }
+        .lg-info-heading {
+          font-weight: 700;
+          color: #14532D;
+          font-size: 0.86rem;
+        }
+        .lg-info-body {
+          margin: 0;
+          line-height: 1.45;
+          color: #166534;
+          font-size: 0.82rem;
+        }
+
         .lg-error-banner {
           background-color: #FEF2F2;
           border: 1px solid #FECACA;
@@ -1342,7 +1368,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
           }
           .lg-ecg-visual-container {
             height: 130px;
-            margin-bottom: 12px;
+            margin-bottom: 16px;
           }
           .lg-blurb-heading {
             font-size: 1.3rem;
@@ -1362,10 +1388,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
           .lg-error-banner,
           .lg-ecg-line,
           .lg-ecg-pulse-follower,
-          .lg-pulse-head-ring,
-          .lg-pulse-circle-1,
-          .lg-pulse-circle-2,
-          .lg-pulse-circle-3 {
+          .lg-pulse-head-ring {
             animation: none !important;
           }
           .lg-ecg-line {

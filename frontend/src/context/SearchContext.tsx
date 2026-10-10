@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { appointmentRepo } from '../services/appointmentRepository';
+import { supabase } from '../services/supabase';
 
 export interface FacilityItem {
   id: string;
@@ -109,10 +111,19 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         ...searchState,
         comparisonList: searchState.comparisonList.slice(0, 4)
       }));
+
+      // Automatically sync non-empty comparison lists to Supabase and LocalStorage
+      if (searchState.comparisonList.length > 0 && appointmentRepo.saveComparison) {
+        supabase?.auth.getSession().then(({ data }) => {
+          const userId = data?.session?.user?.id || 'guest';
+          const facilityIds = searchState.comparisonList.map(f => f.id);
+          appointmentRepo.saveComparison!(userId, facilityIds, searchState.treatmentName || 'General Treatment');
+        }).catch(() => {});
+      }
     } catch (e) {
       console.warn("Storage error", e);
     }
-  }, [searchState]);
+  }, [searchState.comparisonList, searchState.treatmentName]);
 
   const setSearchQuery = (query: string) => {
     setState(prev => ({ ...prev, query }));

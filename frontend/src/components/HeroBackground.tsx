@@ -190,7 +190,7 @@ export const HeroBackground: React.FC = () => {
       }}
       aria-hidden="true"
     >
-      {/* Strengthened Left White-to-Transparent Gradient: covering full hero height for text readability */}
+      {/* Left White-to-Transparent Gradient: balanced opacity (0.74 -> 0.65 -> 0.25 -> 0) to reveal hospital background image while preserving text readability */}
       <div
         style={{
           position: 'absolute',
@@ -199,7 +199,7 @@ export const HeroBackground: React.FC = () => {
           left: 0,
           right: 0,
           zIndex: 2,
-          background: 'linear-gradient(90deg, rgba(255, 255, 255, 0.94) 0%, rgba(255, 255, 255, 0.85) 35%, rgba(255, 255, 255, 0.35) 55%, rgba(255, 255, 255, 0) 72%)'
+          background: 'linear-gradient(90deg, rgba(255, 255, 255, 0.74) 0%, rgba(255, 255, 255, 0.65) 35%, rgba(255, 255, 255, 0.25) 55%, rgba(255, 255, 255, 0) 72%)'
         }}
       />
 

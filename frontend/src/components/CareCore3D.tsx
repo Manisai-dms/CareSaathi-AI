@@ -79,26 +79,26 @@ export const CareCore3D: React.FC<CareCore3DProps> = ({
     const masterGroup = new THREE.Group();
     scene.add(masterGroup);
 
-    // 4. Lighting Rig (Ink #102A36, Teal #438F84, Luminous Mint #A7F3D0, Cyan #38BDF8)
-    const ambientLight = new THREE.AmbientLight(new THREE.Color('#102A36'), 2.0);
+    // 4. Lighting Rig tailored for bright, clean healthcare theme
+    const ambientLight = new THREE.AmbientLight(new THREE.Color('#FFFFFF'), 1.8);
     scene.add(ambientLight);
 
-    // Key Light: Deep luminous teal
-    const keyLight = new THREE.PointLight(new THREE.Color('#5EEAD4'), 4.5, 25);
+    // Key Light: Soft luminous teal
+    const keyLight = new THREE.PointLight(new THREE.Color('#438F84'), 3.0, 25);
     keyLight.position.set(4, 4.5, 4.5);
     scene.add(keyLight);
 
     // Rim Light: Cyan rim contour
-    const rimLight = new THREE.PointLight(new THREE.Color('#38BDF8'), 3.8, 20);
+    const rimLight = new THREE.PointLight(new THREE.Color('#38BDF8'), 2.2, 20);
     rimLight.position.set(-4.5, -2, -3.5);
     scene.add(rimLight);
 
     // Soft Fill: Clean mint
-    const fillLight = new THREE.PointLight(new THREE.Color('#E7F3EF'), 2.0, 18);
+    const fillLight = new THREE.PointLight(new THREE.Color('#E7F3EF'), 1.6, 18);
     fillLight.position.set(0, -4, 4);
     scene.add(fillLight);
 
-    const dirLight = new THREE.DirectionalLight(new THREE.Color('#FFFFFF'), 1.0);
+    const dirLight = new THREE.DirectionalLight(new THREE.Color('#FFFFFF'), 1.2);
     dirLight.position.set(2, 5, 6);
     scene.add(dirLight);
 
@@ -108,15 +108,15 @@ export const CareCore3D: React.FC<CareCore3DProps> = ({
     const sphereGeo = new THREE.SphereGeometry(1.65, 64, 64);
     const sphereMat = new THREE.MeshPhysicalMaterial({
       color: new THREE.Color('#438F84'),
-      emissive: new THREE.Color('#103b37'),
-      emissiveIntensity: 0.35,
-      roughness: 0.12,
+      emissive: new THREE.Color('#1F7A63'),
+      emissiveIntensity: 0.18,
+      roughness: 0.14,
       metalness: 0.08,
-      transmission: 0.85,
-      thickness: 1.2,
+      transmission: 0.88,
+      thickness: 1.1,
       ior: 1.45,
       transparent: true,
-      opacity: 0.88,
+      opacity: 0.85,
       clearcoat: 1.0,
       clearcoatRoughness: 0.1,
     });
@@ -131,9 +131,9 @@ export const CareCore3D: React.FC<CareCore3DProps> = ({
 
     const nucleusGeo = new THREE.IcosahedronGeometry(0.8, 3);
     const nucleusMat = new THREE.MeshStandardMaterial({
-      color: new THREE.Color('#5EEAD4'),
+      color: new THREE.Color('#438F84'),
       emissive: new THREE.Color('#2C8C83'),
-      emissiveIntensity: 0.85,
+      emissiveIntensity: 0.65,
       roughness: 0.25,
       metalness: 0.35,
     });
@@ -461,7 +461,7 @@ export const CareCore3D: React.FC<CareCore3DProps> = ({
             background:
               'radial-gradient(circle at 35% 35%, #A7F3D0 0%, #52a69a 45%, #1F7A63 100%)',
             boxShadow:
-              '0 8px 40px rgba(31, 122, 99, 0.25), inset 0 0 25px rgba(255, 255, 255, 0.4)',
+              '0 8px 30px rgba(31, 122, 99, 0.15), inset 0 0 25px rgba(255, 255, 255, 0.5)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -472,8 +472,8 @@ export const CareCore3D: React.FC<CareCore3DProps> = ({
               width: '110px',
               height: '110px',
               borderRadius: '50%',
-              backgroundColor: 'rgba(231, 243, 239, 0.25)',
-              border: '2px solid #5EEAD4',
+              backgroundColor: 'rgba(231, 243, 239, 0.35)',
+              border: '2px solid rgba(15, 118, 110, 0.4)',
             }}
           />
         </div>
@@ -496,17 +496,17 @@ export const CareCore3D: React.FC<CareCore3DProps> = ({
       >
         <span
           style={{
-            width: '4px',
-            height: '4px',
+            width: '6px',
+            height: '6px',
             borderRadius: '50%',
-            backgroundColor: '#1F7A63',
+            backgroundColor: 'var(--hero-badge-text, #0F766E)',
           }}
         />
         <div
           style={{
             width: '28px',
             height: '1px',
-            backgroundColor: 'rgba(31, 122, 99, 0.3)',
+            backgroundColor: 'rgba(15, 118, 110, 0.3)',
           }}
         />
         <span
@@ -514,12 +514,13 @@ export const CareCore3D: React.FC<CareCore3DProps> = ({
             fontFamily: 'var(--font-body)',
             fontSize: '12px',
             fontWeight: 600,
-            color: '#0F2A24',
+            color: 'var(--hero-heading, #0F2F36)',
             letterSpacing: '0.02em',
-            backgroundColor: '#FFFFFF',
-            padding: '4px 10px',
+            backgroundColor: 'var(--hero-chip-bg, #FFFFFF)',
+            border: '1px solid var(--hero-badge-border, rgba(15, 118, 110, 0.28))',
+            padding: '5px 12px',
             borderRadius: '20px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            boxShadow: '0 2px 8px rgba(15, 47, 54, 0.08)',
           }}
         >
           PM-JAY &amp; Aarogyasri Aligned
@@ -546,12 +547,13 @@ export const CareCore3D: React.FC<CareCore3DProps> = ({
             fontFamily: 'var(--font-body)',
             fontSize: '12px',
             fontWeight: 600,
-            color: '#0F2A24',
+            color: 'var(--hero-heading, #0F2F36)',
             letterSpacing: '0.02em',
-            backgroundColor: '#FFFFFF',
-            padding: '4px 10px',
+            backgroundColor: 'var(--hero-chip-bg, #FFFFFF)',
+            border: '1px solid var(--hero-badge-border, rgba(15, 118, 110, 0.28))',
+            padding: '5px 12px',
             borderRadius: '20px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            boxShadow: '0 2px 8px rgba(15, 47, 54, 0.08)',
           }}
         >
           28 Empanelled Facilities
@@ -560,15 +562,15 @@ export const CareCore3D: React.FC<CareCore3DProps> = ({
           style={{
             width: '28px',
             height: '1px',
-            backgroundColor: 'rgba(31, 122, 99, 0.3)',
+            backgroundColor: 'rgba(15, 118, 110, 0.3)',
           }}
         />
         <span
           style={{
-            width: '4px',
-            height: '4px',
+            width: '6px',
+            height: '6px',
             borderRadius: '50%',
-            backgroundColor: '#1F7A63',
+            backgroundColor: 'var(--hero-badge-text, #0F766E)',
           }}
         />
       </div>

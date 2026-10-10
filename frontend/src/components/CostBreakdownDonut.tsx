@@ -50,7 +50,7 @@ export const CostBreakdownDonut: React.FC<CostBreakdownDonutProps> = ({
   let cumulativePercent = 0;
 
   return (
-    <div className="card" style={{ backgroundColor: 'var(--color-white)', border: '1px solid var(--color-border)', marginBottom: '24px' }}>
+    <div className="card cost-estimator-card-elevation" style={{ backgroundColor: 'var(--color-white)', border: '1px solid var(--color-border)', marginBottom: '24px' }}>
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px', marginBottom: '18px' }}>
         <div>
@@ -87,7 +87,7 @@ export const CostBreakdownDonut: React.FC<CostBreakdownDonutProps> = ({
                 const isHovered = hoveredIdx === i;
 
                 return (
-                  <circle
+                  <motion.circle
                     key={i}
                     cx={size / 2}
                     cy={size / 2}
@@ -96,7 +96,9 @@ export const CostBreakdownDonut: React.FC<CostBreakdownDonutProps> = ({
                     stroke={slice.color}
                     strokeWidth={isHovered ? strokeWidth + 6 : strokeWidth}
                     strokeDasharray={strokeDasharray}
-                    strokeDashoffset={strokeDashoffset}
+                    initial={{ strokeDashoffset: circumference }}
+                    animate={{ strokeDashoffset: strokeDashoffset }}
+                    transition={{ duration: 0.9, delay: i * 0.08, ease: 'easeOut' }}
                     style={{
                       transition: 'stroke-width 0.2s ease, opacity 0.2s ease',
                       cursor: 'pointer',
@@ -143,7 +145,7 @@ export const CostBreakdownDonut: React.FC<CostBreakdownDonutProps> = ({
                   Indicative Median
                 </div>
                 <div style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--color-navy)', marginTop: '2px' }}>
-                  ₹{Math.round((minPrice + maxPrice) / 2).toLocaleString('en-IN')}
+                  <AnimatedRupeeCounter value={Math.round((minPrice + maxPrice) / 2)} />
                 </div>
                 <div style={{ fontSize: '0.7rem', color: 'var(--color-teal-dark)', fontWeight: 600 }}>
                   Total Package
@@ -160,6 +162,7 @@ export const CostBreakdownDonut: React.FC<CostBreakdownDonutProps> = ({
             return (
               <div
                 key={i}
+                className="cost-estimator-interactive-row"
                 onMouseEnter={() => setHoveredIdx(i)}
                 onMouseLeave={() => setHoveredIdx(null)}
                 style={{
@@ -170,8 +173,7 @@ export const CostBreakdownDonut: React.FC<CostBreakdownDonutProps> = ({
                   borderRadius: '8px',
                   backgroundColor: isHovered ? 'var(--color-mint)' : 'var(--color-warm-bg)',
                   border: isHovered ? '1px solid var(--color-teal)' : '1px solid transparent',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease'
+                  cursor: 'pointer'
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

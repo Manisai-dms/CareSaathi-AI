@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Building2, Heart, Award, Clock, ShieldCheck, Check, Info, ExternalLink, ChevronDown, ChevronUp, AlertCircle } from 'lucide-react';
 import { TierComparisonItemDTO } from '../services/api';
+import { AnimatedRupeeCounter } from './AnimatedRupeeCounter';
 
 interface TierComparisonViewProps {
   tierComparisons: TierComparisonItemDTO[];

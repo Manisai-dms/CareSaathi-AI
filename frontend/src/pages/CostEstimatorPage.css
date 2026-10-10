@@ -1,0 +1,208 @@
+/* ==============================================================================
+   CareSaathi AI - Estimate Cost Section Scoped Animations & Styles
+   Brand Palette:
+   - Forest Green: #176B5B
+   - Teal: #329B89
+   - Soft Mint: #E8F5EF
+   - Warm Off-White: #F7F8F5
+   - Soft Gold: #D6A64F
+   - Navy: #12304A / #183247
+   ============================================================================== */
+
+/* Scoped Container Styles */
+.cost-estimator-hero-banner {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-lg, 16px);
+  padding: 24px 28px;
+  margin-bottom: 28px;
+  background: linear-gradient(135deg, rgba(232, 245, 239, 0.7) 0%, rgba(247, 248, 245, 0.9) 100%);
+  border: 1px solid rgba(50, 155, 137, 0.2);
+  box-shadow: 0 4px 20px rgba(23, 107, 91, 0.05);
+}
+
+/* Floating Rupee Particles */
+.floating-rupee-container {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+  user-select: none;
+}
+
+.floating-rupee-symbol {
+  position: absolute;
+  font-family: inherit;
+  font-weight: 700;
+  line-height: 1;
+  pointer-events: none;
+  animation-name: floatRupeeGently;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in-out;
+  will-change: transform, opacity;
+}
+
+@keyframes floatRupeeGently {
+  0% {
+    transform: translateY(0) translateX(0) rotate(0deg);
+    opacity: 0;
+  }
+  20% {
+    opacity: var(--rupee-peak-opacity, 0.24);
+  }
+  50% {
+    transform: translateY(-24px) translateX(var(--rupee-drift-x, 8px)) rotate(var(--rupee-rotate, 6deg));
+    opacity: calc(var(--rupee-peak-opacity, 0.24) * 0.85);
+  }
+  80% {
+    opacity: var(--rupee-peak-opacity, 0.24);
+  }
+  100% {
+    transform: translateY(-52px) translateX(calc(var(--rupee-drift-x, 8px) * -0.5)) rotate(calc(var(--rupee-rotate, 6deg) * -1));
+    opacity: 0;
+  }
+}
+
+/* Interactive Form Controls within Cost Estimator */
+.cost-estimator-input,
+.cost-estimator-select {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.cost-estimator-input:hover,
+.cost-estimator-select:hover {
+  border-color: #329B89 !important;
+}
+
+.cost-estimator-input:focus,
+.cost-estimator-select:focus {
+  border-color: #176B5B !important;
+  box-shadow: 0 0 0 3px rgba(50, 155, 137, 0.16) !important;
+  outline: none;
+}
+
+/* Quick Select Buttons */
+.cost-estimator-quick-chip {
+  transition: transform 0.15s ease, background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.cost-estimator-quick-chip:hover {
+  transform: translateY(-1px);
+  background-color: #E8F5EF !important;
+  color: #176B5B !important;
+  box-shadow: 0 2px 6px rgba(23, 107, 91, 0.12);
+}
+
+.cost-estimator-quick-chip:active {
+  transform: translateY(0);
+}
+
+/* Primary Calculate Button Animation */
+.cost-estimator-calc-btn {
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.cost-estimator-calc-btn:hover:not(:disabled) {
+  transform: translateY(-1.5px);
+  box-shadow: 0 8px 20px rgba(23, 107, 91, 0.25);
+  background-color: #176B5B;
+}
+
+.cost-estimator-calc-btn:active:not(:disabled) {
+  transform: translateY(0.5px);
+}
+
+/* Animated Card Elevation */
+.cost-estimator-card-elevation {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease;
+}
+
+.cost-estimator-card-elevation:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px -6px rgba(23, 107, 91, 0.12), 0 6px 12px -4px rgba(23, 107, 91, 0.06);
+  border-color: rgba(50, 155, 137, 0.4);
+}
+
+/* Workflow Switcher Tabs */
+.cost-estimator-workflow-tab {
+  transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.cost-estimator-workflow-tab:hover:not(.active) {
+  background-color: rgba(232, 245, 239, 0.6) !important;
+  color: #176B5B !important;
+  transform: translateY(-1px);
+}
+
+/* Row Hover for Waterfall / Itemized Tables */
+.cost-estimator-interactive-row {
+  transition: transform 0.18s ease, background-color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.cost-estimator-interactive-row:hover {
+  transform: translateX(3px);
+  background-color: #F7F8F5 !important;
+  border-color: #329B89 !important;
+  box-shadow: 0 2px 8px rgba(23, 107, 91, 0.06);
+}
+
+/* Main Range Box Accent */
+.cost-estimator-range-box {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--color-warm-bg, #F7F8F5);
+  border-radius: var(--radius-lg, 16px);
+  padding: 22px 24px;
+  border: 1px solid rgba(50, 155, 137, 0.25);
+  box-shadow: 0 4px 16px rgba(23, 107, 91, 0.04);
+}
+
+/* Currency Counter Shimmer */
+.rupee-counter-active {
+  display: inline-block;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* Subtle Scheme / Subsidy Glow Reveal */
+.scheme-benefit-card-reveal {
+  animation: schemeRevealGlow 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes schemeRevealGlow {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.99);
+    box-shadow: 0 0 0 rgba(50, 155, 137, 0);
+  }
+  60% {
+    box-shadow: 0 0 16px rgba(50, 155, 137, 0.2);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    box-shadow: 0 4px 14px rgba(50, 155, 137, 0.08);
+  }
+}
+
+/* Accessible Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  .floating-rupee-symbol {
+    animation: none !important;
+    display: none !important;
+  }
+  .cost-estimator-card-elevation:hover,
+  .cost-estimator-quick-chip:hover,
+  .cost-estimator-calc-btn:hover,
+  .cost-estimator-interactive-row:hover {
+    transform: none !important;
+  }
+  .scheme-benefit-card-reveal {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}

@@ -459,9 +459,9 @@ export const CareCore3D: React.FC<CareCore3DProps> = ({
             height: '260px',
             borderRadius: '50%',
             background:
-              'radial-gradient(circle at 35% 35%, #5EEAD4 0%, #438F84 45%, #102A36 100%)',
+              'radial-gradient(circle at 35% 35%, #A7F3D0 0%, #52a69a 45%, #1F7A63 100%)',
             boxShadow:
-              '0 0 50px rgba(67, 143, 132, 0.4), inset 0 0 25px rgba(255, 255, 255, 0.4)',
+              '0 8px 40px rgba(31, 122, 99, 0.25), inset 0 0 25px rgba(255, 255, 255, 0.4)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -499,24 +499,27 @@ export const CareCore3D: React.FC<CareCore3DProps> = ({
             width: '4px',
             height: '4px',
             borderRadius: '50%',
-            backgroundColor: '#5EEAD4',
+            backgroundColor: '#1F7A63',
           }}
         />
         <div
           style={{
             width: '28px',
             height: '1px',
-            backgroundColor: 'rgba(94, 234, 212, 0.35)',
+            backgroundColor: 'rgba(31, 122, 99, 0.3)',
           }}
         />
         <span
           style={{
             fontFamily: 'var(--font-body)',
             fontSize: '12px',
-            fontWeight: 500,
-            color: '#E7F3EF',
+            fontWeight: 600,
+            color: '#0F2A24',
             letterSpacing: '0.02em',
-            textShadow: '0 1px 3px rgba(0,0,0,0.6)',
+            backgroundColor: '#FFFFFF',
+            padding: '4px 10px',
+            borderRadius: '20px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
           }}
         >
           PM-JAY &amp; Aarogyasri Aligned
@@ -542,10 +545,13 @@ export const CareCore3D: React.FC<CareCore3DProps> = ({
           style={{
             fontFamily: 'var(--font-body)',
             fontSize: '12px',
-            fontWeight: 500,
-            color: '#E7F3EF',
+            fontWeight: 600,
+            color: '#0F2A24',
             letterSpacing: '0.02em',
-            textShadow: '0 1px 3px rgba(0,0,0,0.6)',
+            backgroundColor: '#FFFFFF',
+            padding: '4px 10px',
+            borderRadius: '20px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
           }}
         >
           28 Empanelled Facilities
@@ -562,7 +568,7 @@ export const CareCore3D: React.FC<CareCore3DProps> = ({
             width: '4px',
             height: '4px',
             borderRadius: '50%',
-            backgroundColor: '#5EEAD4',
+            backgroundColor: '#1F7A63',
           }}
         />
       </div>

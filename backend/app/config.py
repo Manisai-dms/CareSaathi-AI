@@ -18,6 +18,7 @@ class Settings:
     DATABASE_PATH: str = os.getenv("DATABASE_PATH", "caresaathi.db")
     DEMO_MODE: bool = os.getenv("DEMO_MODE", "true").lower() in ("true", "1", "yes")
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY") or ""
+    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
     OVERPASS_API_URL: str = os.getenv("OVERPASS_API_URL", "https://overpass-api.de/api/interpreter")
     NOMINATIM_URL: str = os.getenv("NOMINATIM_URL", "https://nominatim.openstreetmap.org")
     USER_AGENT: str = os.getenv("USER_AGENT", "CareSaathiAI/1.0 (healthcare-navigation-hackathon)")

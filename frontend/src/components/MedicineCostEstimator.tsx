@@ -110,6 +110,9 @@ export const MedicineCostEstimator: React.FC<MedicineCostEstimatorProps> = ({
   const [openAlternativesIdx, setOpenAlternativesIdx] = useState<number | null>(null);
   const [editingItemIdx, setEditingItemIdx] = useState<number | null>(null);
   const [editingItemText, setEditingItemText] = useState<string>('');
+  const [editingItemStrength, setEditingItemStrength] = useState<string>('');
+  const [editingItemForm, setEditingItemForm] = useState<string>('Tablet');
+  const [isAwaitingConfirmation, setIsAwaitingConfirmation] = useState<boolean>(false);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -251,10 +254,14 @@ export const MedicineCostEstimator: React.FC<MedicineCostEstimatorProps> = ({
   const handleStartEditing = (idx: number) => {
     setEditingItemIdx(idx);
     setEditingItemText(selectedItems[idx].name);
+    setEditingItemStrength(selectedItems[idx].strength || '');
+    setEditingItemForm(selectedItems[idx].formulation || 'Tablet');
   };
 
   const handleSaveEditing = async (idx: number) => {
     const newName = editingItemText.trim();
+    const newStrength = editingItemStrength.trim();
+    const newForm = editingItemForm.trim() || 'Tablet';
     if (!newName) {
       setEditingItemIdx(null);
       return;
@@ -264,14 +271,17 @@ export const MedicineCostEstimator: React.FC<MedicineCostEstimatorProps> = ({
       // Look up in database
       const searchRes = await api.searchMedicines(newName);
       if (searchRes.length > 0) {
-        const top = searchRes[0];
+        const matchedWithStrength = searchRes.find(m => 
+          newStrength && m.strength.toLowerCase().includes(newStrength.toLowerCase())
+        ) || searchRes[0];
+
         setSelectedItems(prev => prev.map((it, i) => i === idx ? {
           ...it,
-          medicine_id: top.id,
-          name: top.brand_name,
-          generic_name: top.generic_name,
-          strength: top.strength,
-          formulation: top.formulation,
+          medicine_id: matchedWithStrength.id,
+          name: matchedWithStrength.brand_name,
+          generic_name: matchedWithStrength.generic_name,
+          strength: newStrength || matchedWithStrength.strength,
+          formulation: newForm || matchedWithStrength.formulation,
           is_verified: true,
           confidence: 1.0,
           match_score: 1.0
@@ -280,13 +290,20 @@ export const MedicineCostEstimator: React.FC<MedicineCostEstimatorProps> = ({
         setSelectedItems(prev => prev.map((it, i) => i === idx ? {
           ...it,
           name: newName,
+          strength: newStrength || it.strength || 'Standard dose',
+          formulation: newForm,
           medicine_id: undefined,
           is_verified: false,
           confidence: 0.6
         } : it));
       }
     } catch {
-      setSelectedItems(prev => prev.map((it, i) => i === idx ? { ...it, name: newName } : it));
+      setSelectedItems(prev => prev.map((it, i) => i === idx ? {
+        ...it,
+        name: newName,
+        strength: newStrength || it.strength,
+        formulation: newForm
+      } : it));
     } finally {
       setEditingItemIdx(null);
     }
@@ -412,7 +429,8 @@ export const MedicineCostEstimator: React.FC<MedicineCostEstimatorProps> = ({
         }));
 
         setSelectedItems(extracted);
-        setOcrSuccessMsg(`Successfully identified ${extracted.length} medication(s) with Jan Aushadhi generic pricing. Please verify quantities below.`);
+        setIsAwaitingConfirmation(true);
+        setOcrSuccessMsg(`Successfully identified ${extracted.length} medication(s) with Google Gemini Vision. Please verify medicine names & dosage strengths below.`);
       } else {
         setOcrErrorMsg('No identifiable medicine names detected in the uploaded prescription.');
         setShowRawTextPanel(true);
@@ -438,6 +456,7 @@ export const MedicineCostEstimator: React.FC<MedicineCostEstimatorProps> = ({
     setShowRawTextPanel(false);
     setOcrSuccessMsg(null);
     setOcrErrorMsg(null);
+    setIsAwaitingConfirmation(false);
   };
 
   return (
@@ -872,6 +891,59 @@ export const MedicineCostEstimator: React.FC<MedicineCostEstimatorProps> = ({
         )}
       </div>
 
+      {/* Editable Confirmation Banner for Prescription OCR */}
+      {isAwaitingConfirmation && (
+        <div style={{
+          backgroundColor: '#ECFDF5',
+          border: '1px solid #6EE7B7',
+          borderRadius: '12px',
+          padding: '12px 16px',
+          marginBottom: '16px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '12px',
+          flexWrap: 'wrap'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <CheckCircle2 size={20} color="#059669" style={{ flexShrink: 0 }} />
+            <div>
+              <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#065F46' }}>
+                Extracted Medications Verification
+              </div>
+              <div style={{ fontSize: '0.78rem', color: '#047857' }}>
+                Please verify medicine names, dosage strengths, and quantities below against your prescription. Click the edit icon to adjust any field before final cost calculation.
+              </div>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            id="confirm-prescription-btn"
+            onClick={() => {
+              setIsAwaitingConfirmation(false);
+              recalculateEstimate();
+            }}
+            className="btn btn-primary btn-sm"
+            style={{
+              backgroundColor: '#0D9488',
+              borderColor: '#0F766E',
+              color: '#FFFFFF',
+              fontWeight: 600,
+              fontSize: '0.82rem',
+              padding: '6px 14px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              cursor: 'pointer'
+            }}
+          >
+            <Check size={14} />
+            <span>Confirm & Calculate Costs</span>
+          </button>
+        </div>
+      )}
+
       {/* Selected Medicines Table */}
       <div style={{ marginBottom: '18px', overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
@@ -1044,9 +1116,56 @@ export const MedicineCostEstimator: React.FC<MedicineCostEstimatorProps> = ({
                     )}
                   </td>
 
-                  {/* Active Formulation */}
+                  {/* Active Formulation & Strength */}
                   <td style={{ padding: '10px 10px', color: '#475569' }}>
-                    {item.generic_name || item.name} ({item.strength || 'Tablet'})
+                    {isEditing ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <input
+                          type="text"
+                          value={editingItemStrength}
+                          onChange={(e) => setEditingItemStrength(e.target.value)}
+                          placeholder="Strength (e.g. 650 mg)"
+                          style={{
+                            padding: '3px 6px',
+                            borderRadius: '4px',
+                            border: '1px solid #0D9488',
+                            fontSize: '0.80rem',
+                            width: '95px'
+                          }}
+                        />
+                        <select
+                          value={editingItemForm}
+                          onChange={(e) => setEditingItemForm(e.target.value)}
+                          style={{
+                            padding: '3px 4px',
+                            borderRadius: '4px',
+                            border: '1px solid #CBD5E1',
+                            fontSize: '0.78rem'
+                          }}
+                        >
+                          <option value="Tablet">Tablet</option>
+                          <option value="Capsule">Capsule</option>
+                          <option value="Syrup">Syrup</option>
+                          <option value="Injection">Injection</option>
+                          <option value="Eye Drops">Eye Drops</option>
+                          <option value="Ointment">Ointment</option>
+                        </select>
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <span>
+                          {item.generic_name || item.name} ({item.strength || 'Standard dose'})
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleStartEditing(idx)}
+                          style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer', padding: '1px' }}
+                          title="Edit strength or formulation"
+                        >
+                          <Edit2 size={12} />
+                        </button>
+                      </div>
+                    )}
                   </td>
 
                   {/* Quantity */}

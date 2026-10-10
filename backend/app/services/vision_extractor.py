@@ -1,10 +1,11 @@
 import os
 import re
 import json
-import base64
 import logging
 from typing import Dict, Any, List, Optional
-import httpx
+from google import genai
+from google.genai import types
+from google.genai import errors
 from ..config import settings
 
 logger = logging.getLogger("caresaathi.vision")
@@ -16,33 +17,35 @@ You MUST output STRICT JSON only, conforming exactly to this schema:
 {
   "medicines": [
     {
-      "name_as_written": "Exact medicine name text as written on the paper",
-      "brand_name": "Commercial brand name or null if generic only",
-      "generic_name": "Active pharmacological chemical / salt name or null if unknown",
-      "strength": "Dose strength e.g. '650 mg', '40 mg', '500 mcg', or null",
-      "form": "Dosage form e.g. 'tablet', 'capsule', 'syrup', 'injection', 'eye drops', or null",
-      "dosage_pattern": "Dosage frequency e.g. '1-0-1', 'BD', 'TDS', 'OD', 'SOS', 'HS', or null",
-      "duration_days": 5, // Number of days course, or null
-      "quantity": 10,     // Total unit quantity. If not explicitly written, calculate from pattern x duration_days (e.g. 1-0-1 for 5 days = 10, TDS for 5 days = 15, OD for 10 days = 10)
-      "confidence": 0.95  // Floating point 0.0 to 1.0 indicating legibility confidence
+      "name_as_written": "Exact medicine name text as written on the prescription paper",
+      "brand_name": "Commercial brand name or null if generic only or illegible",
+      "generic_name": "Active pharmacological chemical / salt name or null if unknown or illegible",
+      "strength": "Dose strength e.g. '650 mg', '40 mg', '500 mcg', or null if not legible",
+      "form": "Dosage form e.g. 'tablet', 'capsule', 'syrup', 'injection', 'eye drops', or null if not legible",
+      "dosage_pattern": "Dosage frequency e.g. '1-0-1', 'BD', 'TDS', 'OD', 'SOS', 'HS', or null if not legible",
+      "duration_days": 5, // Integer number of days course, or null if not legible
+      "quantity": 10,     // Total unit quantity calculated from dosage x duration, or null if unknown
+      "confidence": 0.95  // Float 0.0 to 1.0 indicating legibility confidence
     }
   ],
   "doctor_name": "Doctor name or null",
   "date": "Prescription date or null",
-  "unreadable_parts": ["List any illegible words or doubtful lines here"]
+  "unreadable_parts": ["List of any illegible words, doubtful lines, or unclear handwriting sections"]
 }
 
 STRICT CLINICAL RULES:
-1. ONLY extract medicines that are ACTUALLY VISIBLE on the prescription. NEVER invent, hallucinate, or guess medicines.
-2. If handwriting is unclear or ambiguous, set confidence low (< 0.6) and add the word to "unreadable_parts".
-3. IGNORE non-medicine text such as patient name, patient age, address, clinic letterhead, or disease diagnoses.
-4. Calculate quantity accurately:
-   - "OD" or "1-0-0" or "0-0-1" = 1 per day
-   - "BD" or "1-0-1" = 2 per day
-   - "TDS" or "1-1-1" = 3 per day
-   - "QID" = 4 per day
-   - "SOS" = 5 (default emergency buffer)
-5. Do NOT include markdown code blocks (e.g. no ```json). Output raw valid JSON only.
+1. ONLY extract medicines that are ACTUALLY LEGIBLE on the prescription. NEVER invent, hallucinate, or guess medicine names, salts, or dosages.
+2. If handwriting is illegible, doubtful, or ambiguous, return null or 'unknown' for unclear fields, set confidence low (< 0.6), and add the doubtful phrase to 'unreadable_parts'.
+3. Return unknown or null for unclear fields (strength, form, dosage_pattern, quantity). Do not assume dosages not written.
+4. IGNORE non-medicine text such as patient name, age, phone numbers, clinic letterhead, address, or disease diagnoses.
+5. Calculate quantity accurately only when pattern and duration are clearly legible:
+   - 'OD' or '1-0-0' or '0-0-1' = 1 per day
+   - 'BD' or '1-0-1' = 2 per day
+   - 'TDS' or '1-1-1' = 3 per day
+   - 'QID' = 4 per day
+   - 'SOS' = 1 per day (as needed)
+   If duration or frequency is unknown or unreadable, set quantity to null.
+6. Output raw valid JSON only. Do NOT include markdown code blocks.
 """
 
 def clean_json_text(text: str) -> str:
@@ -56,73 +59,94 @@ def clean_json_text(text: str) -> str:
         t = t[:-3]
     return t.strip()
 
-def extract_medicines_with_gemini(jpeg_bytes: bytes) -> Optional[Dict[str, Any]]:
+def extract_medicines_with_gemini(
+    jpeg_bytes: bytes,
+    model_name: Optional[str] = None
+) -> Optional[Dict[str, Any]]:
     """
-    Sends preprocessed JPEG image bytes to Gemini Multimodal Vision API.
-    Uses GEMINI_API_KEY or GOOGLE_API_KEY from server environment.
-    Returns parsed JSON dict or None on failure.
+    Sends preprocessed JPEG image bytes to Gemini Multimodal Vision using
+    the official google-genai SDK.
+    Uses settings.GEMINI_API_KEY from root .env. Never exposes or logs the key.
+    Model defaults to settings.GEMINI_MODEL (configurable via GEMINI_MODEL env var).
+    Returns parsed clinical JSON dictionary or None on failure/fallback.
     """
-    api_key = settings.GEMINI_API_KEY or os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
-    if not api_key:
-        logger.warning("No GEMINI_API_KEY configured on server.")
+    if not jpeg_bytes or len(jpeg_bytes) == 0:
+        logger.warning("Empty image bytes received for Gemini prescription extraction.")
         return None
 
-    base64_data = base64.b64encode(jpeg_bytes).decode("utf-8")
-    
-    # Try models in order of capability: gemini-2.5-flash, then gemini-1.5-flash
-    models_to_try = ["gemini-2.5-flash", "gemini-1.5-flash"]
-    
-    for model_name in models_to_try:
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
-        
-        request_body = {
-            "contents": [
-                {
-                    "parts": [
-                        {
-                            "inline_data": {
-                                "mime_type": "image/jpeg",
-                                "data": base64_data
-                            }
-                        },
-                        {
-                            "text": VISION_PROMPT
-                        }
-                    ]
-                }
-            ],
-            "generationConfig": {
-                "temperature": 0.1,
-                "response_mime_type": "application/json"
-            }
-        }
+    api_key = settings.GEMINI_API_KEY or os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY") or ""
+    if not api_key.strip():
+        logger.info("No GEMINI_API_KEY configured on server; using offline prescription OCR fallback.")
+        return None
 
+    target_model = model_name or getattr(settings, "GEMINI_MODEL", None) or os.environ.get("GEMINI_MODEL") or "gemini-2.5-flash"
+
+    # Models to attempt in order if target model is unavailable or encounters error
+    models_to_try = [target_model]
+    if target_model != "gemini-1.5-flash" and "gemini-1.5-flash" not in models_to_try:
+        models_to_try.append("gemini-1.5-flash")
+
+    try:
+        client = genai.Client(api_key=api_key)
+    except Exception as e:
+        logger.error(f"Failed to initialize google-genai Client: {e}")
+        return None
+
+    image_part = types.Part.from_bytes(data=jpeg_bytes, mime_type="image/jpeg")
+    config = types.GenerateContentConfig(
+        response_mime_type="application/json",
+        temperature=0.1
+    )
+
+    for model in models_to_try:
         try:
-            with httpx.Client(timeout=25.0) as client:
-                res = client.post(url, json=request_body)
-                
-            if res.status_code == 200:
-                data = res.json()
-                candidates = data.get("candidates", [])
-                if candidates:
-                    parts = candidates[0].get("content", {}).get("parts", [])
-                    if parts:
-                        raw_text = parts[0].get("text", "")
-                        cleaned = clean_json_text(raw_text)
-                        try:
-                            parsed = json.loads(cleaned)
-                            if isinstance(parsed, dict) and "medicines" in parsed:
-                                return parsed
-                        except json.JSONDecodeError:
-                            # Retry once with regex extraction
-                            json_match = re.search(r'\{[\s\S]*\}', cleaned)
-                            if json_match:
-                                parsed = json.loads(json_match.group(0))
-                                if isinstance(parsed, dict) and "medicines" in parsed:
-                                    return parsed
+            logger.info(f"Extracting prescription medications with Gemini model: {model}")
+            response = client.models.generate_content(
+                model=model,
+                contents=[image_part, VISION_PROMPT],
+                config=config
+            )
+
+            raw_text = response.text or ""
+            cleaned = clean_json_text(raw_text)
+            parsed = None
+            try:
+                parsed = json.loads(cleaned)
+            except json.JSONDecodeError:
+                # Regex fallback for embedded JSON
+                json_match = re.search(r'\{[\s\S]*\}', cleaned)
+                if json_match:
+                    try:
+                        parsed = json.loads(json_match.group(0))
+                    except Exception:
+                        parsed = None
+
+            if isinstance(parsed, dict) and "medicines" in parsed:
+                # Sanitize and post-process medicines list
+                sanitized_meds = []
+                for med in parsed.get("medicines", []):
+                    if not isinstance(med, dict):
+                        continue
+                    name_written = (med.get("name_as_written") or med.get("brand_name") or "").strip()
+                    # Skip completely blank or generic junk labels
+                    if not name_written or name_written.lower() in ("unknown", "null", "none", "illegible", "unclear"):
+                        continue
+                    sanitized_meds.append(med)
+
+                parsed["medicines"] = sanitized_meds
+                return parsed
+
+        except errors.APIError as e:
+            # Handle quota exhaustion / 429
+            if e.code == 429 or "RESOURCE_EXHAUSTED" in str(e).upper() or "QUOTA" in str(e).upper():
+                logger.warning(f"Gemini API rate limit or quota exceeded ({e.code}). Gracefully falling back to local OCR pipeline.")
+                break  # Quota applies across models for this key, fall back to offline OCR
+            elif e.code == 404 or "NOT_FOUND" in str(e).upper():
+                logger.warning(f"Gemini model '{model}' not found or unsupported ({e.code}). Trying fallback model...")
+                continue
             else:
-                logger.warning(f"Gemini API returned status {res.status_code} for model {model_name}: {res.text[:200]}")
+                logger.warning(f"Gemini API call failed for model '{model}' with code {e.code}. Falling back gracefully.")
         except Exception as e:
-            logger.error(f"Error querying Gemini Vision with {model_name}: {e}")
-            
+            logger.error(f"Unexpected error while calling Gemini Vision ({model}): {e}")
+
     return None

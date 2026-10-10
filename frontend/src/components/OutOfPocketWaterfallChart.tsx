@@ -45,7 +45,7 @@ export const OutOfPocketWaterfallChart: React.FC<OutOfPocketWaterfallProps> = ({
   };
 
   return (
-    <div className="card" style={{ backgroundColor: 'var(--color-white)', border: '1px solid var(--color-border)', marginBottom: '24px' }}>
+    <div className="card cost-estimator-card-elevation" style={{ backgroundColor: 'var(--color-white)', border: '1px solid var(--color-border)', marginBottom: '24px' }}>
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '10px', marginBottom: '16px' }}>
         <div>
@@ -86,6 +86,7 @@ export const OutOfPocketWaterfallChart: React.FC<OutOfPocketWaterfallProps> = ({
           return (
             <div
               key={idx}
+              className="cost-estimator-interactive-row"
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -129,8 +130,9 @@ export const OutOfPocketWaterfallChart: React.FC<OutOfPocketWaterfallProps> = ({
                 }}>
                   {step.type === 'deduction' && "− "}
                   {step.type === 'addition' && "+ "}
-                  {step.amount_min === 0 ? "₹0" : `₹${step.amount_min.toLocaleString('en-IN')}`}
-                  {" "}— ₹{step.amount_max.toLocaleString('en-IN')}
+                  <AnimatedRupeeCounter value={step.amount_min} freeSubsidizedText="₹0" />
+                  {" "}—{" "}
+                  <AnimatedRupeeCounter value={step.amount_max} />
                 </div>
                 <div style={{ fontSize: '0.72rem', color: 'var(--color-text-grey)' }}>
                   {step.type === 'final' ? 'Net Patient Payable Range' : 'Estimated Value'}
@@ -169,7 +171,7 @@ export const OutOfPocketWaterfallChart: React.FC<OutOfPocketWaterfallProps> = ({
             Estimated Net Out-of-Pocket
           </div>
           <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--color-teal-dark)' }}>
-            ₹{patient_share_min.toLocaleString('en-IN')} — ₹{patient_share_max.toLocaleString('en-IN')}
+            <AnimatedRupeeCounter value={patient_share_min} /> — <AnimatedRupeeCounter value={patient_share_max} />
           </div>
         </div>
       </div>

@@ -23,7 +23,6 @@ import {
   Zap,
   Activity
 } from 'lucide-react';
-import { Healthcare3DOrb } from '../components/Healthcare3DOrb';
 
 interface LandingPageProps {
   onStartSearch: (query?: string) => void;
@@ -303,28 +302,132 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               </div>
             </div>
 
-            {/* Right Hero: PREMIUM 3D HEALTHCARE ORB CENTERPIECE (Replaces old decorative preview) */}
+            {/* Right Hero: Live Healthcare Tariff Preview Card */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 15 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ duration: 0.8, ease: 'easeOut' }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: 'easeOut' }}
             >
               <div style={{
                 position: 'relative',
-                borderRadius: '28px',
-                background: 'linear-gradient(145deg, rgba(231, 243, 239, 0.7) 0%, rgba(234, 242, 248, 0.8) 100%)',
+                borderRadius: '24px',
+                background: 'linear-gradient(145deg, rgba(231, 243, 239, 0.8) 0%, rgba(234, 242, 248, 0.9) 100%)',
                 border: '1.5px solid rgba(67, 143, 132, 0.28)',
-                boxShadow: '0 25px 60px rgba(24, 50, 71, 0.09), inset 0 1px 1px rgba(255, 255, 255, 0.9)',
-                backdropFilter: 'blur(12px)',
-                padding: '16px',
-                minHeight: '490px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                overflow: 'hidden'
+                boxShadow: '0 20px 45px rgba(24, 50, 71, 0.08)',
+                padding: '24px',
               }}>
-                {/* 3D Healthcare Orb Canvas */}
-                <Healthcare3DOrb interactive={true} />
+                {/* Floating Live Badge */}
+                <div style={{
+                  position: 'absolute',
+                  top: '-12px',
+                  right: '24px',
+                  backgroundColor: 'var(--color-navy)',
+                  color: '#A7F3D0',
+                  border: '1px solid var(--color-teal)',
+                  borderRadius: '20px',
+                  padding: '4px 14px',
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  boxShadow: '0 4px 12px rgba(24, 50, 71, 0.25)'
+                }}>
+                  <Activity size={12} color="#5EEAD4" />
+                  <span>Live Indicative Tariffs</span>
+                </div>
+
+                {/* Main Preview Container */}
+                <div style={{
+                  backgroundColor: 'var(--color-white)',
+                  borderRadius: '16px',
+                  padding: '22px',
+                  boxShadow: 'var(--shadow-sm)',
+                  border: '1px solid var(--color-border)'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span className="badge badge-teal">Live Care Preview</span>
+                      <span style={{ fontSize: '0.74rem', color: 'var(--color-teal-dark)', fontWeight: 700 }}>
+                        NABH Verified
+                      </span>
+                    </div>
+                    <span style={{ fontSize: '0.78rem', color: 'var(--color-text-grey)' }}>
+                      Hyderabad, Telangana
+                    </span>
+                  </div>
+
+                  <h3 style={{ fontSize: '1.25rem', color: 'var(--color-navy)', marginBottom: '4px', fontWeight: 800 }}>
+                    Total Knee Replacement (TKR)
+                  </h3>
+                  <div style={{ fontSize: '0.82rem', color: 'var(--color-text-grey)', marginBottom: '16px' }}>
+                    Unilateral Joint Arthroplasty • 3-5 Days Stay
+                  </div>
+
+                  {/* Range Block */}
+                  <div style={{
+                    backgroundColor: 'var(--color-warm-bg)',
+                    borderRadius: '12px',
+                    padding: '14px 18px',
+                    marginBottom: '16px',
+                    border: '1px solid var(--color-border)'
+                  }}>
+                    <div style={{ fontSize: '0.74rem', color: 'var(--color-text-grey)', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.04em' }}>
+                      Estimated Range in Hyderabad
+                    </div>
+                    <div style={{ fontSize: '1.65rem', fontWeight: 800, color: 'var(--color-navy)', marginTop: '2px' }}>
+                      ₹0 (Govt / Free) — ₹2,90,000 (Private)
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--color-teal-dark)', fontWeight: 600, marginTop: '4px' }}>
+                      ✓ High Data Confidence • Verified NIMS &amp; Apollo Tariffs
+                    </div>
+                  </div>
+
+                  {/* 3-Tier Overview Pill */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginBottom: '16px' }}>
+                    <div style={{ backgroundColor: 'var(--color-mint)', borderRadius: '8px', padding: '8px 10px', textAlign: 'center' }}>
+                      <div style={{ fontSize: '0.68rem', color: 'var(--color-teal-dark)', fontWeight: 700 }}>Govt Hospital</div>
+                      <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--color-navy)' }}>₹0</div>
+                    </div>
+                    <div style={{ backgroundColor: 'var(--color-light-blue)', borderRadius: '8px', padding: '8px 10px', textAlign: 'center' }}>
+                      <div style={{ fontSize: '0.68rem', color: '#1E40AF', fontWeight: 700 }}>NABH Pvt</div>
+                      <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--color-navy)' }}>₹1.6L - ₹2.5L</div>
+                    </div>
+                    <div style={{ backgroundColor: '#F8FAFC', borderRadius: '8px', padding: '8px 10px', textAlign: 'center', border: '1px solid #E2E8F0' }}>
+                      <div style={{ fontSize: '0.68rem', color: 'var(--color-text-grey)', fontWeight: 700 }}>Premium</div>
+                      <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--color-navy)' }}>₹2.8L - ₹4.2L</div>
+                    </div>
+                  </div>
+
+                  {/* Scheme Eligibility Tag */}
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    backgroundColor: 'var(--color-mint)',
+                    borderRadius: '10px',
+                    padding: '10px 14px',
+                    marginBottom: '16px',
+                    fontSize: '0.82rem',
+                    color: 'var(--color-teal-dark)',
+                    border: '1px solid rgba(67, 143, 132, 0.25)'
+                  }}>
+                    <ShieldCheck size={18} color="var(--color-teal)" style={{ flexShrink: 0 }} />
+                    <div>
+                      <strong>Aarogyasri / PM-JAY Match:</strong> 100% Cashless for eligible White Card families up to ₹10 Lakhs.
+                    </div>
+                  </div>
+
+                  {/* Fast Action */}
+                  <button
+                    onClick={() => onStartSearch()}
+                    className="btn btn-primary"
+                    style={{ width: '100%', padding: '12px', fontSize: '0.95rem', fontWeight: 700 }}
+                  >
+                    <span>Run Full Search for Your Treatment</span>
+                    <ArrowRight size={16} />
+                  </button>
+                </div>
               </div>
             </motion.div>
 

@@ -13,7 +13,6 @@ import {
   Stethoscope,
   DollarSign
 } from 'lucide-react';
-import { Healthcare3DOrb } from './Healthcare3DOrb';
 
 interface AnimatedIntroProps {
   onComplete: () => void;
@@ -328,9 +327,22 @@ export const AnimatedIntro: React.FC<AnimatedIntroProps> = ({ onComplete }) => {
           textAlign: 'center'
         }}
       >
-        {/* 3D Healthcare Centerpiece */}
-        <div style={{ position: 'relative', width: '200px', height: '200px', marginBottom: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Healthcare3DOrb interactive={false} style={{ minHeight: '200px' }} />
+        {/* Clinical Heartbeat Centerpiece */}
+        <div style={{ position: 'relative', width: '110px', height: '110px', marginBottom: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{
+            width: '88px',
+            height: '88px',
+            borderRadius: '50%',
+            backgroundColor: '#0F273D',
+            border: '2.5px solid #2C8C83',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 0 35px rgba(44, 140, 131, 0.6)',
+            position: 'relative'
+          }}>
+            <Heart size={40} color="#5EEAD4" fill="#2C8C83" />
+          </div>
 
           {/* Floating Orbiting Healthcare Badges */}
           <div

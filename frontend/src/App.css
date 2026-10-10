@@ -4,9 +4,6 @@
    Off-White (#FAFAF7), Pale Blue (#EAF2F8), Grey (#64717D), Coral (#D97962)
    ============================================================================== */
 
-.healthcare-3d-orb-container {
-  will-change: transform;
-}
 
 /* Glassmorphism Panels */
 .glass-panel {

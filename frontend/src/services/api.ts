@@ -362,7 +362,7 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         text: params.text,
-        language: params.language || 'te-IN',
+        language: params.language || 'en-IN',
         gender: params.gender || 'female'
       })
     });
@@ -504,7 +504,7 @@ export const api = {
       body: JSON.stringify({
         audio_base64: params.audio_base64,
         transcript_hint: params.transcript_hint,
-        language: params.language || 'te-IN',
+        language: params.language || 'en-IN',
         format: params.format || 'webm'
       })
     });

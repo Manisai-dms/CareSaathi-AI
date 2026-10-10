@@ -240,7 +240,7 @@ class PrescriptionOCRResponse(BaseModel):
 class SpeechTranscribeRequest(BaseModel):
     audio_base64: Optional[str] = None
     transcript_hint: Optional[str] = None
-    language: str = "te-IN"  # te-IN, en-IN, hi-IN, auto
+    language: str = "en-IN"  # en-IN (default), te-IN, hi-IN, auto
     sample_rate: int = 16000
     format: str = "webm"  # webm, wav, mp3, ogg
 
@@ -360,7 +360,7 @@ class PatientActionPlanResponse(BaseModel):
 
 class SpeechSynthesizeRequest(BaseModel):
     text: str
-    language: str = "te-IN"
+    language: str = "en-IN"
     gender: str = "female"
 
 class SpeechSynthesizeResponse(BaseModel):

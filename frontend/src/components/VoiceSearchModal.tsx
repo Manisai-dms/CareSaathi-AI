@@ -90,9 +90,9 @@ const SAMPLE_PROMPTS: Record<SpeechLangCode, Array<{ label: string; text: string
 export const VoiceSearchModal: React.FC<VoiceSearchModalProps> = ({ isOpen, onClose, onConfirmText }) => {
   const { language } = useLanguage();
 
-  // Selected language default: prioritize Telugu if app is in Telugu or default to Telugu as top priority
+  // Selected language default: English by default, respecting app language preference
   const [selectedLang, setSelectedLang] = useState<SpeechLangCode>(
-    language === 'hi' ? 'hi-IN' : 'te-IN'
+    language === 'te' ? 'te-IN' : language === 'hi' ? 'hi-IN' : 'en-IN'
   );
 
   const [isRecording, setIsRecording] = useState(false);
@@ -117,7 +117,7 @@ export const VoiceSearchModal: React.FC<VoiceSearchModalProps> = ({ isOpen, onCl
     if (isOpen) {
       if (language === 'te') setSelectedLang('te-IN');
       else if (language === 'hi') setSelectedLang('hi-IN');
-      else setSelectedLang('te-IN'); // User prompt: Telugu Speech Recognition is highest priority
+      else setSelectedLang('en-IN'); // English is the default voice language
       setErrorStatus(null);
     } else {
       cleanupRecording();
@@ -226,8 +226,8 @@ export const VoiceSearchModal: React.FC<VoiceSearchModalProps> = ({ isOpen, onCl
         } else if (selectedLang === 'en-IN') {
           recognition.lang = 'en-IN';
         } else {
-          // Auto-detect default: prioritize Telugu
-          recognition.lang = 'te-IN';
+          // Auto-detect default: use English
+          recognition.lang = 'en-IN';
         }
 
         recognition.onresult = (event: any) => {
@@ -544,7 +544,7 @@ export const VoiceSearchModal: React.FC<VoiceSearchModalProps> = ({ isOpen, onCl
 
           <div style={{ marginTop: '14px', fontWeight: 700, color: 'var(--color-navy)', fontSize: '1rem' }}>
             {isProcessing
-              ? "Transcribing Telugu/Multi-lingual clinical audio..."
+              ? "Transcribing multi-lingual clinical audio..."
               : isRecording
                 ? `Recording Audio (${String(Math.floor(recordingSeconds / 60)).padStart(2, '0')}:${String(recordingSeconds % 60).padStart(2, '0')})`
                 : "Tap the microphone to speak your care need"}

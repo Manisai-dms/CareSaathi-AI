@@ -42,23 +42,23 @@ export const GuidedChatDrawer: React.FC<GuidedChatDrawerProps> = ({
 }) => {
   const { language: appLang } = useLanguage();
 
-  // Assistant language selector: default to Telugu if app is Telugu, else Telugu as highest priority for voice
-  const [chatLang, setChatLang] = useState<'te-IN' | 'en-IN' | 'hi-IN'>('te-IN');
+  // Assistant language selector: default to English for new users
+  const [chatLang, setChatLang] = useState<'te-IN' | 'en-IN' | 'hi-IN'>('en-IN');
 
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: '1',
       sender: 'bot',
-      text: "నమస్కారం! నేను మీ CareSaathi వాయిస్ అసిస్టెంట్‌ని.\n\nమీరు తెలుగు, ఇంగ్లీష్ లేదా హిందీలో మాట్లాడవచ్చు. ఆపరేషన్ ఖర్చులు, ప్రభుత్వ ఆసుపత్రులు, ఆరోగ్యశ్రీ కవరేజ్ లేదా ప్రిస్క్రిప్షన్ మందుల ఖర్చుల గురించి నన్ను అడగండి.\n\nనేను మీకు ఎలా సహాయపడగలను?",
+      text: "Hello! I'm your CareSaathi Healthcare Assistant.\n\nYou can speak or type in English, Telugu, or Hindi. Ask me about treatment costs, nearby hospitals, government health schemes, or prescription medicine prices.\n\nHow can I help you today?",
       timestamp: "10:30 AM",
       chips: [
-        "నాకు మోకాలి ఆపరేషన్ ఖర్చు ఎంత అవుతుంది?",
-        "హైదరాబాద్లో కంటి ఆపరేషన్ ఖర్చు ఎంత?",
-        "ప్రభుత్వ హాస్పిటల్లో ఉచితంగా చికిత్స దొరుకుతుందా?",
-        "ఈ ప్రిస్క్రిప్షన్ లో ఉన్న మందుల ఖర్చు చెప్పండి",
-        "📋 పేషెంట్ యాక్షన్ ప్లాన్ (Action Plan)"
+        "How much does knee replacement surgery cost?",
+        "Find cataract surgery cost in Hyderabad",
+        "Is free treatment available at government hospitals?",
+        "Tell me the cost of medicines in this prescription",
+        "📋 Patient Action Plan"
       ],
-      audio_tts_text: "నమస్కారం! నేను మీ CareSaathi వాయిస్ అసిస్టెంట్‌ని. ఆపరేషన్ ఖర్చులు, ప్రభుత్వ ఆసుపత్రులు లేదా ప్రిస్క్రిప్షన్ మందుల ఖర్చుల గురించి మాట్లాడవచ్చు."
+      audio_tts_text: "Hello! I'm your CareSaathi Healthcare Assistant. Ask me about treatment costs, nearby hospitals, or prescription medicine prices."
     }
   ]);
 
@@ -1163,7 +1163,7 @@ export const GuidedChatDrawer: React.FC<GuidedChatDrawerProps> = ({
             transition: 'all 0.2s',
             animation: isRecording ? 'pulseVoice 1.5s infinite' : 'none'
           }}
-          title={isRecording ? "Stop voice recording" : "Speak in Telugu or English"}
+          title={isRecording ? "Stop voice recording" : "Speak in English, Telugu, or Hindi"}
         >
           {isRecording ? <MicOff size={18} /> : <Mic size={18} />}
         </button>
@@ -1174,7 +1174,9 @@ export const GuidedChatDrawer: React.FC<GuidedChatDrawerProps> = ({
           placeholder={
             chatLang === 'te-IN'
               ? "మాట్లాడండి లేదా ఖర్చులు, ప్రిస్క్రిప్షన్ గురించి టైప్ చేయండి..."
-              : "Speak or ask about costs, schemes, or prescription..."
+              : chatLang === 'hi-IN'
+                ? "बोलें या लागत, योजना, प्रिस्क्रिप्शन के बारे में पूछें..."
+                : "Speak or ask about costs, schemes, or prescription..."
           }
           value={inputText}
           onChange={e => setInputText(e.target.value)}

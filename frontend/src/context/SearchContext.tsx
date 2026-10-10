@@ -142,9 +142,10 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         lng: cityOrPayload.lng !== undefined ? cityOrPayload.lng : prev.lng,
       }));
     } else {
+      const cityString: string = typeof cityOrPayload === 'string' ? cityOrPayload : '';
       setState(prev => ({ 
         ...prev, 
-        city: cityOrPayload, 
+        city: cityString, 
         locality: locality !== undefined ? locality : prev.locality,
         pinCode: pinCode !== undefined ? pinCode : prev.pinCode,
         state: state !== undefined ? state : prev.state,

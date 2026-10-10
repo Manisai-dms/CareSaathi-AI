@@ -88,7 +88,7 @@ def process_guided_chat(req: GuidedChatRequest) -> GuidedChatResponse:
             det_lang, _ = detect_text_language(req.message)
             user_lang = req.language[:2] if (req.language and req.language != "auto") else det_lang
         except Exception:
-            user_lang = "te"
+            user_lang = "en"
 
         if user_lang in ["te", "te-en"]:
             safe_fallback = (

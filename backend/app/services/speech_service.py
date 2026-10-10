@@ -59,16 +59,16 @@ class SpeechRecognitionAdapter:
 
     def get_active_provider_name(self) -> str:
         if self.google_enabled:
-            return "Google Cloud Speech-to-Text (Telugu Model: te-IN)"
+            return "Google Cloud Speech-to-Text (Multi-lingual: en-IN, te-IN, hi-IN)"
         if self.azure_enabled:
-            return "Azure AI Speech (te-IN / Indian Accents)"
+            return "Azure AI Speech (Multi-lingual / Indian Accents)"
         if self.whisper_enabled:
             return "OpenAI Whisper Multilingual API"
         return "CareSaathi Multilingual Speech Engine (Acoustic Adapter)"
 
     def transcribe(self, req: SpeechTranscribeRequest) -> SpeechTranscribeResponse:
         audio_b64 = req.audio_base64 or ""
-        lang_code = req.language or "te-IN"
+        lang_code = req.language or "en-IN"
 
         # If a transcript hint / raw transcript was provided (e.g. from browser Web Speech API or test suite)
         if req.transcript_hint and req.transcript_hint.strip():

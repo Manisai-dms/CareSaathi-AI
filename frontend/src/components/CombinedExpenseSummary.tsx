@@ -12,6 +12,8 @@ import {
   Clock,
   Layers
 } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { AnimatedRupeeCounter } from './AnimatedRupeeCounter';
 import { CostBreakdownDTO } from '../services/api';
 
 export interface CombinedExpenseSummaryProps {

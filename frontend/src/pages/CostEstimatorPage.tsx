@@ -114,20 +114,29 @@ export const CostEstimatorPage: React.FC = () => {
   return (
     <div className="section" style={{ paddingTop: '30px' }}>
       <div className="container">
-        {/* Page Title */}
-        <div style={{ marginBottom: '28px' }}>
-          <div className="badge badge-teal" style={{ marginBottom: '8px' }}>
-            Evidence-Based Healthcare Pricing Engine
+        {/* Page Title with Floating Rupee Particles */}
+        <motion.div 
+          className="cost-estimator-hero-banner"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, ease: 'easeOut' }}
+        >
+          <FloatingRupeeBackground count={6} />
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <div className="badge badge-teal" style={{ marginBottom: '8px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ color: '#D6A64F', fontWeight: 800 }}>₹</span>
+              <span>Evidence-Based Healthcare Pricing Engine</span>
+            </div>
+            <h1 style={{ fontSize: '2.2rem', color: 'var(--color-navy)', marginBottom: '8px', letterSpacing: '-0.02em' }}>
+              Healthcare Cost Estimator
+            </h1>
+            <p style={{ color: 'var(--color-text-grey)', fontSize: '1.02rem', maxWidth: '780px', margin: 0, lineHeight: 1.5 }}>
+              Transparent indicative price ranges calculated from published hospital tariffs, CGHS gazettes, and private reference schedules in Indian cities.
+            </p>
           </div>
-          <h1 style={{ fontSize: '2.2rem', color: 'var(--color-navy)', marginBottom: '8px' }}>
-            Healthcare Cost Estimator
-          </h1>
-          <p style={{ color: 'var(--color-text-grey)', fontSize: '1.05rem', maxWidth: '780px' }}>
-            Transparent indicative price ranges calculated from published hospital tariffs, CGHS gazettes, and private reference schedules in Indian cities.
-          </p>
-        </div>
+        </motion.div>
 
-        {/* Workflow Switcher Tabs */}
+        {/* Workflow Switcher Tabs with Micro-Animations */}
         <div style={{
           display: 'flex',
           gap: '8px',
@@ -136,10 +145,14 @@ export const CostEstimatorPage: React.FC = () => {
           borderRadius: 'var(--radius-lg)',
           border: '1px solid var(--color-border)',
           width: 'fit-content',
-          marginBottom: '24px'
+          marginBottom: '24px',
+          boxShadow: '0 2px 8px rgba(23, 107, 91, 0.04)'
         }}>
-          <button
+          <motion.button
             onClick={() => setWorkflowMode('location')}
+            whileHover={{ scale: 1.015 }}
+            whileTap={{ scale: 0.985 }}
+            className={`cost-estimator-workflow-tab ${workflowMode === 'location' ? 'active' : ''}`}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -156,9 +169,12 @@ export const CostEstimatorPage: React.FC = () => {
           >
             <MapPin size={16} />
             <span>Workflow B: Location-Based Estimation</span>
-          </button>
-          <button
+          </motion.button>
+          <motion.button
             onClick={() => setWorkflowMode('hospital')}
+            whileHover={{ scale: 1.015 }}
+            whileTap={{ scale: 0.985 }}
+            className={`cost-estimator-workflow-tab ${workflowMode === 'hospital' ? 'active' : ''}`}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -175,13 +191,13 @@ export const CostEstimatorPage: React.FC = () => {
           >
             <Building2 size={16} />
             <span>Workflow A: Hospital-Specific Tariff</span>
-          </button>
+          </motion.button>
         </div>
 
         {/* Main Content Grid: Form (Left) & Estimate Result (Right) */}
         <div className="grid-2" style={{ alignItems: 'flex-start', gap: '30px' }}>
           {/* Controls Form Card */}
-          <div className="card">
+          <div className="card cost-estimator-card-elevation">
             <h3 style={{ fontSize: '1.2rem', marginBottom: '16px', color: 'var(--color-navy)' }}>
               {workflowMode === 'location' ? "Select Procedure & Location Parameters" : "Select Procedure & Hospital Name"}
             </h3>

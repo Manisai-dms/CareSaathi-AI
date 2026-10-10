@@ -13,6 +13,7 @@ import {
   Stethoscope,
   DollarSign
 } from 'lucide-react';
+import { Healthcare3DOrb } from './Healthcare3DOrb';
 
 interface AnimatedIntroProps {
   onComplete: () => void;
@@ -327,79 +328,9 @@ export const AnimatedIntro: React.FC<AnimatedIntroProps> = ({ onComplete }) => {
           textAlign: 'center'
         }}
       >
-        {/* Animated Concentric Heartbeat Centerpiece */}
-        <div style={{ position: 'relative', width: '136px', height: '136px', marginBottom: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          {/* Concentric Ring 1 (Expansion Pulse) */}
-          <motion.div
-            animate={{ scale: [1, 1.5, 1], opacity: [0.6, 0, 0.6] }}
-            transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
-            style={{
-              position: 'absolute',
-              width: '100%',
-              height: '100%',
-              borderRadius: '50%',
-              border: '2px solid rgba(44, 140, 131, 0.7)',
-              pointerEvents: 'none'
-            }}
-          />
-
-          {/* Concentric Ring 2 (Secondary Echo) */}
-          <motion.div
-            animate={{ scale: [1, 1.3, 1], opacity: [0.8, 0.1, 0.8] }}
-            transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut", delay: 0.35 }}
-            style={{
-              position: 'absolute',
-              width: '100%',
-              height: '100%',
-              borderRadius: '50%',
-              border: '1.5px solid rgba(94, 234, 212, 0.8)',
-              pointerEvents: 'none'
-            }}
-          />
-
-          {/* Clinical Core Orb with Dynamic ECG SVG Path */}
-          <div
-            style={{
-              width: '100px',
-              height: '100px',
-              borderRadius: '50%',
-              backgroundColor: '#0F273D',
-              border: '2.5px solid #2C8C83',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 0 35px rgba(44, 140, 131, 0.6)',
-              position: 'relative',
-              overflow: 'hidden'
-            }}
-          >
-            {/* SVG ECG Waveform */}
-            <svg width="88" height="52" viewBox="0 0 88 52" fill="none">
-              <motion.path
-                d="M 2 26 L 18 26 L 26 7 L 36 45 L 46 14 L 54 34 L 62 26 L 86 26"
-                stroke="#2C8C83"
-                strokeWidth="3.4"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                animate={{ pathLength: [0.15, 1, 0.15] }}
-                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-              />
-            </svg>
-
-            {/* Glowing Tracer Particle */}
-            <motion.div
-              animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1.3, 0.8] }}
-              transition={{ duration: 1.1, repeat: Infinity }}
-              style={{
-                position: 'absolute',
-                width: '8px',
-                height: '8px',
-                borderRadius: '50%',
-                backgroundColor: '#A7F3D0',
-                boxShadow: '0 0 12px #A7F3D0'
-              }}
-            />
-          </div>
+        {/* 3D Healthcare Centerpiece */}
+        <div style={{ position: 'relative', width: '200px', height: '200px', marginBottom: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Healthcare3DOrb interactive={false} style={{ minHeight: '200px' }} />
 
           {/* Floating Orbiting Healthcare Badges */}
           <div

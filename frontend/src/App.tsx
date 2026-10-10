@@ -521,11 +521,18 @@ const AppContent: React.FC = () => {
         <main className={isSimpleMode ? 'simple-mode' : ''} style={{ flex: 1, width: '100%', minWidth: 0 }}>
           {activeTab === 'landing' && (
             <LandingPage
-              onStartSearch={() => navigateToTab('dashboard')}
+              onStartSearch={(query) => {
+                if (query) {
+                  setSearchQuery(query);
+                }
+                navigateToTab('dashboard');
+              }}
               onExploreCost={() => navigateToTab('estimate')}
               onExploreHospitals={() => navigateToTab('hospitals')}
               onExploreSchemes={() => navigateToTab('schemes')}
               onHowItWorks={() => navigateToTab('methodology')}
+              onOpenVoice={() => setIsVoiceOpen(true)}
+              onOpenRx={() => setIsRxOpen(true)}
             />
           )}
 

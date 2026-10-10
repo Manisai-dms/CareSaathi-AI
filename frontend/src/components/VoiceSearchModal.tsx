@@ -174,7 +174,13 @@ export const VoiceSearchModal: React.FC<VoiceSearchModalProps> = ({ isOpen, onCl
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       try {
         stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+        const options = (window as any).MediaRecorder && MediaRecorder.isTypeSupported('audio/webm')
+          ? { mimeType: 'audio/webm' }
+          : (window as any).MediaRecorder && MediaRecorder.isTypeSupported('audio/mp4')
+          ? { mimeType: 'audio/mp4' }
+          : undefined;
+
+        const mediaRecorder = options ? new MediaRecorder(stream, options) : new MediaRecorder(stream);
         mediaRecorderRef.current = mediaRecorder;
 
         mediaRecorder.ondataavailable = (event) => {
@@ -185,7 +191,8 @@ export const VoiceSearchModal: React.FC<VoiceSearchModalProps> = ({ isOpen, onCl
 
         mediaRecorder.onstop = () => {
           if (audioChunksRef.current.length > 0) {
-            const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+            const mime = options?.mimeType || 'audio/webm';
+            const audioBlob = new Blob(audioChunksRef.current, { type: mime });
             const url = URL.createObjectURL(audioBlob);
             setAudioUrl(url);
           }
@@ -193,7 +200,7 @@ export const VoiceSearchModal: React.FC<VoiceSearchModalProps> = ({ isOpen, onCl
           stream?.getTracks().forEach(track => track.stop());
         };
 
-        mediaRecorder.start(250);
+        mediaRecorder.start(200);
       } catch (err: any) {
         console.warn("MediaRecorder / Mic capture warning:", err);
         if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
@@ -215,7 +222,7 @@ export const VoiceSearchModal: React.FC<VoiceSearchModalProps> = ({ isOpen, onCl
       try {
         const recognition = new SpeechRecognition();
         recognitionRef.current = recognition;
-        recognition.continuous = false;
+        recognition.continuous = true;
         recognition.interimResults = true;
 
         // Set explicit language code based on user selection
@@ -237,7 +244,7 @@ export const VoiceSearchModal: React.FC<VoiceSearchModalProps> = ({ isOpen, onCl
 
           for (let i = 0; i < event.results.length; i++) {
             if (event.results[i].isFinal) {
-              finalTranscript += event.results[i][0].transcript;
+              finalTranscript += event.results[i][0].transcript + " ";
             } else {
               interimTranscript += event.results[i][0].transcript;
             }
@@ -246,7 +253,7 @@ export const VoiceSearchModal: React.FC<VoiceSearchModalProps> = ({ isOpen, onCl
             }
           }
 
-          const currentTranscript = (finalTranscript + " " + interimTranscript).trim() || finalTranscript.trim() || interimTranscript.trim();
+          const currentTranscript = (finalTranscript + interimTranscript).trim();
 
           if (currentTranscript) {
             setTranscript(currentTranscript);
@@ -264,15 +271,13 @@ export const VoiceSearchModal: React.FC<VoiceSearchModalProps> = ({ isOpen, onCl
           console.warn("Web Speech API recognition error:", event.error);
           if (event.error === 'not-allowed') {
             setErrorStatus("Microphone permission was denied. Please allow microphone access in your browser settings.");
-          } else if (event.error === 'no-speech') {
-            setErrorStatus("No speech detected. Please hold the microphone and speak clearly.");
           } else if (event.error === 'network') {
             setErrorStatus("Speech recognition network error. Please check your internet connection.");
           }
         };
 
         recognition.onend = () => {
-          // Recognition ended naturally
+          // Continuous listening ends
         };
 
         recognition.start();
@@ -304,6 +309,9 @@ export const VoiceSearchModal: React.FC<VoiceSearchModalProps> = ({ isOpen, onCl
         // Ignore
       }
     }
+
+    // Wait a brief tick (150ms) for mediaRecorder dataavailable to flush
+    await new Promise(resolve => setTimeout(resolve, 150));
 
     // Check if live speech recognition captured the user's spoken words
     const captured = latestTranscriptRef.current.trim() || transcript.trim();

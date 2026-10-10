@@ -11,7 +11,8 @@ async def check():
         'returnByValue': True
     }}))
     res = json.loads(await ws.recv())
-    print("Found text:", res.get("result", {}).get("result", {}).get("value"))
+    text = res.get("result", {}).get("result", {}).get("value", "")
+    print("Found text:", text.encode("ascii", errors="replace").decode("ascii"))
     await ws.close()
 
 asyncio.run(check())

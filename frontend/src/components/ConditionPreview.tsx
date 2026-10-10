@@ -243,16 +243,23 @@ export const ConditionPreview: React.FC<ConditionPreviewProps> = ({
                         setImageLoaded(true);
                         setImageError(true);
                       }}
-                      initial={{ opacity: 0, scale: 1 }}
+                      ref={(el) => {
+                        if (el && el.complete && el.naturalWidth > 0 && !imageLoaded) {
+                          setImageLoaded(true);
+                        }
+                      }}
+                      initial={{ opacity: 0.8, scale: 1 }}
                       animate={{ 
-                        opacity: imageLoaded ? 1 : 0,
+                        opacity: 1,
                         scale: shouldReduceMotion ? 1 : [1, 1.05, 1] 
                       }}
                       transition={{
-                        opacity: { duration: 0.3 },
+                        opacity: { duration: 0.2 },
                         scale: { duration: 8, repeat: Infinity, ease: 'easeInOut' }
                       }}
                       style={{
+                        position: 'relative',
+                        zIndex: 2,
                         width: '100%',
                         height: '100%',
                         objectFit: 'contain',

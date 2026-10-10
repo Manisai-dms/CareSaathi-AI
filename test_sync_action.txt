@@ -1,3 +1,0 @@
-# Temporary verification file to test per-action auto-sync functionality
-timestamp=2026-10-10T12:41:00
-action=test_collaborator_sync

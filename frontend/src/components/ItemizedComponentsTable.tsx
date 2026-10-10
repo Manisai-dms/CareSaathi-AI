@@ -1,6 +1,7 @@
 import React from 'react';
 import { ExternalLink, CheckCircle2, AlertCircle, FileText, Info } from 'lucide-react';
 import { CostComponentItemDTO } from '../services/api';
+import { AnimatedRupeeCounter } from './AnimatedRupeeCounter';
 
 interface ItemizedComponentsTableProps {
   components: CostComponentItemDTO[];

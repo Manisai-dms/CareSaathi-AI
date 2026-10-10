@@ -49,7 +49,7 @@ export const TierComparisonView: React.FC<TierComparisonViewProps> = ({
   };
 
   return (
-    <div className="card" style={{ backgroundColor: 'var(--color-white)', border: '1px solid var(--color-border)', marginBottom: '24px' }}>
+    <div className="card cost-estimator-card-elevation" style={{ backgroundColor: 'var(--color-white)', border: '1px solid var(--color-border)', marginBottom: '24px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '10px', marginBottom: '18px' }}>
         <div>
           <div className="badge badge-teal" style={{ marginBottom: '6px' }}>
@@ -76,6 +76,7 @@ export const TierComparisonView: React.FC<TierComparisonViewProps> = ({
           return (
             <div
               key={idx}
+              className="cost-estimator-card-elevation"
               style={{
                 borderRadius: 'var(--radius-md)',
                 border: '1px solid var(--color-border)',
@@ -133,8 +134,9 @@ export const TierComparisonView: React.FC<TierComparisonViewProps> = ({
                   </span>
                 </div>
                 <div style={{ fontSize: '1.45rem', fontWeight: 800, color: 'var(--color-navy)' }}>
-                  {tier.min_price === 0 ? "₹0 (Govt Subsidized)" : `₹${tier.min_price.toLocaleString('en-IN')}`}
-                  {" "}— ₹{tier.max_price.toLocaleString('en-IN')}
+                  <AnimatedRupeeCounter value={tier.min_price} freeSubsidizedText="₹0 (Govt Subsidized)" />
+                  {" "}—{" "}
+                  <AnimatedRupeeCounter value={tier.max_price} />
                 </div>
               </div>
 

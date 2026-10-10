@@ -199,19 +199,19 @@ export const CareCoreHero: React.FC<CareCoreHeroProps> = ({
   };
 
   return (
-    <div style={{ backgroundColor: '#FAFAF7', color: '#0F2A24' }}>
+    <div style={{ backgroundColor: 'var(--color-warm-bg, #FAFAF7)', color: 'var(--hero-heading, #0F2F36)' }}>
       {/* ========================================================================= */}
-      {/* 1. HERO SECTION — FLAT INK #102A36 BACKGROUND WITH ASYMMETRIC 3D CORE     */}
+      {/* 1. HERO SECTION — BRIGHT CLEAN THEME WITH ASYMMETRIC 3D CORE               */}
       {/* ========================================================================= */}
       <section
         style={{
-          background: 'linear-gradient(180deg, #FFFFFF 0%, #F0FAF6 50%, #E6F6F0 100%)',
-          color: '#0F2A24',
+          background: 'var(--hero-bg-gradient, linear-gradient(180deg, #FFFFFF 0%, #F0FAF7 55%, #E6F4F1 100%))',
+          color: 'var(--hero-heading, #0F2F36)',
           position: 'relative',
           overflow: 'hidden',
           paddingTop: '20px',
           paddingBottom: '56px',
-          borderBottom: '1px solid #E2E8F0'
+          borderBottom: '1px solid var(--color-border, #E2E8F0)'
         }}
       >
         {/* Soft decorative green blurred blobs for depth */}
@@ -223,7 +223,7 @@ export const CareCoreHero: React.FC<CareCoreHeroProps> = ({
             width: '680px',
             height: '680px',
             borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(31, 122, 99, 0.08) 0%, rgba(31, 122, 99, 0) 70%)',
+            background: 'radial-gradient(circle, rgba(67, 143, 132, 0.08) 0%, rgba(67, 143, 132, 0) 70%)',
             filter: 'blur(40px)',
             pointerEvents: 'none',
             zIndex: 0
@@ -237,7 +237,7 @@ export const CareCoreHero: React.FC<CareCoreHeroProps> = ({
             width: '400px',
             height: '400px',
             borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(31, 122, 99, 0.06) 0%, rgba(31, 122, 99, 0) 70%)',
+            background: 'radial-gradient(circle, rgba(67, 143, 132, 0.06) 0%, rgba(67, 143, 132, 0) 70%)',
             filter: 'blur(50px)',
             pointerEvents: 'none',
             zIndex: 0
@@ -252,11 +252,11 @@ export const CareCoreHero: React.FC<CareCoreHeroProps> = ({
               alignItems: 'center',
               justifyContent: 'space-between',
               paddingBottom: '28px',
-              borderBottom: '1px solid #E2E8F0',
+              borderBottom: '1px solid var(--color-border, #E2E8F0)',
               marginBottom: '40px'
             }}
           >
-            {/* New Typographic Wordmark (no heart logo, no colored tile, no statutory tagline) */}
+            {/* Typographic Wordmark */}
             <div
               onClick={() => onStartSearch()}
               style={{ cursor: 'pointer', display: 'flex', alignItems: 'baseline', gap: '8px' }}
@@ -267,7 +267,7 @@ export const CareCoreHero: React.FC<CareCoreHeroProps> = ({
                   fontSize: '1.45rem',
                   fontWeight: 700,
                   letterSpacing: '-0.02em',
-                  color: '#0F2A24'
+                  color: 'var(--hero-heading, #0F2F36)'
                 }}
               >
                 CareSaathi
@@ -277,7 +277,7 @@ export const CareCoreHero: React.FC<CareCoreHeroProps> = ({
                   fontFamily: "var(--font-heading)",
                   fontSize: '0.85rem',
                   fontWeight: 600,
-                  color: '#1F7A63',
+                  color: 'var(--hero-heading-accent, #0F766E)',
                   letterSpacing: '0.04em'
                 }}
               >
@@ -292,8 +292,8 @@ export const CareCoreHero: React.FC<CareCoreHeroProps> = ({
                 onClick={onSignIn}
                 style={{
                   background: 'transparent',
-                  border: '1px solid #E2E8F0',
-                  color: '#475569',
+                  border: '1px solid var(--hero-badge-border, rgba(15, 118, 110, 0.28))',
+                  color: 'var(--hero-subtext, #3F5F66)',
                   borderRadius: '6px',
                   padding: '6px 16px',
                   fontSize: '0.84rem',
@@ -302,12 +302,14 @@ export const CareCoreHero: React.FC<CareCoreHeroProps> = ({
                   transition: 'all 0.2s ease'
                 }}
                 onMouseEnter={e => {
-                  e.currentTarget.style.backgroundColor = '#F0FAF6';
-                  e.currentTarget.style.borderColor = '#1F7A63';
+                  e.currentTarget.style.backgroundColor = 'var(--hero-badge-bg, #E7F3EF)';
+                  e.currentTarget.style.borderColor = 'var(--hero-heading-accent, #0F766E)';
+                  e.currentTarget.style.color = 'var(--hero-heading-accent, #0F766E)';
                 }}
                 onMouseLeave={e => {
                   e.currentTarget.style.backgroundColor = 'transparent';
-                  e.currentTarget.style.borderColor = '#E2E8F0';
+                  e.currentTarget.style.borderColor = 'var(--hero-badge-border, rgba(15, 118, 110, 0.28))';
+                  e.currentTarget.style.color = 'var(--hero-subtext, #3F5F66)';
                 }}
               >
                 Sign In
@@ -315,7 +317,7 @@ export const CareCoreHero: React.FC<CareCoreHeroProps> = ({
             )}
           </header>
 
-          {/* Asymmetric Split Layout: Left 6/12 Console, Right 6/12 3D Care Core */}
+          {/* Asymmetric Split Layout: Left 7/12 Console, Right 5/12 3D Care Core */}
           <div
             style={{
               display: 'grid',
@@ -324,19 +326,19 @@ export const CareCoreHero: React.FC<CareCoreHeroProps> = ({
               gap: '32px'
             }}
           >
-            {/* Left 6/12 Column: Chip, Serif H1, Subtext, Question Console */}
+            {/* Left 7/12 Column: Chip, Serif H1, Subtext, Question Console */}
             <div style={{ gridColumn: 'span 7' }} className="hero-left-column">
-              {/* Descriptor Chip (Replaces loud pill) */}
+              {/* Descriptor Badge */}
               <div
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
-                  padding: '4px 12px',
-                  borderRadius: '4px',
-                  backgroundColor: '#E7F3EF',
-                  border: '1px solid #1F7A63',
-                  color: '#1F7A63',
+                  padding: '5px 12px',
+                  borderRadius: '6px',
+                  backgroundColor: 'var(--hero-badge-bg, #E7F3EF)',
+                  border: '1px solid var(--hero-badge-border, rgba(15, 118, 110, 0.28))',
+                  color: 'var(--hero-badge-text, #0F766E)',
                   fontSize: '0.74rem',
                   fontWeight: 600,
                   letterSpacing: '0.06em',
@@ -347,7 +349,7 @@ export const CareCoreHero: React.FC<CareCoreHeroProps> = ({
                 <span>AI-Powered Healthcare Navigation for India</span>
               </div>
 
-              {/* Exact Serif H1: No Boxed Words, No Glow, No Gold Accents */}
+              {/* Exact Serif H1 */}
               <h1
                 style={{
                   fontFamily: "Georgia, 'Plus Jakarta Sans', serif",
@@ -355,19 +357,19 @@ export const CareCoreHero: React.FC<CareCoreHeroProps> = ({
                   fontWeight: 700,
                   lineHeight: 1.18,
                   letterSpacing: '-0.025em',
-                  color: '#0F2A24',
+                  color: 'var(--hero-heading, #0F2F36)',
                   marginBottom: '18px'
                 }}
               >
-                Understand Your <span style={{ color: '#1F7A63' }}>Healthcare Costs</span>. Find <span style={{ color: '#1F7A63' }}>Care You Can Trust</span>.
+                Understand Your <span style={{ color: 'var(--hero-heading-accent, #0F766E)' }}>Healthcare Costs</span>. Find <span style={{ color: 'var(--hero-heading-accent, #0F766E)' }}>Care You Can Trust</span>.
               </h1>
 
-              {/* Approved Supporting Text (No fake ₹10L guarantees or zero surcharge claims) */}
+              {/* Approved Supporting Text */}
               <p
                 style={{
                   fontFamily: 'var(--font-body)',
                   fontSize: '1.05rem',
-                  color: '#475569',
+                  color: 'var(--hero-subtext, #3F5F66)',
                   lineHeight: 1.6,
                   maxWidth: '560px',
                   marginBottom: '26px'
@@ -379,10 +381,10 @@ export const CareCoreHero: React.FC<CareCoreHeroProps> = ({
               {/* Question Console: Input + Mic + Upload + Submit */}
               <div
                 style={{
-                  backgroundColor: '#FFFFFF',
+                  backgroundColor: 'var(--hero-search-bg, #FFFFFF)',
                   borderRadius: '10px',
-                  border: '1px solid rgba(226, 232, 240, 0.9)',
-                  boxShadow: '0 4px 16px rgba(0, 0, 0, 0.08)',
+                  border: '1px solid var(--hero-search-border, rgba(67, 143, 132, 0.28))',
+                  boxShadow: 'var(--hero-search-shadow, 0 4px 20px rgba(67, 143, 132, 0.12), 0 1px 3px rgba(15, 47, 54, 0.05))',
                   padding: '6px 8px 6px 14px',
                   display: 'flex',
                   alignItems: 'center',
@@ -391,7 +393,7 @@ export const CareCoreHero: React.FC<CareCoreHeroProps> = ({
                   maxWidth: '580px'
                 }}
               >
-                <Search size={19} color="#64717D" style={{ flexShrink: 0 }} />
+                <Search size={19} color="var(--hero-subtext, #3F5F66)" style={{ flexShrink: 0 }} />
                 <input
                   type="text"
                   placeholder="Search disease, surgery, or test (e.g. Knee Replacement, Cataract, MRI)..."
@@ -408,7 +410,7 @@ export const CareCoreHero: React.FC<CareCoreHeroProps> = ({
                     border: 'none',
                     outline: 'none',
                     fontSize: '0.94rem',
-                    color: '#183247',
+                    color: 'var(--hero-heading, #0F2F36)',
                     backgroundColor: 'transparent',
                     minWidth: '120px'
                   }}
@@ -424,9 +426,9 @@ export const CareCoreHero: React.FC<CareCoreHeroProps> = ({
                         width: '36px',
                         height: '36px',
                         borderRadius: '6px',
-                        border: '1px solid rgba(67, 143, 132, 0.3)',
-                        backgroundColor: '#E7F3EF',
-                        color: '#326d64',
+                        border: '1px solid var(--hero-badge-border, rgba(15, 118, 110, 0.28))',
+                        backgroundColor: 'var(--hero-badge-bg, #E7F3EF)',
+                        color: 'var(--hero-badge-text, #0F766E)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -448,8 +450,8 @@ export const CareCoreHero: React.FC<CareCoreHeroProps> = ({
                         height: '36px',
                         borderRadius: '6px',
                         border: '1px solid rgba(147, 197, 253, 0.4)',
-                        backgroundColor: '#EAF2F8',
-                        color: '#183247',
+                        backgroundColor: 'var(--color-light-blue, #EAF2F8)',
+                        color: 'var(--hero-heading, #0F2F36)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -471,8 +473,8 @@ export const CareCoreHero: React.FC<CareCoreHeroProps> = ({
                       fontSize: '0.9rem',
                       fontWeight: 600,
                       borderRadius: '6px',
-                      backgroundColor: '#438F84',
-                      color: '#FFFFFF'
+                      backgroundColor: 'var(--color-teal, #438F84)',
+                      color: 'var(--color-white, #FFFFFF)'
                     }}
                   >
                     <span>Search</span>
@@ -483,7 +485,7 @@ export const CareCoreHero: React.FC<CareCoreHeroProps> = ({
 
               {/* Example Condition Chips */}
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '24px', maxWidth: '580px' }}>
-                <span style={{ fontSize: '0.74rem', color: '#64717D', fontWeight: 500, alignSelf: 'center' }}>
+                <span style={{ fontSize: '0.74rem', color: 'var(--hero-subtext, #3F5F66)', fontWeight: 600, alignSelf: 'center' }}>
                   Examples:
                 </span>
                 {QUICK_CHIPS.map((chip, idx) => (
@@ -495,24 +497,26 @@ export const CareCoreHero: React.FC<CareCoreHeroProps> = ({
                       onStartSearch(chip.query);
                     }}
                     style={{
-                      backgroundColor: '#FFFFFF',
-                      border: '1px solid #CBD5E1',
+                      backgroundColor: 'var(--hero-chip-bg, #FFFFFF)',
+                      border: '1px solid var(--hero-chip-border, rgba(67, 143, 132, 0.28))',
                       borderRadius: '16px',
-                      padding: '3px 10px',
+                      padding: '3px 11px',
                       fontSize: '0.76rem',
-                      color: '#334155',
+                      color: 'var(--hero-chip-text, #0F2F36)',
+                      fontWeight: 500,
                       cursor: 'pointer',
+                      boxShadow: '0 1px 3px rgba(15, 47, 54, 0.04)',
                       transition: 'all 0.15s ease'
                     }}
                     onMouseEnter={e => {
-                      e.currentTarget.style.backgroundColor = '#E7F3EF';
-                      e.currentTarget.style.borderColor = '#1F7A63';
-                      e.currentTarget.style.color = '#1F7A63';
+                      e.currentTarget.style.backgroundColor = 'var(--hero-chip-hover-bg, #E7F3EF)';
+                      e.currentTarget.style.borderColor = 'var(--hero-chip-hover-border, #0F766E)';
+                      e.currentTarget.style.color = 'var(--hero-chip-hover-text, #0F766E)';
                     }}
                     onMouseLeave={e => {
-                      e.currentTarget.style.backgroundColor = '#FFFFFF';
-                      e.currentTarget.style.borderColor = '#CBD5E1';
-                      e.currentTarget.style.color = '#334155';
+                      e.currentTarget.style.backgroundColor = 'var(--hero-chip-bg, #FFFFFF)';
+                      e.currentTarget.style.borderColor = 'var(--hero-chip-border, rgba(67, 143, 132, 0.28))';
+                      e.currentTarget.style.color = 'var(--hero-chip-text, #0F2F36)';
                     }}
                   >
                     {chip.label}
@@ -527,24 +531,25 @@ export const CareCoreHero: React.FC<CareCoreHeroProps> = ({
                   alignItems: 'center',
                   gap: '14px',
                   fontSize: '0.8rem',
-                  color: '#475569',
-                  borderTop: '1px solid #E2E8F0',
+                  fontWeight: 500,
+                  color: 'var(--hero-subtext, #3F5F66)',
+                  borderTop: '1px solid rgba(63, 95, 102, 0.15)',
                   paddingTop: '16px',
                   flexWrap: 'wrap'
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                  <CheckCircle2 size={14} color="#1F7A63" />
+                  <CheckCircle2 size={14} color="#0F766E" />
                   <span>PM-JAY &amp; State Schemes Aligned</span>
                 </div>
                 <span>•</span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                  <CheckCircle2 size={14} color="#5EEAD4" />
+                  <CheckCircle2 size={14} color="#0F766E" />
                   <span>28 Verified Facilities</span>
                 </div>
                 <span>•</span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                  <CheckCircle2 size={14} color="#5EEAD4" />
+                  <CheckCircle2 size={14} color="#0F766E" />
                   <span>Non-Diagnostic Responsible AI</span>
                 </div>
               </div>

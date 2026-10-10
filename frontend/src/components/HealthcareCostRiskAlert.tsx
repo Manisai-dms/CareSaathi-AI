@@ -415,6 +415,6 @@ export const HealthcareCostRiskAlert: React.FC<HealthcareCostRiskProps> = ({
           </div>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 };

@@ -73,7 +73,7 @@ export const PatientSavingsPlan: React.FC<PatientSavingsPlanProps> = ({
 
   return (
     <div 
-      className="card patient-savings-plan"
+      className="card patient-savings-plan cost-estimator-card-elevation"
       id="patient-savings-plan-panel"
       style={{
         backgroundColor: '#FFFFFF',
@@ -159,17 +159,20 @@ export const PatientSavingsPlan: React.FC<PatientSavingsPlanProps> = ({
         marginBottom: '20px'
       }}>
         {/* Treatment Budget */}
-        <div style={{
-          backgroundColor: '#F8FAF9',
-          border: '1px solid #E2E8F0',
-          borderRadius: '12px',
-          padding: '14px'
-        }}>
+        <div 
+          className="cost-estimator-interactive-row"
+          style={{
+            backgroundColor: '#F8FAF9',
+            border: '1px solid #E2E8F0',
+            borderRadius: '12px',
+            padding: '14px'
+          }}
+        >
           <div style={{ fontSize: '0.74rem', color: '#64717D', textTransform: 'uppercase', fontWeight: 600 }}>
             Procedure / Hospital Budget
           </div>
           <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#12304A', marginTop: '4px' }}>
-            ₹{treatmentBudgetMin.toLocaleString('en-IN')} – ₹{treatmentBudgetMax.toLocaleString('en-IN')}
+            <AnimatedRupeeCounter value={treatmentBudgetMin} /> – <AnimatedRupeeCounter value={treatmentBudgetMax} />
           </div>
           <div style={{ fontSize: '0.74rem', color: '#64717D', marginTop: '2px' }}>
             Target for in-patient admission
@@ -177,17 +180,20 @@ export const PatientSavingsPlan: React.FC<PatientSavingsPlanProps> = ({
         </div>
 
         {/* Medicine & Generic Plan */}
-        <div style={{
-          backgroundColor: '#F8FAF9',
-          border: '1px solid #E2E8F0',
-          borderRadius: '12px',
-          padding: '14px'
-        }}>
+        <div 
+          className="cost-estimator-interactive-row"
+          style={{
+            backgroundColor: '#F8FAF9',
+            border: '1px solid #E2E8F0',
+            borderRadius: '12px',
+            padding: '14px'
+          }}
+        >
           <div style={{ fontSize: '0.74rem', color: '#64717D', textTransform: 'uppercase', fontWeight: 600 }}>
             Medicine Budget (Post-Op)
           </div>
           <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#059669', marginTop: '4px' }}>
-            ₹{medicineBudgetMin.toLocaleString('en-IN')} – ₹{medicineBudgetMax.toLocaleString('en-IN')}
+            <AnimatedRupeeCounter value={medicineBudgetMin} /> – <AnimatedRupeeCounter value={medicineBudgetMax} />
           </div>
           <div style={{ fontSize: '0.74rem', color: '#059669', marginTop: '2px' }}>
             Jan Aushadhi generic savings
@@ -195,17 +201,20 @@ export const PatientSavingsPlan: React.FC<PatientSavingsPlanProps> = ({
         </div>
 
         {/* Buffer for Additional Expenses */}
-        <div style={{
-          backgroundColor: '#F8FAF9',
-          border: '1px solid #E2E8F0',
-          borderRadius: '12px',
-          padding: '14px'
-        }}>
+        <div 
+          className="cost-estimator-interactive-row"
+          style={{
+            backgroundColor: '#F8FAF9',
+            border: '1px solid #E2E8F0',
+            borderRadius: '12px',
+            padding: '14px'
+          }}
+        >
           <div style={{ fontSize: '0.74rem', color: '#64717D', textTransform: 'uppercase', fontWeight: 600 }}>
             Recommended Emergency Buffer
           </div>
           <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#B45309', marginTop: '4px' }}>
-            ₹{additionalExpensesBuffer.toLocaleString('en-IN')}
+            <AnimatedRupeeCounter value={additionalExpensesBuffer} />
           </div>
           <div style={{ fontSize: '0.74rem', color: '#64717D', marginTop: '2px' }}>
             Transport, attendant meals & rehab
@@ -213,17 +222,20 @@ export const PatientSavingsPlan: React.FC<PatientSavingsPlanProps> = ({
         </div>
 
         {/* Overall Episode Budget */}
-        <div style={{
-          backgroundColor: '#EFF6FF',
-          border: '1px solid #BFDBFE',
-          borderRadius: '12px',
-          padding: '14px'
-        }}>
+        <div 
+          className="cost-estimator-interactive-row"
+          style={{
+            backgroundColor: '#EFF6FF',
+            border: '1px solid #BFDBFE',
+            borderRadius: '12px',
+            padding: '14px'
+          }}
+        >
           <div style={{ fontSize: '0.74rem', color: '#1E40AF', textTransform: 'uppercase', fontWeight: 700 }}>
             Total Financial Requirement
           </div>
           <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1E3A8A', marginTop: '4px' }}>
-            ₹{planTotalMin.toLocaleString('en-IN')} – ₹{planTotalMax.toLocaleString('en-IN')}
+            <AnimatedRupeeCounter value={planTotalMin} /> – <AnimatedRupeeCounter value={planTotalMax} />
           </div>
           <div style={{ fontSize: '0.74rem', color: '#2563EB', marginTop: '2px' }}>
             {userBudget > 0 ? `Target Budget: ₹${userBudget.toLocaleString('en-IN')}` : 'Full episode scope'}

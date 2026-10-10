@@ -1,24 +1,26 @@
-# CareSaathi-AI automatic Git commit and push
-# Wait 60 seconds after file changes stop before committing.
+# CareSaathi-AI Continuous Auto-Sync (Pull & Push)
+# Watches for local file changes, auto-commits & pushes, and regularly pulls remote updates.
 
-$RepoPath = "C:\Users\Durgamanisai\CareSaathi-AI"
-$Branch = "main"
-$Remote = "origin"
-$QuietSeconds = 60
-$PollSeconds = 5
-$RetrySeconds = 60
-
+$RepoPath = $PSScriptRoot
+if (-not $RepoPath) { $RepoPath = (Get-Location).Path }
 Set-Location $RepoPath
 
-# Verify repository and branch
-$InsideRepo = git rev-parse --is-inside-work-tree
+# Git Configuration
+$Remote = "origin"
+$QuietSeconds = 5        # Debounce delay after editing stops before committing
+$PollSeconds = 2         # Frequency of file system check (seconds)
+$RemotePullInterval = 15 # Frequency of remote update checks when idle (seconds)
+$RetryInterval = 20      # Retry interval after a failed push
+
+# Verify Git repository
+$InsideRepo = git rev-parse --is-inside-work-tree 2>$null
 if ($LASTEXITCODE -ne 0 -or $InsideRepo -ne "true") {
-    throw "This folder is not a Git repository."
+    throw "Directory '$RepoPath' is not a valid Git repository."
 }
 
-$CurrentBranch = (git branch --show-current).Trim()
-if ($CurrentBranch -ne $Branch) {
-    throw "Expected branch '$Branch', found '$CurrentBranch'."
+$Branch = (git branch --show-current).Trim()
+if (-not $Branch) {
+    $Branch = "main"
 }
 
 git remote get-url $Remote *> $null
@@ -28,44 +30,54 @@ if ($LASTEXITCODE -ne 0) {
 
 $LastStatus = $null
 $LastChangeTime = Get-Date
-$LastPushAttempt = (Get-Date).AddSeconds(-$RetrySeconds)
+$LastRemoteCheck = (Get-Date).AddSeconds(-$RemotePullInterval)
+$LastPushAttempt = (Get-Date).AddSeconds(-$RetryInterval)
 
-Write-Host "CareSaathi-AI Git automation is running." -ForegroundColor Green
-Write-Host "Commit/push delay: $QuietSeconds seconds."
-Write-Host "Press Ctrl+C to stop."
+Write-Host "========================================================" -ForegroundColor Cyan
+Write-Host "CareSaathi-AI Real-Time Git Auto-Sync Active" -ForegroundColor Green
+Write-Host "Repository : $RepoPath"
+Write-Host "Branch     : $Branch"
+Write-Host "Remote     : $Remote"
+Write-Host "Commit lag : $QuietSeconds seconds after editing"
+Write-Host "Auto-pull  : Every $RemotePullInterval seconds when idle"
+Write-Host "========================================================" -ForegroundColor Cyan
+Write-Host "Press Ctrl+C to terminate auto-sync.`n"
 
 while ($true) {
     $StatusLines = @(git status --porcelain --untracked-files=all)
     $StatusText = $StatusLines -join "`n"
 
-    # Restart the quiet-period timer whenever files change.
+    # Reset quiet-period timer if changes are ongoing
     if ($StatusText -ne $LastStatus) {
         $LastStatus = $StatusText
         $LastChangeTime = Get-Date
 
         if ($StatusText) {
-            Write-Host "Changes detected. Waiting for editing to stop..."
+            Write-Host "[$(Get-Date -Format 'HH:mm:ss')] Action detected! Debouncing ($QuietSeconds s)..." -ForegroundColor Yellow
         }
     }
 
     $QuietFor = ((Get-Date) - $LastChangeTime).TotalSeconds
 
+    # Action has settled for $QuietSeconds: Stage, Pull --rebase, Commit & Push
     if ($StatusText -and $QuietFor -ge $QuietSeconds) {
-
-        # Pause if potentially sensitive files have changed.
         $SensitivePattern = '(?i)(^|[\s"\\/])(\.env($|[\s\\/])|\.env\.[^\\/\s]+|[^\\/\s]*(secret|credential|service.account)[^\\/\s]*|[^\\/\s]+\.(pem|key|p12|pfx))'
 
         if ($StatusText -match $SensitivePattern) {
-            Write-Warning "Potentially sensitive file detected. Review changes manually; automatic commit skipped."
+            Write-Warning "[$(Get-Date -Format 'HH:mm:ss')] Sensitive file detected (.env/keys). Review manually; skipping auto-commit."
             $LastChangeTime = Get-Date
         }
         else {
-            Write-Host "Staging project changes..."
+            Write-Host "[$(Get-Date -Format 'HH:mm:ss')] Syncing changes to GitHub..." -ForegroundColor Cyan
 
+            # Pull remote changes first with rebase and autostash
+            git pull --rebase --autostash $Remote $Branch *> $null
+
+            # Stage all changes
             git add -A
 
             if ($LASTEXITCODE -ne 0) {
-                Write-Warning "git add failed. Will retry later."
+                Write-Warning "[$(Get-Date -Format 'HH:mm:ss')] git add failed. Will retry..."
                 $LastChangeTime = Get-Date
             }
             else {
@@ -73,25 +85,22 @@ while ($true) {
 
                 if ($Staged) {
                     $Message = "Auto-sync: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
-
                     git commit -m $Message
 
                     if ($LASTEXITCODE -eq 0) {
-                        Write-Host "Commit created. Pushing to GitHub..."
-
+                        Write-Host "[$(Get-Date -Format 'HH:mm:ss')] Created commit. Pushing to origin/$Branch..." -ForegroundColor DarkCyan
                         git push $Remote $Branch
 
                         if ($LASTEXITCODE -eq 0) {
-                            Write-Host "GitHub push successful." -ForegroundColor Green
+                            Write-Host "[$(Get-Date -Format 'HH:mm:ss')] Push successful!" -ForegroundColor Green
                         }
                         else {
-                            Write-Warning "Push failed. Local commit is retained; a later retry will be attempted."
+                            Write-Warning "[$(Get-Date -Format 'HH:mm:ss')] Push failed. Will retry automatically."
                         }
-
                         $LastPushAttempt = Get-Date
                     }
                     else {
-                        Write-Warning "Commit failed. Check the terminal output."
+                        Write-Warning "[$(Get-Date -Format 'HH:mm:ss')] Commit failed."
                     }
                 }
 
@@ -101,25 +110,35 @@ while ($true) {
         }
     }
 
-    # Retry pushing commits already ahead of origin/main.
-    if (-not $StatusText -and
-        ((Get-Date) - $LastPushAttempt).TotalSeconds -ge $RetrySeconds) {
+    # Idle sync: Periodically check and pull latest commits from remote
+    $TimeSinceRemoteCheck = ((Get-Date) - $LastRemoteCheck).TotalSeconds
+    if (-not $StatusText -and $TimeSinceRemoteCheck -ge $RemotePullInterval) {
+        $LastRemoteCheck = Get-Date
 
-        $AheadText = git rev-list --count "origin/$Branch..HEAD" 2>$null
+        # Check for remote updates quietly
+        git fetch $Remote $Branch *> $null
+        if ($LASTEXITCODE -eq 0) {
+            $BehindCount = (git rev-list --count "HEAD..$Remote/$Branch" 2>$null)
+            $AheadCount  = (git rev-list --count "$Remote/$Branch..HEAD" 2>$null)
 
-        if ($LASTEXITCODE -eq 0 -and [int]$AheadText -gt 0) {
-            Write-Host "Local commits are waiting to be pushed..."
-
-            git push $Remote $Branch
-
-            if ($LASTEXITCODE -eq 0) {
-                Write-Host "GitHub push successful." -ForegroundColor Green
+            if ($BehindCount -and [int]$BehindCount -gt 0) {
+                Write-Host "[$(Get-Date -Format 'HH:mm:ss')] New updates found on origin ($BehindCount commits behind). Pulling..." -ForegroundColor Magenta
+                git pull --rebase $Remote $Branch
+                if ($LASTEXITCODE -eq 0) {
+                    Write-Host "[$(Get-Date -Format 'HH:mm:ss')] Pulled and updated to latest version." -ForegroundColor Green
+                }
+                else {
+                    Write-Warning "[$(Get-Date -Format 'HH:mm:ss')] Pull conflict. Please review."
+                }
             }
-            else {
-                Write-Warning "Push failed. Check authentication, connectivity, or branch conflicts."
-            }
 
-            $LastPushAttempt = Get-Date
+            if ($AheadCount -and [int]$AheadCount -gt 0) {
+                Write-Host "[$(Get-Date -Format 'HH:mm:ss')] Local commits pending push ($AheadCount commits ahead). Pushing..." -ForegroundColor DarkCyan
+                git push $Remote $Branch
+                if ($LASTEXITCODE -eq 0) {
+                    Write-Host "[$(Get-Date -Format 'HH:mm:ss')] Push successful!" -ForegroundColor Green
+                }
+            }
         }
     }
 

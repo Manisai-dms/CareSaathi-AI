@@ -43,6 +43,8 @@ import { CostBreakdownDonut } from '../components/CostBreakdownDonut';
 import { ShareModal } from '../components/ShareModal';
 import { BookingModal } from '../components/BookingModal';
 import { PanIndiaLocationPicker } from '../components/PanIndiaLocationPicker';
+import { ConditionPreview } from '../components/ConditionPreview';
+import { motion } from 'framer-motion';
 
 interface DashboardPageProps {
   onOpenVoice: () => void;
@@ -283,6 +285,20 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
     setInputQuery(val);
     const amb = checkAmbiguity(val);
     setAmbiguityClarification(amb);
+
+    // Auto-detect matching condition from search input
+    const normalized = val.trim().toLowerCase();
+    if (normalized.length >= 2) {
+      const matched = COMMON_PROCEDURES.find(proc => 
+        proc.name.toLowerCase().includes(normalized) ||
+        proc.id.toLowerCase().includes(normalized) ||
+        proc.category.toLowerCase().includes(normalized)
+      );
+      if (matched) {
+        setSelectedTreatmentId(matched.id);
+        setSelectedTreatmentName(matched.name);
+      }
+    }
   };
 
   const handleStep1Continue = () => {
@@ -644,18 +660,26 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                 {COMMON_PROCEDURES.map(proc => {
                   const isSelected = selectedTreatmentId === proc.id;
                   return (
-                    <button
+                    <motion.button
                       key={proc.id}
                       type="button"
                       onClick={() => handleSelectProcedure(proc)}
+                      animate={{
+                        scale: isSelected ? 1.02 : 1,
+                        boxShadow: isSelected 
+                          ? '0 0 0 2px var(--color-teal), 0 6px 18px rgba(67, 143, 132, 0.22)' 
+                          : '0 1px 3px rgba(24, 50, 71, 0.04)'
+                      }}
+                      whileHover={{ scale: isSelected ? 1.02 : 1.01 }}
+                      whileTap={{ scale: 0.99 }}
+                      transition={{ duration: 0.18 }}
                       style={{
                         textAlign: 'left',
                         padding: '12px 14px',
                         borderRadius: '10px',
                         backgroundColor: isSelected ? 'var(--color-mint)' : '#F8FAFC',
                         border: isSelected ? '2px solid var(--color-teal)' : '1px solid var(--color-border)',
-                        cursor: 'pointer',
-                        transition: 'all 0.15s ease'
+                        cursor: 'pointer'
                       }}
                     >
                       <div style={{ fontSize: '0.9rem', fontWeight: 700, color: isSelected ? 'var(--color-teal-dark)' : 'var(--color-navy)' }}>
@@ -664,11 +688,17 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                       <div style={{ fontSize: '0.74rem', color: '#64748B', marginTop: '2px' }}>
                         {proc.category}
                       </div>
-                    </button>
+                    </motion.button>
                   );
                 })}
               </div>
             </div>
+
+            {/* Animated Educational Procedure Preview Box */}
+            <ConditionPreview 
+              selectedConditionId={selectedTreatmentId} 
+              selectedConditionName={selectedTreatmentName} 
+            />
 
             {/* Non-Diagnostic Clinical Safety Notice */}
             <div style={{

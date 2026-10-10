@@ -467,7 +467,7 @@ export const KineticHeadline: React.FC<KineticHeadlineProps> = ({
         }
 
         .hk-rose-coral .hk-char {
-          background: linear-gradient(135deg, #D6334B 0%, #E85D38 50%, #D6334B 100%);
+          background: linear-gradient(135deg, #D6334B 0%, #FF7A59 50%, #D6334B 100%);
           background-size: 200% auto;
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;

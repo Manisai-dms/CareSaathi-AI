@@ -560,7 +560,7 @@ export const CareCore3D: React.FC<CareCore3DProps> = ({
           style={{
             width: '28px',
             height: '1px',
-            backgroundColor: 'rgba(94, 234, 212, 0.35)',
+            backgroundColor: 'rgba(31, 122, 99, 0.3)',
           }}
         />
         <span

@@ -20,6 +20,10 @@ import {
   MessageSquare
 } from 'lucide-react';
 import { api, CostEstimateDTO, TreatmentDTO, FacilityDTO } from '../services/api';
+import { motion, AnimatePresence } from 'framer-motion';
+import './CostEstimatorPage.css';
+import { AnimatedRupeeCounter } from '../components/AnimatedRupeeCounter';
+import { FloatingRupeeBackground } from '../components/FloatingRupeeBackground';
 import { CostBreakdownModal } from '../components/CostBreakdownModal';
 import { OutOfPocketWaterfallChart } from '../components/OutOfPocketWaterfallChart';
 import { ItemizedComponentsTable } from '../components/ItemizedComponentsTable';

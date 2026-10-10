@@ -113,6 +113,25 @@ export interface FacilityDTO {
   image_attribution?: string;
   image_license?: string;
   initials?: string;
+  website_url?: string;
+  source_urls?: string[];
+  verified_at?: string;
+  verification_status?: 'verified' | 'partial' | 'unverified';
+  departments?: string[];
+  schemes_detail?: Array<{ scheme_code: string; scheme_name: string; status: string; source_url?: string }>;
+  tariff_detail?: { type: 'published' | 'reference estimate' | 'not available'; min_cost?: number; max_cost?: number; source_url?: string; label?: string };
+  specialty_match?: boolean;
+  why_this_hospital?: string;
+  rank_score?: number;
+  // Google runtime enrichment fields
+  road_distance_km?: number;
+  road_duration_mins?: number;
+  is_live_traffic?: boolean;
+  place_id?: string;
+  google_photos?: Array<{ url: string; attribution: string }>;
+  google_rating?: number;
+  google_user_rating_count?: number;
+  google_is_open_now?: boolean;
 }
 
 export interface CostEstimateDTO {
@@ -419,6 +438,7 @@ export const api = {
     radius?: number;
     sort?: string;
     treatment_available_only?: boolean;
+    verified_only?: boolean;
   }): Promise<FacilityDTO[]> {
     const url = new URL(`${API_BASE}/facilities`, window.location.origin);
     if (params) {
@@ -717,6 +737,51 @@ export const api = {
       body: JSON.stringify(data)
     });
     if (!res.ok) throw new Error("Failed to generate patient action plan");
+    return res.json();
+  },
+
+  // --- Google Proxy Methods ---
+  async getRouteMatrix(origins: Array<{ lat: number; lng: number }>, destinations: Array<{ lat: number; lng: number }>, travelMode = 'DRIVE'): Promise<any> {
+    const res = await fetch(`${API_BASE}/route-matrix`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ origins, destinations: destinations.slice(0, 25), travelMode })
+    });
+    if (!res.ok) throw new Error("Failed to calculate route matrix");
+    return res.json();
+  },
+
+  async getPlacesNearby(lat: number, lng: number, radius = 5000, keyword = 'hospital'): Promise<any> {
+    const res = await fetch(`${API_BASE}/places-nearby`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ lat, lng, radius, keyword })
+    });
+    if (!res.ok) throw new Error("Failed to search nearby places");
+    return res.json();
+  },
+
+  async getPlaceDetails(place_id: string): Promise<any> {
+    const res = await fetch(`${API_BASE}/place-details`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ place_id })
+    });
+    if (!res.ok) throw new Error("Failed to fetch place details");
+    return res.json();
+  },
+
+  getPlacePhotoUrl(photoName: string, maxHeight = 600, maxWidth = 800): string {
+    return `${API_BASE}/place-photo?photo_name=${encodeURIComponent(photoName)}&max_height=${maxHeight}&max_width=${maxWidth}`;
+  },
+
+  async geocode(address?: string, lat?: number, lng?: number): Promise<any> {
+    const res = await fetch(`${API_BASE}/geocode`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ address, lat, lng })
+    });
+    if (!res.ok) throw new Error("Failed to geocode address");
     return res.json();
   }
 };

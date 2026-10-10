@@ -44,11 +44,8 @@ export const PatientSavingsPlan: React.FC<PatientSavingsPlanProps> = ({
   // Privacy Toggle: User chooses whether to include specific clinical condition in print/export
   const [includeSensitiveDiagnosis, setIncludeSensitiveDiagnosis] = useState(false);
 
-  // Pre-admission questions checklist state
-  const [checkedQuestions, setCheckedQuestions] = useState<{ [key: number]: boolean }>({
-    0: true,
-    1: true
-  });
+  // Pre-admission questions checklist state (unchecked by default)
+  const [checkedQuestions, setCheckedQuestions] = useState<{ [key: number]: boolean }>({});
 
   const billingQuestions = [
     "Is this a comprehensive package quote or does it exclude surgeon honorarium, ICU, and OT charges?",
@@ -151,13 +148,8 @@ export const PatientSavingsPlan: React.FC<PatientSavingsPlanProps> = ({
         </button>
       </div>
 
-      {/* Plan Summary Grid */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))',
-        gap: '14px',
-        marginBottom: '20px'
-      }}>
+      {/* Plan Summary Grid: Equal-width 4 columns >= 1100px, 2 columns tablet */}
+      <div className="patient-savings-summary-grid">
         {/* Treatment Budget */}
         <div 
           className="cost-estimator-interactive-row"
@@ -172,7 +164,7 @@ export const PatientSavingsPlan: React.FC<PatientSavingsPlanProps> = ({
             Procedure / Hospital Budget
           </div>
           <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#12304A', marginTop: '4px' }}>
-            <AnimatedRupeeCounter value={treatmentBudgetMin} /> – <AnimatedRupeeCounter value={treatmentBudgetMax} />
+            <AnimatedRupeeCounter value={Math.round(treatmentBudgetMin)} /> – <AnimatedRupeeCounter value={Math.round(treatmentBudgetMax)} />
           </div>
           <div style={{ fontSize: '0.74rem', color: '#64717D', marginTop: '2px' }}>
             Target for in-patient admission
@@ -193,7 +185,7 @@ export const PatientSavingsPlan: React.FC<PatientSavingsPlanProps> = ({
             Medicine Budget (Post-Op)
           </div>
           <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#059669', marginTop: '4px' }}>
-            <AnimatedRupeeCounter value={medicineBudgetMin} /> – <AnimatedRupeeCounter value={medicineBudgetMax} />
+            <AnimatedRupeeCounter value={Math.round(medicineBudgetMin)} /> – <AnimatedRupeeCounter value={Math.round(medicineBudgetMax)} />
           </div>
           <div style={{ fontSize: '0.74rem', color: '#059669', marginTop: '2px' }}>
             Jan Aushadhi generic savings
@@ -214,7 +206,7 @@ export const PatientSavingsPlan: React.FC<PatientSavingsPlanProps> = ({
             Recommended Emergency Buffer
           </div>
           <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#B45309', marginTop: '4px' }}>
-            <AnimatedRupeeCounter value={additionalExpensesBuffer} />
+            <AnimatedRupeeCounter value={Math.round(additionalExpensesBuffer)} />
           </div>
           <div style={{ fontSize: '0.74rem', color: '#64717D', marginTop: '2px' }}>
             Transport, attendant meals & rehab
@@ -235,10 +227,10 @@ export const PatientSavingsPlan: React.FC<PatientSavingsPlanProps> = ({
             Total Financial Requirement
           </div>
           <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1E3A8A', marginTop: '4px' }}>
-            <AnimatedRupeeCounter value={planTotalMin} /> – <AnimatedRupeeCounter value={planTotalMax} />
+            <AnimatedRupeeCounter value={Math.round(planTotalMin)} /> – <AnimatedRupeeCounter value={Math.round(planTotalMax)} />
           </div>
           <div style={{ fontSize: '0.74rem', color: '#2563EB', marginTop: '2px' }}>
-            {userBudget > 0 ? `Target Budget: ₹${userBudget.toLocaleString('en-IN')}` : 'Full episode scope'}
+            {userBudget > 0 ? `Target Budget: ₹${Math.round(userBudget).toLocaleString('en-IN')}` : 'Full episode scope'}
           </div>
         </div>
       </div>
@@ -260,7 +252,7 @@ export const PatientSavingsPlan: React.FC<PatientSavingsPlanProps> = ({
         <p style={{ fontSize: '0.8rem', color: '#475569', marginBottom: '10px' }}>
           Government teaching hospitals and non-profit charitable trusts provide subsidized medical packages under statutory rate schedules:
         </p>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', width: '100%' }}>
           {suggestedGovtHospitals.map((h, i) => (
             <span 
               key={i} 
@@ -268,10 +260,12 @@ export const PatientSavingsPlan: React.FC<PatientSavingsPlanProps> = ({
                 backgroundColor: '#FFFFFF',
                 border: '1px solid #CBD5E1',
                 borderRadius: '8px',
-                padding: '6px 12px',
+                padding: '8px 14px',
                 fontSize: '0.8rem',
                 color: '#12304A',
-                fontWeight: 600
+                fontWeight: 600,
+                flex: '1 1 auto',
+                textAlign: 'center'
               }}
             >
               🏥 {h}
@@ -342,7 +336,13 @@ export const PatientSavingsPlan: React.FC<PatientSavingsPlanProps> = ({
                 ) : (
                   <Square size={17} color="#94A3B8" style={{ flexShrink: 0, marginTop: '2px' }} />
                 )}
-                <span style={{ fontSize: '0.84rem', color: '#334155', lineHeight: 1.45, textDecoration: isChecked ? 'line-through' : 'none' }}>
+                <span style={{ 
+                  fontSize: '0.84rem', 
+                  color: isChecked ? '#94A3B8' : '#334155', 
+                  lineHeight: 1.45, 
+                  textDecoration: isChecked ? 'line-through' : 'none',
+                  transition: 'color 0.15s ease'
+                }}>
                   {q}
                 </span>
               </div>

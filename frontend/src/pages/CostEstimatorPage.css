@@ -206,3 +206,120 @@
     transform: none !important;
   }
 }
+
+/* Subtle Page Background Gradient across Margins */
+.cost-estimator-page-root {
+  background: linear-gradient(180deg, #F8FAFC 0%, rgba(232, 245, 239, 0.4) 35%, rgba(240, 247, 246, 0.55) 70%, #F8FAFC 100%);
+  min-height: 100vh;
+}
+
+/* ==============================================================================
+   Centered Full-Width Cost Estimator Results Container
+   ============================================================================== */
+.cost-estimator-results-container {
+  width: 100%;
+  max-width: 1180px;
+  margin-inline: auto;
+  padding: 24px clamp(16px, 3vw, 40px) 120px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.cost-estimator-summary-card {
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 18px;
+  box-shadow: 0 4px 20px rgba(18, 48, 74, 0.06);
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.cost-estimator-summary-card:hover {
+  border-color: rgba(50, 155, 137, 0.35);
+  box-shadow: 0 6px 24px rgba(18, 48, 74, 0.09);
+}
+
+.cost-estimator-quick-nav-btn {
+  transition: transform 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.cost-estimator-quick-nav-btn:hover {
+  transform: translateY(-1.5px);
+  box-shadow: 0 3px 10px rgba(18, 48, 74, 0.08);
+}
+
+.cost-estimator-quick-nav-btn:active {
+  transform: translateY(0);
+}
+
+/* Patient Savings Plan 4-Card Summary Grid */
+.patient-savings-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+@media (max-width: 1099px) and (min-width: 640px) {
+  .patient-savings-summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 639px) {
+  .patient-savings-summary-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Responsive Overrides (< 1100px: Stack and collapse grids) */
+@media (max-width: 1100px) {
+  .cost-estimator-results-container {
+    padding: 16px 16px 120px;
+    gap: 20px;
+  }
+}
+
+/* Floating "Ask CareSaathi" button refinement: compact on widths under 1500px, below modals */
+button[title*="CareSaathi WhatsApp-style Assistant"] {
+  z-index: 80 !important;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+@media (max-width: 1499px) {
+  button[title*="CareSaathi WhatsApp-style Assistant"] {
+    width: 48px !important;
+    height: 48px !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    overflow: hidden !important;
+  }
+  button[title*="CareSaathi WhatsApp-style Assistant"] span {
+    display: none !important;
+  }
+  button[title*="CareSaathi WhatsApp-style Assistant"]:hover,
+  button[title*="CareSaathi WhatsApp-style Assistant"]:focus-visible {
+    width: auto !important;
+    height: auto !important;
+    padding: 12px 20px !important;
+    border-radius: 50px !important;
+  }
+  button[title*="CareSaathi WhatsApp-style Assistant"]:hover span,
+  button[title*="CareSaathi WhatsApp-style Assistant"]:focus-visible span {
+    display: inline !important;
+    white-space: nowrap !important;
+  }
+}

@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
+  <!-- CareSaathi Verified Hospital Vector Illustration: Charitable Trust & Non-Profit Healthcare -->
+  <!-- License: Creative Commons Zero (CC0) Public Domain / Neutral Informational Vector -->
+  <defs>
+    <linearGradient id="skyAmber" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFBEB" />
+      <stop offset="100%" stop-color="#FEF3C7" />
+    </linearGradient>
+    <linearGradient id="bldgMainAmber" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#B45309" />
+      <stop offset="50%" stop-color="#92400E" />
+      <stop offset="100%" stop-color="#D97706" />
+    </linearGradient>
+    <linearGradient id="bldgWingAmber" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#F59E0B" />
+      <stop offset="100%" stop-color="#B45309" />
+    </linearGradient>
+    <linearGradient id="glassAmber" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FEF9C3" stop-opacity="0.9" />
+      <stop offset="100%" stop-color="#FDE68A" stop-opacity="0.6" />
+    </linearGradient>
+    <filter id="softShadowAmber" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#451A03" flood-opacity="0.15" />
+    </filter>
+  </defs>
+
+  <!-- Sky Background -->
+  <rect width="100%" height="100%" fill="url(#skyAmber)" />
+
+  <!-- Distant skyline silhouettes -->
+  <path d="M 0 350 L 60 330 L 120 330 L 150 350 L 220 320 L 290 320 L 330 350 L 650 350 L 720 330 L 800 350 L 800 450 L 0 450 Z" fill="#FDE68A" opacity="0.35" />
+
+  <!-- Main Hospital Complex -->
+  <g filter="url(#softShadowAmber)">
+    <rect x="140" y="160" width="160" height="190" rx="4" fill="url(#bldgWingAmber)" />
+    <rect x="270" y="100" width="260" height="250" rx="6" fill="url(#bldgMainAmber)" />
+    <rect x="500" y="160" width="160" height="190" rx="4" fill="url(#bldgWingAmber)" />
+  </g>
+
+  <!-- Community Portico -->
+  <path d="M 330 310 L 470 310 L 490 350 L 310 350 Z" fill="#78350F" />
+  <rect x="350" y="325" width="100" height="25" rx="3" fill="#FFFBEB" />
+  <text x="400" y="342" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="800" fill="#B45309" letter-spacing="1">TRUST CARE CENTRE</text>
+
+  <!-- Cross Emblem on Tower -->
+  <circle cx="400" cy="145" r="26" fill="#FFFBEB" />
+  <rect x="393" y="129" width="14" height="32" rx="3" fill="#D97706" />
+  <rect x="384" y="138" width="32" height="14" rx="3" fill="#D97706" />
+
+  <!-- Architectural Window Grids - Main Tower -->
+  <g fill="url(#glassAmber)">
+    <rect x="300" y="185" width="36" height="24" rx="2" />
+    <rect x="352" y="185" width="36" height="24" rx="2" />
+    <rect x="412" y="185" width="36" height="24" rx="2" />
+    <rect x="464" y="185" width="36" height="24" rx="2" />
+    <rect x="300" y="225" width="36" height="24" rx="2" />
+    <rect x="352" y="225" width="36" height="24" rx="2" />
+    <rect x="412" y="225" width="36" height="24" rx="2" />
+    <rect x="464" y="225" width="36" height="24" rx="2" />
+    <rect x="300" y="265" width="36" height="24" rx="2" />
+    <rect x="352" y="265" width="36" height="24" rx="2" />
+    <rect x="412" y="265" width="36" height="24" rx="2" />
+    <rect x="464" y="265" width="36" height="24" rx="2" />
+  </g>
+
+  <!-- Left Wing Windows -->
+  <g fill="url(#glassAmber)">
+    <rect x="160" y="185" width="30" height="20" rx="2" />
+    <rect x="205" y="185" width="30" height="20" rx="2" />
+    <rect x="250" y="185" width="30" height="20" rx="2" />
+    <rect x="160" y="225" width="30" height="20" rx="2" />
+    <rect x="205" y="225" width="30" height="20" rx="2" />
+    <rect x="250" y="225" width="30" height="20" rx="2" />
+    <rect x="160" y="265" width="30" height="20" rx="2" />
+    <rect x="205" y="265" width="30" height="20" rx="2" />
+    <rect x="250" y="265" width="30" height="20" rx="2" />
+  </g>
+
+  <!-- Right Wing Windows -->
+  <g fill="url(#glassAmber)">
+    <rect x="520" y="185" width="30" height="20" rx="2" />
+    <rect x="565" y="185" width="30" height="20" rx="2" />
+    <rect x="610" y="185" width="30" height="20" rx="2" />
+    <rect x="520" y="225" width="30" height="20" rx="2" />
+    <rect x="565" y="225" width="30" height="20" rx="2" />
+    <rect x="610" y="225" width="30" height="20" rx="2" />
+    <rect x="520" y="265" width="30" height="20" rx="2" />
+    <rect x="565" y="265" width="30" height="20" rx="2" />
+    <rect x="610" y="265" width="30" height="20" rx="2" />
+  </g>
+
+  <!-- Forecourt Ground & Roadway -->
+  <rect x="0" y="350" width="800" height="100" fill="#92400E" />
+  <path d="M 0 380 L 800 380 L 800 450 L 0 450 Z" fill="#451A03" />
+  <line x1="50" y1="415" x2="750" y2="415" stroke="#FFFBEB" stroke-width="4" stroke-dasharray="24 16" opacity="0.6" />
+
+  <!-- Greenery & Landscape -->
+  <circle cx="110" cy="345" r="28" fill="#B45309" />
+  <circle cx="130" cy="350" r="20" fill="#D97706" />
+  <circle cx="670" cy="345" r="28" fill="#B45309" />
+  <circle cx="690" cy="350" r="20" fill="#D97706" />
+
+  <!-- Bottom Badge Label -->
+  <g transform="translate(400, 425)" text-anchor="middle">
+    <rect x="-170" y="-14" width="340" height="24" rx="12" fill="#FFFBEB" opacity="0.95" />
+    <text y="3" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11.5" font-weight="700" fill="#92400E">
+      CHARITABLE TRUST &amp; NON-PROFIT HOSPITAL
+    </text>
+  </g>
+</svg>

@@ -21,6 +21,69 @@ def haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> fl
     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
     return round(R * c, 2)
 
+PROCEDURE_TO_DEPARTMENT: Dict[str, List[str]] = {
+    "knee_replacement": ["Orthopedics", "Orthopaedics", "Joint Replacement", "Robotic Joint Replacement", "Arthroscopy"],
+    "cataract_surgery": ["Ophthalmology", "Eye Care", "Cornea", "Cataract & Refractive"],
+    "mri_brain": ["Radiology & Imaging", "Radiology", "Neurology", "Neuro Surgery", "Diagnostics & Imaging"],
+    "mri_knee": ["Radiology & Imaging", "Radiology", "Orthopedics", "Diagnostics & Imaging"],
+    "mri_spine": ["Radiology & Imaging", "Radiology", "Spine Surgery", "Orthopedics", "Diagnostics & Imaging"],
+    "normal_delivery": ["Obstetrics & Gynecology", "Maternity Care", "Obstetrics", "Gynecology", "Pediatrics & Neonatology"],
+    "caesarean_delivery": ["Obstetrics & Gynecology", "Maternity Care", "Obstetrics", "Gynecology", "Pediatrics & Neonatology"],
+    "angioplasty": ["Cardiology", "Interventional Cardiology", "Cardiothoracic Surgery", "Cardiac Sciences"],
+    "laparoscopic_cholecystectomy": ["General & Gastrointestinal Surgery", "General Surgery", "Gastroenterology", "Surgical Gastroenterology", "Minimally Invasive Surgery"],
+    "appendectomy": ["General Surgery", "General & Gastrointestinal Surgery", "Emergency Medicine"],
+    "hemodialysis": ["Nephrology", "Dialysis", "Renal Sciences", "Urology"],
+    "inpatient_fever_management": ["General Medicine", "Internal Medicine", "Infectious Diseases", "Pediatrics"],
+    "doctor_consultation": ["General Medicine", "Internal Medicine", "Outpatient"],
+    "diabetes_care": ["Endocrinology", "Diabetology", "Internal Medicine", "General Medicine"],
+    "kidney_stones": ["Urology", "Nephrology", "Lithotripsy"],
+    "blood_tests": ["Pathology & Lab Medicine", "Diagnostics", "Pathology", "Biochemistry"]
+}
+
+def check_specialty_match(fac: Facility, treatment_id: Optional[str]) -> bool:
+    if not treatment_id:
+        return True
+    if treatment_id in fac.verified_treatments:
+        return True
+    target_depts = [d.lower() for d in PROCEDURE_TO_DEPARTMENT.get(treatment_id, [])]
+    fac_depts = [d.lower() for d in getattr(fac, 'departments', [])]
+    for td in target_depts:
+        for fd in fac_depts:
+            if td in fd or fd in td:
+                return True
+    return False
+
+def compute_rank_score(fac: Facility, treatment_id: Optional[str]) -> float:
+    score = 0.0
+    # 1. Relevance of specialty (highest weight)
+    if fac.specialty_match:
+        score += 1000.0
+    elif getattr(fac, 'verification_status', 'verified') == 'verified':
+        score += 150.0
+
+    # 2. Verified scheme support
+    if fac.empanelled_schemes:
+        score += min(len(fac.empanelled_schemes) * 50.0, 150.0)
+
+    # 3. Distance / Proximity (closer is better, max 150 points)
+    dist = fac.distance_km if fac.distance_km is not None else 30.0
+    dist_pts = max(0.0, 150.0 - dist * 4.0)
+    score += dist_pts
+
+    # 4. Rating (max 100 points)
+    rating = fac.rating if fac.rating is not None else 3.8
+    score += (rating / 5.0) * 100.0
+
+    # 5. Cost factor (subsidized/predictable tariff support)
+    if fac.ownership == "Government":
+        score += 80.0
+    elif fac.ownership == "Charitable/Trust":
+        score += 60.0
+    elif fac.estimated_cost_min is not None and fac.estimated_cost_min < 120000:
+        score += 40.0
+
+    return round(score, 1)
+
 def search_facilities(
     user_lat: Optional[float] = None,
     user_lng: Optional[float] = None,
@@ -31,8 +94,9 @@ def search_facilities(
     ownership_filter: Optional[str] = None,
     scheme_filter: Optional[str] = None,
     radius_km: Optional[float] = None,
-    sort_by: str = "nearest",  # nearest, lowest_cost, rating
-    treatment_available_only: bool = False
+    sort_by: str = "nearest",  # best_match, nearest, lowest_cost, rating
+    treatment_available_only: bool = False,
+    verified_only: bool = False
 ) -> List[Facility]:
     all_facilities = get_all_facilities()
     results: List[Facility] = []
@@ -58,7 +122,6 @@ def search_facilities(
     for fac in all_facilities:
         # PIN code filter if explicitly requested
         if pin_code and pin_code.strip() and fac.pin_code != pin_code.strip():
-            # If PIN doesn't match facility exactly, still allow if city matches
             if city_filter_term and city_filter_term not in fac.city.lower():
                 continue
 
@@ -69,7 +132,7 @@ def search_facilities(
                             (fac.locality and city_filter_term in fac.locality.lower()) or
                             (fac.locality and fac.locality.lower() in city_filter_term) or
                             city_filter_term in fac.state.lower() or
-                            (city_filter_term in ["secunderabad", "kukatpally", "gachibowli", "banjara hills"] and fac.city.lower() == "hyderabad"))
+                            (city_filter_term in ["secunderabad", "kukatpally", "gachibowli", "banjara hills", "madhapur", "kondapur", "hitec city"] and fac.city.lower() == "hyderabad"))
             if not matches_city:
                 continue
 
@@ -89,14 +152,25 @@ def search_facilities(
                 if fac.ownership.lower() not in ["charitable/trust", "trust", "charitable"]:
                     continue
 
-        # Treatment availability filter
-        if treatment_available_only and treatment_id:
-            if treatment_id not in fac.verified_treatments:
+        # Specialty match check
+        fac.specialty_match = check_specialty_match(fac, treatment_id)
+
+        # Verified Only filter
+        if verified_only:
+            if getattr(fac, 'verification_status', 'verified') == 'unverified':
                 continue
+            if treatment_id and not fac.specialty_match:
+                continue
+
+        # Treatment availability filter
+        if treatment_available_only and treatment_id and not fac.specialty_match:
+            continue
 
         # Scheme filter
         if scheme_filter and scheme_filter != "All":
-            if scheme_filter.lower() not in [s.lower() for s in fac.empanelled_schemes]:
+            norm_scheme = scheme_filter.lower().strip().replace('-', '_')
+            fac_schemes = [s.lower().replace('-', '_') for s in fac.empanelled_schemes]
+            if norm_scheme not in fac_schemes:
                 continue
 
         # Calculate Distance
@@ -129,24 +203,41 @@ def search_facilities(
                 fac.price_confidence = "Medium"
                 fac.pricing_status = "Private Reference Range"
 
-        # Ensure recommendation reason is clear and transparent
-        if not fac.recommendation_reason:
-            reason_parts = []
-            if fac.ownership == "Government":
-                reason_parts.append("State teaching hospital with 100% cashless public scheme coverage.")
-            elif fac.facility_class == "Premium":
-                reason_parts.append("Quaternary JCI/NABH accredited center with advanced robotic surgical suites.")
-            elif fac.ownership == "Charitable/Trust":
-                reason_parts.append("Subsidized non-profit healthcare trust with compassionate tariff aid.")
-            else:
-                reason_parts.append("NABH-accredited private multi-specialty hospital with comprehensive inpatient care.")
-            if treatment_id and treatment_id in fac.verified_treatments:
-                reason_parts.append("Verified clinical department available.")
-            if fac.distance_km is not None and fac.distance_km <= 10:
-                reason_parts.append(f"Conveniently located {fac.distance_km} km away.")
-            fac.recommendation_reason = " ".join(reason_parts)
+        # Compute Evidence-Based Rank Score
+        fac.rank_score = compute_rank_score(fac, treatment_id)
 
-        photo_meta = get_hospital_photo_metadata(fac.id, fac.name)
+        # Sourced "Why this hospital" explanation built strictly from stored, verified fields
+        reason_parts = []
+        if treatment_id:
+            if fac.specialty_match:
+                matching_depts = [d for d in getattr(fac, 'departments', []) if any(td.lower() in d.lower() for td in PROCEDURE_TO_DEPARTMENT.get(treatment_id, []))]
+                if matching_depts:
+                    reason_parts.append(f"Verified {matching_depts[0]} department.")
+                else:
+                    reason_parts.append("Verified clinical specialty department.")
+            else:
+                reason_parts.append("Department not verified on official portal.")
+
+        if fac.empanelled_schemes:
+            schemes_str = ", ".join([s.replace('_', '-').upper() for s in fac.empanelled_schemes[:3]])
+            reason_parts.append(f"Empanelled with {schemes_str}.")
+
+        if fac.ownership == "Government":
+            reason_parts.append("State subsidized care under gazette provisions.")
+        elif fac.ownership == "Charitable/Trust":
+            reason_parts.append("Subsidized non-profit healthcare trust.")
+        elif getattr(fac, 'pricing_status', None):
+            reason_parts.append(f"{fac.pricing_status}.")
+
+        if fac.distance_km is not None and fac.distance_km <= 10:
+            reason_parts.append(f"Located {fac.distance_km} km away.")
+
+        fac.why_this_hospital = " ".join(reason_parts)
+        if not fac.recommendation_reason:
+            fac.recommendation_reason = fac.why_this_hospital
+
+        # Authentic Photo Metadata
+        photo_meta = get_hospital_photo_metadata(fac.id, fac.name, fac.city, fac.ownership, fac.facility_class)
         fac.image_url = photo_meta.get("image_url")
         fac.image_source = photo_meta.get("source")
         fac.image_attribution = photo_meta.get("attribution")
@@ -156,7 +247,9 @@ def search_facilities(
         results.append(fac)
 
     # Sorting
-    if sort_by == "nearest":
+    if sort_by in ["best_match", "rank"]:
+        results.sort(key=lambda x: x.rank_score or 0, reverse=True)
+    elif sort_by == "nearest":
         results.sort(key=lambda x: x.distance_km if x.distance_km is not None else 9999)
     elif sort_by == "lowest_cost":
         results.sort(key=lambda x: x.estimated_cost_min if x.estimated_cost_min is not None else 9999999)
@@ -170,25 +263,24 @@ def get_facility_details(facility_id: str, treatment_id: Optional[str] = None) -
     if not fac:
         return None
 
-    photo_meta = get_hospital_photo_metadata(fac.id, fac.name)
+    photo_meta = get_hospital_photo_metadata(fac.id, fac.name, fac.city, fac.ownership, fac.facility_class)
     fac.image_url = photo_meta.get("image_url")
     fac.image_source = photo_meta.get("source")
     fac.image_attribution = photo_meta.get("attribution")
     fac.image_license = photo_meta.get("license")
     fac.initials = photo_meta.get("initials")
 
-    # Check verified treatments
-    treatment_verified = False
+    # Check verified treatments & specialty match
+    fac.specialty_match = check_specialty_match(fac, treatment_id)
+    treatment_verified = bool(fac.specialty_match)
     treatment_obj = None
     if treatment_id:
         treatment_obj = TREATMENT_CATALOGUE.get(treatment_id)
-        if treatment_id in fac.verified_treatments:
-            treatment_verified = True
 
     return {
         "facility": fac,
         "treatment_verified": treatment_verified,
-        "treatment_status_text": "Verified Treatment Facility" if treatment_verified else "Treatment availability not verified — contact the facility",
+        "treatment_status_text": "Verified Specialty Department Available" if treatment_verified else "Clinical specialty not verified — contact hospital",
         "treatment_details": treatment_obj,
         "directions_url": f"https://www.google.com/maps/dir/?api=1&destination={fac.lat},{fac.lng}",
         "osm_url": f"https://www.openstreetmap.org/?mlat={fac.lat}&mlon={fac.lng}#map=16/{fac.lat}/{fac.lng}"

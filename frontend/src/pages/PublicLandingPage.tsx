@@ -193,7 +193,7 @@ export const PublicLandingPage: React.FC<PublicLandingPageProps> = ({
         background: 'transparent'
       }}
     >
-      {/* Full-Page Fixed Hospital Exterior Background Layer */}
+      {/* Layer 1: Full-Page Fixed Hospital Exterior Background Layer */}
       <div
         className="landing-fixed-hospital-bg"
         style={{
@@ -205,8 +205,21 @@ export const PublicLandingPage: React.FC<PublicLandingPageProps> = ({
           backgroundPosition: 'center 30%',
           backgroundSize: 'cover',
           backgroundRepeat: 'no-repeat',
-          opacity: 0.58,
+          opacity: 0.55,
           filter: 'saturate(1.1) contrast(1.05)'
+        }}
+        aria-hidden="true"
+      />
+
+      {/* Layer 2: Unified Full-Page Vertical White Gradient Overlay */}
+      <div
+        className="landing-page-vertical-overlay"
+        style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 0,
+          pointerEvents: 'none',
+          background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0.25) 55%, rgba(255, 255, 255, 0.70) 100%)'
         }}
         aria-hidden="true"
       />
@@ -419,34 +432,44 @@ export const PublicLandingPage: React.FC<PublicLandingPageProps> = ({
       </nav>
 
       {/* ========================================================================= */}
-      {/* 2. LIGHT HERO SECTION WITH 3D CARE PATH                                   */}
+      {/* 2. LIGHT HERO SECTION                                                     */}
       {/* ========================================================================= */}
       <section
         style={{
           position: 'relative',
           zIndex: 10,
+          minHeight: 'calc(100vh - 68px)',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
           padding: '48px 24px 64px 24px',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          backgroundColor: 'transparent'
         }}
+        className="hero-section"
       >
-        {/* Layer 1-3: Exterior Hospital Photo, Gradient Overlays, and Plus Symbols */}
+        {/* Layer 1-3: Gradient Overlays and Plus Symbols */}
         <HeroBackground />
 
         <div
           style={{
             maxWidth: '1240px',
             margin: '0 auto',
-            display: 'grid',
-            gridTemplateColumns: 'minmax(0, 1.1fr) minmax(0, 0.9fr)',
-            alignItems: 'center',
-            gap: '48px',
+            width: '100%',
             position: 'relative',
             zIndex: 2
           }}
-          className="hero-grid-layout"
+          className="hero-inner-container"
         >
-          {/* Left Column: Content, Headline, Actions */}
-          <div className="hero-content-col" style={{ position: 'relative', zIndex: 5 }}>
+          {/* Hero Text Column (max 660px, left-aligned, right side left open for hospital photo) */}
+          <div
+            className="hero-content-col"
+            style={{
+              maxWidth: '660px',
+              position: 'relative',
+              zIndex: 5
+            }}
+          >
             {/* Descriptor Chip with Animated Pulse Dot */}
             <div
               style={{
@@ -635,213 +658,57 @@ export const PublicLandingPage: React.FC<PublicLandingPageProps> = ({
               Estimates are informational. Always confirm with the hospital or scheme authority.
             </div>
           </div>
-
-          {/* Right Column: Frosted Glass Cards Stack with Animated ECG line */}
-          <div
-            className="hero-cards-col"
-            style={{
-              position: 'relative',
-              zIndex: 1,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: '100%',
-              minHeight: '440px'
-            }}
-          >
-            {/* Animated SVG ECG line drawing slowly across the lower part of the right column behind the cards */}
-            <div
-              className="hero-ecg-svg-wrap"
-              style={{
-                position: 'absolute',
-                bottom: '36px',
-                left: 0,
-                right: 0,
-                height: '76px',
-                pointerEvents: 'none',
-                zIndex: 0,
-                overflow: 'hidden'
-              }}
-              aria-hidden="true"
-            >
-              <svg
-                viewBox="0 0 600 76"
-                preserveAspectRatio="none"
-                style={{ width: '100%', height: '100%', overflow: 'visible' }}
-              >
-                <path
-                  d="M 0 38 L 90 38 Q 104 30 114 38 L 130 38 L 138 46 L 152 -2 L 164 72 L 172 38 L 196 38 Q 208 30 220 38 L 310 38 Q 324 30 334 38 L 350 38 L 358 46 L 372 -2 L 384 72 L 392 38 L 416 38 Q 428 30 440 38 L 600 38"
-                  fill="none"
-                  stroke="#2F8F83"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="hero-ecg-stroke"
-                />
-              </svg>
-            </div>
-
-            {/* Vertical Stack of 3 Frosted Glass Cards */}
-            <div
-              className="hero-cards-stack"
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '18px',
-                width: '100%',
-                maxWidth: '350px',
-                position: 'relative',
-                zIndex: 1
-              }}
-            >
-              {/* Card 1: Cost estimates */}
-              <div
-                className="hero-glass-card hero-glass-card-1"
-                style={{
-                  background: 'rgba(255, 255, 255, 0.82)',
-                  backdropFilter: 'blur(10px)',
-                  WebkitBackdropFilter: 'blur(10px)',
-                  borderRadius: '14px',
-                  boxShadow: '0 8px 30px rgba(0, 0, 0, 0.10)',
-                  border: '1px solid rgba(255, 255, 255, 0.75)',
-                  borderLeft: '4px solid #2F8F83',
-                  padding: '16px 20px',
-                  width: '100%',
-                  boxSizing: 'border-box'
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-                  <div style={{ fontSize: '0.96rem', fontWeight: 700, color: '#102A36' }}>
-                    Cost estimates
-                  </div>
-                  <span
-                    style={{
-                      width: '8px',
-                      height: '8px',
-                      borderRadius: '50%',
-                      backgroundColor: '#2F8F83',
-                      display: 'inline-block'
-                    }}
-                    aria-hidden="true"
-                  />
-                </div>
-                <div style={{ fontSize: '0.80rem', color: '#64717D', lineHeight: 1.35 }}>
-                  Statutory &amp; Private tariffs
-                </div>
-              </div>
-
-              {/* Card 2: Scheme guidance (offset 32px on X-axis) */}
-              <div
-                className="hero-glass-card hero-glass-card-2"
-                style={{
-                  background: 'rgba(255, 255, 255, 0.82)',
-                  backdropFilter: 'blur(10px)',
-                  WebkitBackdropFilter: 'blur(10px)',
-                  borderRadius: '14px',
-                  boxShadow: '0 8px 30px rgba(0, 0, 0, 0.10)',
-                  border: '1px solid rgba(255, 255, 255, 0.75)',
-                  borderLeft: '4px solid #C85A48',
-                  padding: '16px 20px',
-                  width: '100%',
-                  boxSizing: 'border-box'
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-                  <div style={{ fontSize: '0.96rem', fontWeight: 700, color: '#102A36' }}>
-                    Scheme guidance
-                  </div>
-                  <span
-                    style={{
-                      width: '8px',
-                      height: '8px',
-                      borderRadius: '50%',
-                      backgroundColor: '#C85A48',
-                      display: 'inline-block'
-                    }}
-                    aria-hidden="true"
-                  />
-                </div>
-                <div style={{ fontSize: '0.80rem', color: '#64717D', lineHeight: 1.35 }}>
-                  PM-JAY &amp; Aarogyasri coverage
-                </div>
-              </div>
-
-              {/* Card 3: Empanelled hospitals (offset 0px on X-axis) */}
-              <div
-                className="hero-glass-card hero-glass-card-3"
-                style={{
-                  background: 'rgba(255, 255, 255, 0.82)',
-                  backdropFilter: 'blur(10px)',
-                  WebkitBackdropFilter: 'blur(10px)',
-                  borderRadius: '14px',
-                  boxShadow: '0 8px 30px rgba(0, 0, 0, 0.10)',
-                  border: '1px solid rgba(255, 255, 255, 0.75)',
-                  borderLeft: '4px solid #2563EB',
-                  padding: '16px 20px',
-                  width: '100%',
-                  boxSizing: 'border-box'
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-                  <div style={{ fontSize: '0.96rem', fontWeight: 700, color: '#102A36' }}>
-                    Empanelled hospitals
-                  </div>
-                  <span
-                    style={{
-                      width: '8px',
-                      height: '8px',
-                      borderRadius: '50%',
-                      backgroundColor: '#2563EB',
-                      display: 'inline-block'
-                    }}
-                    aria-hidden="true"
-                  />
-                </div>
-                <div style={{ fontSize: '0.80rem', color: '#64717D', lineHeight: 1.35 }}>
-                  Empanelled network mapped
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </section>
 
-      {/* Decorative Mini ECG Waveform Divider (Centered with 32px space above & below) */}
+      {/* Decorative Mini ECG Waveform Divider (Centered in soft transition zone with 32px space above & below) */}
       <div
         style={{
-          maxWidth: '1240px',
-          margin: '32px auto',
-          padding: '0 24px',
+          position: 'relative',
+          zIndex: 10,
+          backgroundColor: 'rgba(255, 255, 255, 0.80)',
+          backdropFilter: 'blur(6px)',
+          WebkitBackdropFilter: 'blur(6px)',
+          padding: '32px 24px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          position: 'relative',
-          zIndex: 10
+          margin: 0
         }}
         aria-hidden="true"
       >
-        <div style={{ flex: 1, height: '1px', backgroundColor: '#E2E8F0' }} />
-        <div style={{ padding: '0 16px', display: 'flex', alignItems: 'center' }}>
-          <svg width="56" height="16" viewBox="0 0 56 16" fill="none">
-            <path
-              d="M 0 8 L 15 8 L 20 2 L 26 14 L 31 4 L 35 11 L 40 8 L 56 8"
-              stroke="url(#ecgDividerGrad)"
-              strokeWidth="2.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <defs>
-              <linearGradient id="ecgDividerGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#FF7A59" />
-                <stop offset="35%" stopColor="#8B6CFF" />
-                <stop offset="70%" stopColor="#4DA8FF" />
-                <stop offset="100%" stopColor="#2EC4B6" />
-              </linearGradient>
-            </defs>
-          </svg>
+        <div
+          style={{
+            maxWidth: '1240px',
+            width: '100%',
+            margin: '0 auto',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+        >
+          <div style={{ flex: 1, height: '1px', backgroundColor: '#E2E8F0' }} />
+          <div style={{ padding: '0 16px', display: 'flex', alignItems: 'center' }}>
+            <svg width="56" height="16" viewBox="0 0 56 16" fill="none">
+              <path
+                d="M 0 8 L 15 8 L 20 2 L 26 14 L 31 4 L 35 11 L 40 8 L 56 8"
+                stroke="url(#ecgDividerGrad)"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <defs>
+                <linearGradient id="ecgDividerGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#FF7A59" />
+                  <stop offset="35%" stopColor="#8B6CFF" />
+                  <stop offset="70%" stopColor="#4DA8FF" />
+                  <stop offset="100%" stopColor="#2EC4B6" />
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+          <div style={{ flex: 1, height: '1px', backgroundColor: '#E2E8F0' }} />
         </div>
-        <div style={{ flex: 1, height: '1px', backgroundColor: '#E2E8F0' }} />
       </div>
 
       {/* ========================================================================= */}
@@ -1738,81 +1605,18 @@ export const PublicLandingPage: React.FC<PublicLandingPageProps> = ({
           background-color: transparent !important;
         }
 
-        /* Card Float Animations (4-6px up/down, 6-8s, staggered delays) */
-        @keyframes heroCardFloat1 {
-          0%, 100% {
-            transform: translateY(0px);
-          }
-          50% {
-            transform: translateY(-5px);
-          }
-        }
-
-        @keyframes heroCardFloat2 {
-          0%, 100% {
-            transform: translateX(32px) translateY(0px);
-          }
-          50% {
-            transform: translateX(32px) translateY(5px);
-          }
-        }
-
-        @keyframes heroCardFloat3 {
-          0%, 100% {
-            transform: translateY(0px);
-          }
-          50% {
-            transform: translateY(-4px);
-          }
-        }
-
-        .hero-glass-card-1 {
-          animation: heroCardFloat1 7s ease-in-out infinite;
-        }
-
-        .hero-glass-card-2 {
-          animation: heroCardFloat2 7.6s ease-in-out infinite;
-        }
-
-        .hero-glass-card-3 {
-          animation: heroCardFloat3 6.4s ease-in-out infinite 0.8s;
-        }
-
-        /* Animated soft ECG line stroke */
-        @keyframes heroEcgFlowSlow {
-          0% {
-            stroke-dashoffset: 1200;
-          }
-          100% {
-            stroke-dashoffset: 0;
-          }
-        }
-
-        .hero-ecg-stroke {
-          opacity: 0.35;
-          stroke-dasharray: 400 200;
-          animation: heroEcgFlowSlow 12s linear infinite;
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .hero-glass-card-1,
-          .hero-glass-card-2,
-          .hero-glass-card-3 {
-            animation: none !important;
-          }
-          .hero-ecg-stroke {
-            animation: none !important;
-            stroke-dasharray: none !important;
-            stroke-dashoffset: 0 !important;
-          }
-        }
-
         @media (max-width: 768px) {
           .landing-fixed-hospital-bg {
             position: absolute !important;
+            top: 0 !important;
+            height: 100% !important;
             background-attachment: scroll !important;
-            min-height: 100% !important;
             opacity: 0.40 !important;
+          }
+          .landing-page-vertical-overlay {
+            position: absolute !important;
+            top: 0 !important;
+            height: 100% !important;
           }
         }
 
@@ -1820,26 +1624,8 @@ export const PublicLandingPage: React.FC<PublicLandingPageProps> = ({
           .landing-nav-links {
             display: none !important;
           }
-          .hero-grid-layout {
-            grid-template-columns: 1fr !important;
-            gap: 36px !important;
-          }
           .hero-content-col {
-            order: 1 !important;
-          }
-          .hero-cards-col {
-            display: flex !important;
-            order: 2 !important;
-            width: 100% !important;
-            max-width: 440px !important;
-            margin: 0 auto !important;
-          }
-          .hero-cards-stack {
             max-width: 100% !important;
-          }
-          .hero-glass-card-2 {
-            transform: none !important;
-            animation-name: heroCardFloat1 !important;
           }
           .about-grid-layout {
             grid-template-columns: 1fr !important;

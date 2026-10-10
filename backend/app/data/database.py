@@ -73,7 +73,13 @@ def init_db():
         pricing_status TEXT,
         price_confidence TEXT,
         facility_class TEXT DEFAULT 'Standard',
-        recommendation_reason TEXT
+        recommendation_reason TEXT,
+        source_urls TEXT,
+        verified_at TEXT,
+        verification_status TEXT DEFAULT 'verified',
+        departments TEXT,
+        schemes_detail TEXT,
+        tariff_detail TEXT
     )
     """)
 
@@ -84,6 +90,18 @@ def init_db():
         cursor.execute("ALTER TABLE facilities ADD COLUMN facility_class TEXT DEFAULT 'Standard'")
     if "recommendation_reason" not in columns:
         cursor.execute("ALTER TABLE facilities ADD COLUMN recommendation_reason TEXT")
+    if "source_urls" not in columns:
+        cursor.execute("ALTER TABLE facilities ADD COLUMN source_urls TEXT")
+    if "verified_at" not in columns:
+        cursor.execute("ALTER TABLE facilities ADD COLUMN verified_at TEXT")
+    if "verification_status" not in columns:
+        cursor.execute("ALTER TABLE facilities ADD COLUMN verification_status TEXT DEFAULT 'verified'")
+    if "departments" not in columns:
+        cursor.execute("ALTER TABLE facilities ADD COLUMN departments TEXT")
+    if "schemes_detail" not in columns:
+        cursor.execute("ALTER TABLE facilities ADD COLUMN schemes_detail TEXT")
+    if "tariff_detail" not in columns:
+        cursor.execute("ALTER TABLE facilities ADD COLUMN tariff_detail TEXT")
 
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS schemes (
@@ -185,13 +203,27 @@ def init_db():
     # Populate Facilities (Upsert to ensure all genuine facilities are populated)
     for f in SEED_FACILITIES:
         cursor.execute("""
-        INSERT OR REPLACE INTO facilities VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT OR REPLACE INTO facilities (
+            id, name, address, locality, city, state, pin_code,
+            lat, lng, ownership, phone, website, rating,
+            verified_treatments, empanelled_schemes, room_types,
+            last_verified_date, pricing_status, price_confidence,
+            facility_class, recommendation_reason,
+            source_urls, verified_at, verification_status,
+            departments, schemes_detail, tariff_detail
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             f.id, f.name, f.address, f.locality, f.city, f.state, f.pin_code,
-            f.lat, f.lng, f.ownership, f.phone, f.website, f.rating,
+            f.lat, f.lng, f.ownership, f.phone, f.website or getattr(f, 'website_url', None), f.rating,
             json.dumps(f.verified_treatments), json.dumps(f.empanelled_schemes),
             json.dumps(f.room_types), f.last_verified_date, f.pricing_status, f.price_confidence,
-            getattr(f, 'facility_class', 'Standard'), getattr(f, 'recommendation_reason', None)
+            getattr(f, 'facility_class', 'Standard'), getattr(f, 'recommendation_reason', None),
+            json.dumps(getattr(f, 'source_urls', [])),
+            getattr(f, 'verified_at', f.last_verified_date),
+            getattr(f, 'verification_status', 'verified'),
+            json.dumps(getattr(f, 'departments', [])),
+            json.dumps(getattr(f, 'schemes_detail', [])),
+            json.dumps(getattr(f, 'tariff_detail', None)) if getattr(f, 'tariff_detail', None) else None
         ))
 
     # Populate Schemes (Upsert to ensure all pan-India and state schemes are loaded)
@@ -300,13 +332,20 @@ def get_all_facilities() -> List[Facility]:
                 recommendation_reason=r["recommendation_reason"] if "recommendation_reason" in col_names else None,
                 phone=r["phone"],
                 website=r["website"],
+                website_url=r["website"],
                 rating=r["rating"],
                 verified_treatments=json.loads(r["verified_treatments"] or "[]"),
                 empanelled_schemes=json.loads(r["empanelled_schemes"] or "[]"),
                 room_types=json.loads(r["room_types"] or "{}"),
                 last_verified_date=r["last_verified_date"],
                 pricing_status=r["pricing_status"],
-                price_confidence=r["price_confidence"]
+                price_confidence=r["price_confidence"],
+                source_urls=json.loads(r["source_urls"] or "[]") if "source_urls" in col_names and r["source_urls"] else [],
+                verified_at=r["verified_at"] if "verified_at" in col_names and r["verified_at"] else r["last_verified_date"],
+                verification_status=r["verification_status"] if "verification_status" in col_names and r["verification_status"] else "verified",
+                departments=json.loads(r["departments"] or "[]") if "departments" in col_names and r["departments"] else [],
+                schemes_detail=json.loads(r["schemes_detail"] or "[]") if "schemes_detail" in col_names and r["schemes_detail"] else [],
+                tariff_detail=json.loads(r["tariff_detail"]) if "tariff_detail" in col_names and r["tariff_detail"] else None
             ))
         conn.close()
         return facilities
@@ -339,13 +378,20 @@ def get_facility_by_id(facility_id: str) -> Optional[Facility]:
             recommendation_reason=r["recommendation_reason"] if "recommendation_reason" in col_names else None,
             phone=r["phone"],
             website=r["website"],
+            website_url=r["website"],
             rating=r["rating"],
             verified_treatments=json.loads(r["verified_treatments"] or "[]"),
             empanelled_schemes=json.loads(r["empanelled_schemes"] or "[]"),
             room_types=json.loads(r["room_types"] or "{}"),
             last_verified_date=r["last_verified_date"],
             pricing_status=r["pricing_status"],
-            price_confidence=r["price_confidence"]
+            price_confidence=r["price_confidence"],
+            source_urls=json.loads(r["source_urls"] or "[]") if "source_urls" in col_names and r["source_urls"] else [],
+            verified_at=r["verified_at"] if "verified_at" in col_names and r["verified_at"] else r["last_verified_date"],
+            verification_status=r["verification_status"] if "verification_status" in col_names and r["verification_status"] else "verified",
+            departments=json.loads(r["departments"] or "[]") if "departments" in col_names and r["departments"] else [],
+            schemes_detail=json.loads(r["schemes_detail"] or "[]") if "schemes_detail" in col_names and r["schemes_detail"] else [],
+            tariff_detail=json.loads(r["tariff_detail"]) if "tariff_detail" in col_names and r["tariff_detail"] else None
         )
     except Exception as e:
         logger.warning(f"Database query failed in get_facility_by_id({facility_id}): {e}. Falling back to seed facilities.")

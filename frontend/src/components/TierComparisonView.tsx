@@ -66,7 +66,7 @@ export const TierComparisonView: React.FC<TierComparisonViewProps> = ({
 
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
         gap: '20px'
       }}>
         {tierComparisons.map((tier, idx) => {
@@ -133,10 +133,22 @@ export const TierComparisonView: React.FC<TierComparisonViewProps> = ({
                     {tier.price_type || 'Reference Estimate'}
                   </span>
                 </div>
-                <div style={{ fontSize: '1.45rem', fontWeight: 800, color: 'var(--color-navy)' }}>
-                  <AnimatedRupeeCounter value={tier.min_price} freeSubsidizedText="₹0 (Govt Subsidized)" />
-                  {" "}—{" "}
-                  <AnimatedRupeeCounter value={tier.max_price} />
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'baseline',
+                  flexWrap: 'wrap',
+                  gap: '6px 10px',
+                  fontSize: 'clamp(1.25rem, 2vw, 1.75rem)',
+                  fontWeight: 800,
+                  color: 'var(--color-navy)'
+                }}>
+                  <span style={{ whiteSpace: 'nowrap' }}>
+                    <AnimatedRupeeCounter value={tier.min_price} freeSubsidizedText="₹0 (Govt Subsidized)" />
+                  </span>
+                  <span style={{ whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'baseline', gap: '6px' }}>
+                    <span>—</span>
+                    <AnimatedRupeeCounter value={tier.max_price} />
+                  </span>
                 </div>
               </div>
 

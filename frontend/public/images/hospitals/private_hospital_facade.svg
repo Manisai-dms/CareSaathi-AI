@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
+  <!-- CareSaathi Verified Hospital Vector Illustration: Private Multi-Specialty Hospital -->
+  <!-- License: Creative Commons Zero (CC0) Public Domain / Neutral Informational Vector -->
+  <defs>
+    <linearGradient id="skyBlue" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#EFF6FF" />
+      <stop offset="100%" stop-color="#DBEAFE" />
+    </linearGradient>
+    <linearGradient id="bldgMainBlue" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#1D4ED8" />
+      <stop offset="50%" stop-color="#1E40AF" />
+      <stop offset="100%" stop-color="#2563EB" />
+    </linearGradient>
+    <linearGradient id="bldgWingBlue" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#3B82F6" />
+      <stop offset="100%" stop-color="#1D4ED8" />
+    </linearGradient>
+    <linearGradient id="glassBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#BFDBFE" stop-opacity="0.9" />
+      <stop offset="100%" stop-color="#93C5FD" stop-opacity="0.6" />
+    </linearGradient>
+    <filter id="softShadowBlue" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#1E3A8A" flood-opacity="0.15" />
+    </filter>
+  </defs>
+
+  <rect width="100%" height="100%" fill="url(#skyBlue)" />
+
+  <path d="M 0 350 L 60 330 L 120 330 L 150 350 L 220 320 L 290 320 L 330 350 L 650 350 L 720 330 L 800 350 L 800 450 L 0 450 Z" fill="#BFDBFE" opacity="0.35" />
+
+  <g filter="url(#softShadowBlue)">
+    <rect x="140" y="160" width="160" height="190" rx="4" fill="url(#bldgWingBlue)" />
+    <rect x="270" y="100" width="260" height="250" rx="6" fill="url(#bldgMainBlue)" />
+    <rect x="500" y="160" width="160" height="190" rx="4" fill="url(#bldgWingBlue)" />
+  </g>
+
+  <path d="M 330 310 L 470 310 L 490 350 L 310 350 Z" fill="#1E3A8A" />
+  <rect x="350" y="325" width="100" height="25" rx="3" fill="#EFF6FF" />
+  <text x="400" y="342" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="800" fill="#1D4ED8" letter-spacing="1">MULTI-SPECIALTY</text>
+
+  <circle cx="400" cy="145" r="26" fill="#EFF6FF" />
+  <rect x="393" y="129" width="14" height="32" rx="3" fill="#2563EB" />
+  <rect x="384" y="138" width="32" height="14" rx="3" fill="#2563EB" />
+
+  <g fill="url(#glassBlue)">
+    <rect x="300" y="185" width="36" height="24" rx="2" />
+    <rect x="352" y="185" width="36" height="24" rx="2" />
+    <rect x="412" y="185" width="36" height="24" rx="2" />
+    <rect x="464" y="185" width="36" height="24" rx="2" />
+    <rect x="300" y="225" width="36" height="24" rx="2" />
+    <rect x="352" y="225" width="36" height="24" rx="2" />
+    <rect x="412" y="225" width="36" height="24" rx="2" />
+    <rect x="464" y="225" width="36" height="24" rx="2" />
+    <rect x="300" y="265" width="36" height="24" rx="2" />
+    <rect x="352" y="265" width="36" height="24" rx="2" />
+    <rect x="412" y="265" width="36" height="24" rx="2" />
+    <rect x="464" y="265" width="36" height="24" rx="2" />
+  </g>
+
+  <g fill="url(#glassBlue)">
+    <rect x="160" y="185" width="30" height="20" rx="2" />
+    <rect x="205" y="185" width="30" height="20" rx="2" />
+    <rect x="250" y="185" width="30" height="20" rx="2" />
+    <rect x="160" y="225" width="30" height="20" rx="2" />
+    <rect x="205" y="225" width="30" height="20" rx="2" />
+    <rect x="250" y="225" width="30" height="20" rx="2" />
+    <rect x="160" y="265" width="30" height="20" rx="2" />
+    <rect x="205" y="265" width="30" height="20" rx="2" />
+    <rect x="250" y="265" width="30" height="20" rx="2" />
+  </g>
+
+  <g fill="url(#glassBlue)">
+    <rect x="520" y="185" width="30" height="20" rx="2" />
+    <rect x="565" y="185" width="30" height="20" rx="2" />
+    <rect x="610" y="185" width="30" height="20" rx="2" />
+    <rect x="520" y="225" width="30" height="20" rx="2" />
+    <rect x="565" y="225" width="30" height="20" rx="2" />
+    <rect x="610" y="225" width="30" height="20" rx="2" />
+    <rect x="520" y="265" width="30" height="20" rx="2" />
+    <rect x="565" y="265" width="30" height="20" rx="2" />
+    <rect x="610" y="265" width="30" height="20" rx="2" />
+  </g>
+
+  <rect x="0" y="350" width="800" height="100" fill="#1E40AF" />
+  <path d="M 0 380 L 800 380 L 800 450 L 0 450 Z" fill="#0F172A" />
+  <line x1="50" y1="415" x2="750" y2="415" stroke="#EFF6FF" stroke-width="4" stroke-dasharray="24 16" opacity="0.6" />
+
+  <circle cx="110" cy="345" r="28" fill="#1D4ED8" />
+  <circle cx="130" cy="350" r="20" fill="#2563EB" />
+  <circle cx="670" cy="345" r="28" fill="#1D4ED8" />
+  <circle cx="690" cy="350" r="20" fill="#2563EB" />
+
+  <g transform="translate(400, 425)" text-anchor="middle">
+    <rect x="-170" y="-14" width="340" height="24" rx="12" fill="#EFF6FF" opacity="0.95" />
+    <text y="3" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11.5" font-weight="700" fill="#1E40AF">
+      PRIVATE MULTI-SPECIALTY HOSPITAL
+    </text>
+  </g>
+</svg>

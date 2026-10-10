@@ -1,0 +1,361 @@
+/* HospitalDiscoveryPage.css - Premium layout, sticky map & responsive system */
+
+/* Safeguard parent overflow-x to ensure position: sticky operates reliably across all viewports */
+.app-main-layout {
+  overflow-x: clip !important;
+}
+
+.hospital-discovery-container {
+  width: 100%;
+  max-width: 1600px;
+  margin-inline: auto;
+  padding: 20px 24px 120px;
+  box-sizing: border-box;
+}
+
+/* Page Header Area */
+.hospital-discovery-header {
+  margin-bottom: 18px;
+}
+
+.hospital-discovery-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+/* Origin Indicator Banner */
+.hospital-origin-banner {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #F1F5F9;
+  border: 1px solid #CBD5E1;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  color: #334155;
+  margin-top: 6px;
+}
+
+.hospital-origin-banner button {
+  background: none;
+  border: none;
+  color: #0D9488;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  font-size: 0.78rem;
+}
+
+/* Sticky Filter Bar */
+.hospital-sticky-filter-bar {
+  position: sticky;
+  top: 8px;
+  z-index: 25;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(12px);
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  padding: 14px 18px;
+  margin-bottom: 22px;
+  box-shadow: 0 4px 16px rgba(18, 48, 74, 0.05);
+  transition: box-shadow 0.2s ease;
+}
+
+.filter-row-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.filter-inputs-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.filter-chip-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.filter-chip {
+  padding: 5px 11px;
+  border-radius: 20px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid #CBD5E1;
+  background-color: #FFFFFF;
+  color: #334155;
+  transition: all 0.18s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  user-select: none;
+}
+
+.filter-chip:hover {
+  border-color: #0D9488;
+  color: #0D9488;
+}
+
+.filter-chip.active {
+  background-color: #0D9488;
+  border-color: #0D9488;
+  color: #FFFFFF;
+  box-shadow: 0 2px 6px rgba(13, 148, 136, 0.25);
+}
+
+.filter-chip.active-amber {
+  background-color: #D97706;
+  border-color: #D97706;
+  color: #FFFFFF;
+}
+
+.filter-chip.active-purple {
+  background-color: #7C3AED;
+  border-color: #7C3AED;
+  color: #FFFFFF;
+}
+
+.filter-chip.active-blue {
+  background-color: #2563EB;
+  border-color: #2563EB;
+  color: #FFFFFF;
+}
+
+.filter-slider-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  color: #475569;
+  background: #F8FAF9;
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 1px solid #E2E8F0;
+}
+
+.filter-slider-wrap input[type="range"] {
+  accent-color: #0D9488;
+  cursor: pointer;
+  width: 90px;
+}
+
+/* 2-Column Split Grid (max-width: 1600px, 420px-600px right column) */
+.hospital-discovery-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(420px, 600px);
+  gap: 24px;
+  max-width: 1600px;
+  margin-inline: auto;
+  align-items: start;
+}
+
+/* Full Width for List-Only View */
+.hospital-discovery-grid.list-only-mode {
+  grid-template-columns: 1fr;
+}
+
+/* Left Column: List & Equal Height Cards */
+.hospital-cards-column {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+/* Cards fill width without blank gaps */
+.hospital-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  grid-auto-rows: 1fr;
+  gap: 20px;
+  align-items: stretch;
+}
+
+/* List-Only Full-Width mode */
+.list-only-mode .hospital-cards-grid {
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+}
+
+/* Right Column: Sticky Map & Compact Docked Card */
+.hospital-map-column {
+  position: sticky;
+  top: 16px;
+  height: calc(100vh - 32px);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 15;
+}
+
+.hospital-map-wrapper {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 4px 16px rgba(18, 48, 74, 0.08);
+}
+
+/* Docked "Selected Hospital" Summary Card Under Map */
+.hospital-selected-summary-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  padding: 12px 14px;
+  box-shadow: 0 4px 14px rgba(18, 48, 74, 0.07);
+  flex-shrink: 0;
+  animation: fadeInSummary 0.25s ease-out;
+}
+
+@keyframes fadeInSummary {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Map-Only View: Fullscreen with floating list overlay */
+.map-only-container {
+  position: relative;
+  width: 100%;
+  height: calc(100vh - 160px);
+  min-height: 600px;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid #E2E8F0;
+}
+
+.map-only-floating-list {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  bottom: 16px;
+  width: 380px;
+  max-width: 90vw;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(12px);
+  border-radius: 14px;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 6px 24px rgba(18, 48, 74, 0.15);
+  z-index: 50;
+  overflow-y: auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Responsive Under 1100px: Single Column */
+@media (max-width: 1100px) {
+  .hospital-discovery-grid {
+    grid-template-columns: 1fr !important;
+    gap: 18px;
+  }
+  .hospital-map-column {
+    position: static;
+    height: 480px;
+    margin-bottom: 16px;
+  }
+  .hospital-cards-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
+}
+
+/* Floating "Ask CareSaathi" refinement */
+button[title*="CareSaathi WhatsApp-style Assistant"] {
+  z-index: 80 !important;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+@media (max-width: 1499px) {
+  button[title*="CareSaathi WhatsApp-style Assistant"] {
+    width: 48px !important;
+    height: 48px !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    overflow: hidden !important;
+    bottom: 20px !important;
+    right: 20px !important;
+  }
+  button[title*="CareSaathi WhatsApp-style Assistant"] span {
+    display: none !important;
+  }
+  button[title*="CareSaathi WhatsApp-style Assistant"]:hover,
+  button[title*="CareSaathi WhatsApp-style Assistant"]:focus-visible {
+    width: auto !important;
+    height: auto !important;
+    padding: 12px 20px !important;
+    border-radius: 50px !important;
+  }
+  button[title*="CareSaathi WhatsApp-style Assistant"]:hover span,
+  button[title*="CareSaathi WhatsApp-style Assistant"]:focus-visible span {
+    display: inline !important;
+  }
+}
+
+/* Compare Tray Docked at Bottom */
+.hospital-compare-tray {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 95;
+  background: #FFFFFF;
+  border-top: 2px solid #0D9488;
+  box-shadow: 0 -6px 24px rgba(18, 48, 74, 0.16);
+  padding: 14px 24px;
+  animation: slideUpTray 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUpTray {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.compare-tray-inner {
+  max-width: 1500px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.compare-cards-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 4px 0;
+  flex: 1;
+}
+
+.compare-mini-card {
+  min-width: 200px;
+  max-width: 240px;
+  background: #F8FAF9;
+  border: 1px solid #CBD5E1;
+  border-radius: 10px;
+  padding: 8px 12px;
+  position: relative;
+  flex-shrink: 0;
+}

@@ -19,12 +19,26 @@ serve(async (req: Request) => {
   }
 
   try {
-    const { origins, destinations, travelMode = "DRIVE" } = await req.json();
+    let { origins, destinations, travelMode = "DRIVE" } = await req.json();
 
-    if (!origins || !destinations || origins.length === 0 || destinations.length === 0) {
-      return new Response(JSON.stringify({ error: "origins and destinations required" }), {
+    if (!origins || !destinations || !Array.isArray(origins) || !Array.isArray(destinations) || origins.length === 0 || destinations.length === 0) {
+      return new Response(JSON.stringify({ error: "origins and destinations arrays required" }), {
         status: 400,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+      });
+    }
+
+    // Safety and cost control: Cap destinations to at most 25 items per request
+    if (destinations.length > 25) {
+      destinations = destinations.slice(0, 25);
+    }
+
+    // Validate coordinates
+    const isValidCoord = (c: any) => typeof c?.lat === 'number' && typeof c?.lng === 'number' && !isNaN(c.lat) && !isNaN(c.lng);
+    if (!origins.every(isValidCoord) || !destinations.every(isValidCoord)) {
+      return new Response(JSON.stringify({ error: "Invalid numeric coordinates in origins or destinations" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
       });
     }
 

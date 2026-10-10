@@ -46,6 +46,16 @@ class Facility(BaseModel):
     image_attribution: Optional[str] = None
     image_license: Optional[str] = None
     initials: Optional[str] = None
+    website_url: Optional[str] = None
+    source_urls: List[str] = []
+    verified_at: Optional[str] = None
+    verification_status: str = "verified"  # "verified", "partial", "unverified"
+    departments: List[str] = []
+    schemes_detail: List[Dict[str, Any]] = []
+    tariff_detail: Optional[Dict[str, Any]] = None
+    specialty_match: Optional[bool] = None
+    why_this_hospital: Optional[str] = None
+    rank_score: Optional[float] = None
 
 # --- Cost Breakdown Schema ---
 class CostBreakdown(BaseModel):

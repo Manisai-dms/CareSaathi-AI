@@ -253,7 +253,8 @@ def list_facilities(
     scheme: Optional[str] = Query("All"),
     radius: Optional[float] = Query(None),
     sort: Optional[str] = Query("nearest"),
-    treatment_available_only: Optional[bool] = Query(False)
+    treatment_available_only: Optional[bool] = Query(False),
+    verified_only: Optional[bool] = Query(False)
 ):
     return search_facilities(
         user_lat=lat,
@@ -266,7 +267,8 @@ def list_facilities(
         scheme_filter=scheme,
         radius_km=radius,
         sort_by=sort or "nearest",
-        treatment_available_only=bool(treatment_available_only)
+        treatment_available_only=bool(treatment_available_only),
+        verified_only=bool(verified_only)
     )
 
 @app.get("/api/facilities/{facility_id}")
@@ -467,6 +469,52 @@ def handle_get_payment_status(order_id: str):
 @app.post("/api/action-plan/generate", response_model=PatientActionPlanResponse)
 def handle_generate_action_plan(req: PatientActionPlanRequest):
     return generate_patient_action_plan(req)
+
+# --- Google Maps & Places Proxy Endpoints ---
+from .services.google_proxy_service import (
+    compute_route_matrix, search_places_nearby, get_place_details,
+    get_place_photo_media, geocode_address
+)
+
+class RouteMatrixRequest(BaseModel):
+    origins: List[Dict[str, float]]
+    destinations: List[Dict[str, float]]
+    travelMode: Optional[str] = "DRIVE"
+
+class PlacesNearbyRequest(BaseModel):
+    lat: float
+    lng: float
+    radius: Optional[int] = 5000
+    keyword: Optional[str] = "hospital"
+
+class PlaceDetailsRequest(BaseModel):
+    place_id: str
+
+class GeocodeRequest(BaseModel):
+    address: Optional[str] = None
+    lat: Optional[float] = None
+    lng: Optional[float] = None
+    language: Optional[str] = "en"
+
+@app.post("/api/route-matrix")
+def api_route_matrix(req: RouteMatrixRequest):
+    return compute_route_matrix(req.origins, req.destinations, req.travelMode or "DRIVE")
+
+@app.post("/api/places-nearby")
+def api_places_nearby(req: PlacesNearbyRequest):
+    return search_places_nearby(req.lat, req.lng, req.radius or 5000, req.keyword or "hospital")
+
+@app.post("/api/place-details")
+def api_place_details(req: PlaceDetailsRequest):
+    return get_place_details(req.place_id)
+
+@app.get("/api/place-photo")
+def api_place_photo(photo_name: str = Query(...), max_height: Optional[int] = 600, max_width: Optional[int] = 800):
+    return get_place_photo_media(photo_name, max_height or 600, max_width or 800)
+
+@app.post("/api/geocode")
+def api_geocode(req: GeocodeRequest):
+    return geocode_address(req.address, req.lat, req.lng, req.language or "en")
 
 # Serve Frontend static build if present
 frontend_dist = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "dist"))

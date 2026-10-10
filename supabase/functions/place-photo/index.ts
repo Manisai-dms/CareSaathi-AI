@@ -8,15 +8,19 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 serve(async (req: Request) => {
   const urlObj = new URL(req.url);
   const photoName = urlObj.searchParams.get("photo_name");
-  const maxHeight = urlObj.searchParams.get("max_height") || "600";
-  const maxWidth = urlObj.searchParams.get("max_width") || "800";
+  let maxHeight = parseInt(urlObj.searchParams.get("max_height") || "600", 10);
+  let maxWidth = parseInt(urlObj.searchParams.get("max_width") || "800", 10);
 
-  if (!photoName) {
-    return new Response(JSON.stringify({ error: "photo_name parameter required" }), {
+  if (!photoName || typeof photoName !== "string" || !photoName.startsWith("places/")) {
+    return new Response(JSON.stringify({ error: "Valid places/ photo_name parameter required" }), {
       status: 400,
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
     });
   }
+
+  // Clamp dimensions for safety and cost control
+  maxHeight = Math.max(50, Math.min(1600, isNaN(maxHeight) ? 600 : maxHeight));
+  maxWidth = Math.max(50, Math.min(1600, isNaN(maxWidth) ? 800 : maxWidth));
 
   const apiKey = Deno.env.get("GOOGLE_MAPS_SERVER_KEY");
   if (!apiKey) {

@@ -38,3 +38,23 @@ export function getCostBandColor(band: CostBand): string {
       return '#EF4444'; // Coral red
   }
 }
+
+export function getFacilityTypeColor(ownership: string, facility_class?: string): string {
+  if (facility_class === 'Premium') return '#7C3AED'; // Purple
+  switch (ownership) {
+    case 'Government':
+      return '#0D9488'; // Teal
+    case 'Charitable/Trust':
+      return '#D97706'; // Amber
+    case 'Private':
+    default:
+      return '#2563EB'; // Blue
+  }
+}
+
+export function getFacilityTypeLabel(ownership: string, facility_class?: string): string {
+  if (facility_class === 'Premium') return 'Premium Quaternary';
+  if (ownership === 'Government') return 'Government Hospital';
+  if (ownership === 'Charitable/Trust') return 'Charitable / Trust';
+  return 'Private Multi-Specialty';
+}

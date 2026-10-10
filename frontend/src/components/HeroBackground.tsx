@@ -199,18 +199,18 @@ export const HeroBackground: React.FC = () => {
           left: 0,
           right: 0,
           zIndex: 2,
-          background: 'linear-gradient(90deg, rgba(255, 255, 255, 0.94) 0%, rgba(255, 255, 255, 0.88) 35%, rgba(255, 255, 255, 0.45) 55%, rgba(255, 255, 255, 0) 72%)'
+          background: 'linear-gradient(90deg, rgba(255, 255, 255, 0.94) 0%, rgba(255, 255, 255, 0.85) 35%, rgba(255, 255, 255, 0.35) 55%, rgba(255, 255, 255, 0) 72%)'
         }}
       />
 
-      {/* Soft 100px Bottom Gradient Fade into subsequent section to eliminate visible seams */}
+      {/* Soft 120px Bottom Gradient Fade into subsequent section to eliminate visible seams */}
       <div
         style={{
           position: 'absolute',
           bottom: 0,
           left: 0,
           right: 0,
-          height: '100px',
+          height: '120px',
           zIndex: 3,
           background: 'linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.80) 100%)'
         }}

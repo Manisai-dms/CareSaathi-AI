@@ -66,8 +66,8 @@ export const AnimatedRupeeCounter: React.FC<AnimatedRupeeCounterProps> = ({
       if (progress < 1) {
         animationFrameId = requestAnimationFrame(step);
       } else {
-        setDisplayValue(endVal);
-        prevValueRef.current = endVal;
+        setDisplayValue(Math.round(endVal));
+        prevValueRef.current = Math.round(endVal);
       }
     };
 
@@ -78,7 +78,7 @@ export const AnimatedRupeeCounter: React.FC<AnimatedRupeeCounterProps> = ({
     };
   }, [value, duration, prefersReducedMotion]);
 
-  const formatted = displayValue.toLocaleString('en-IN');
+  const formatted = Math.round(displayValue).toLocaleString('en-IN');
 
   return (
     <span 

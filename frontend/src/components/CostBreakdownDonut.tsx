@@ -72,12 +72,13 @@ export const CostBreakdownDonut: React.FC<CostBreakdownDonutProps> = ({
       <div style={{
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'space-around',
+        justifyContent: 'space-between',
         flexWrap: 'wrap',
-        gap: '24px'
+        gap: '32px',
+        width: '100%'
       }}>
         {/* SVG Donut Chart */}
-        <div style={{ position: 'relative', width: size, height: size }}>
+        <div style={{ position: 'relative', width: size, height: size, flexShrink: 0, margin: '0 auto' }}>
           <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
             <g transform={`rotate(-90 ${size / 2} ${size / 2})`}>
               {slices.map((slice, i) => {
@@ -156,7 +157,7 @@ export const CostBreakdownDonut: React.FC<CostBreakdownDonutProps> = ({
         </div>
 
         {/* Legend List */}
-        <div style={{ flex: '1 1 240px', maxWidth: '380px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div style={{ flex: '1 1 340px', minWidth: '280px', width: '100%', display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {slices.map((slice, i) => {
             const isHovered = hoveredIdx === i;
             return (

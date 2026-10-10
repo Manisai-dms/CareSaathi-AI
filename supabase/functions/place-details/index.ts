@@ -21,10 +21,10 @@ serve(async (req: Request) => {
   try {
     const { place_id } = await req.json();
 
-    if (!place_id) {
-      return new Response(JSON.stringify({ error: "place_id is required" }), {
+    if (!place_id || typeof place_id !== "string" || place_id.length < 5 || place_id.length > 250 || !/^[a-zA-Z0-9_\-:]+$/.test(place_id)) {
+      return new Response(JSON.stringify({ error: "Invalid or malformed place_id" }), {
         status: 400,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
       });
     }
 

@@ -1,0 +1,955 @@
+{
+  "timestamp": "2026-10-10T12:20:35.291Z",
+  "user_agent": "CareSaathiVerificationBot/1.0 (+https://caresaathi.in/verify)",
+  "rate_limit_ms": 1000,
+  "total_facilities": 55,
+  "verified_count": 54,
+  "partial_count": 0,
+  "unverified_count": 1,
+  "findings": [
+    {
+      "hospital_id": "fac_ent_koti_hyd",
+      "name": "Government ENT Hospital",
+      "website_url": "http://enthospital.telangana.gov.in",
+      "audit_result": "Network error: getaddrinfo ENOTFOUND enthospital.telangana.gov.in",
+      "stated_departments": "not stated on website",
+      "stated_schemes": "not stated on website",
+      "phone_match": "not stated on website",
+      "configured_status": "verified",
+      "manual_review_needed": "Website could not be reached via automated request; verify manually"
+    },
+    {
+      "hospital_id": "fac_fernandez_hyderguda",
+      "name": "Fernandez Hospital",
+      "website_url": "https://fernandez.foundation",
+      "http_status": 200,
+      "audit_result": "Successfully audited official domain",
+      "stated_departments": [
+        "ENT"
+      ],
+      "stated_schemes": [
+        "ESI"
+      ],
+      "stated_phone": "not stated on website",
+      "stated_address": "Confirmed locality: Hyderguda",
+      "configured_status": "verified",
+      "verification_verdict": "confirmed_active",
+      "manual_review_needed": "None"
+    },
+    {
+      "hospital_id": "fac_tx_kachiguda",
+      "name": "TX Hospitals Kachiguda",
+      "website_url": "https://txhospitals.in",
+      "http_status": 200,
+      "audit_result": "Successfully audited official domain",
+      "stated_departments": [
+        "Orthopaedics",
+        "Nephrology",
+        "Urology",
+        "ENT",
+        "Dialysis"
+      ],
+      "stated_schemes": [
+        "ESI"
+      ],
+      "stated_phone": "not stated on website",
+      "stated_address": "Confirmed locality: Kachiguda",
+      "configured_status": "verified",
+      "verification_verdict": "confirmed_active",
+      "manual_review_needed": "None"
+    },
+    {
+      "hospital_id": "fac_osmania_hyd",
+      "name": "Osmania General Hospital",
+      "website_url": "http://osmaniahospital.telangana.gov.in",
+      "audit_result": "Network error: getaddrinfo ENOTFOUND osmaniahospital.telangana.gov.in",
+      "stated_departments": "not stated on website",
+      "stated_schemes": "not stated on website",
+      "phone_match": "not stated on website",
+      "configured_status": "verified",
+      "manual_review_needed": "Website could not be reached via automated request; verify manually"
+    },
+    {
+      "hospital_id": "fac_apollo_hyderguda",
+      "name": "Apollo Hospitals Hyderguda",
+      "website_url": "https://hyderabad.apollohospitals.com",
+      "http_status": 301,
+      "audit_result": "Successfully audited official domain",
+      "stated_departments": [
+        "ENT"
+      ],
+      "stated_schemes": "not stated on website",
+      "stated_phone": "not stated on website",
+      "stated_address": "not stated on website",
+      "configured_status": "verified",
+      "verification_verdict": "confirmed_active",
+      "manual_review_needed": "Empanelment may be hosted on state Aarogyasri / PM-JAY portal rather than hospital homepage"
+    },
+    {
+      "hospital_id": "fac_care_nampally",
+      "name": "CARE Hospitals Nampally",
+      "website_url": "https://carehospitals.com",
+      "audit_result": "Network error: Request timeout",
+      "stated_departments": "not stated on website",
+      "stated_schemes": "not stated on website",
+      "phone_match": "not stated on website",
+      "configured_status": "verified",
+      "manual_review_needed": "Website could not be reached via automated request; verify manually"
+    },
+    {
+      "hospital_id": "fac_yashoda_malakpet",
+      "name": "Yashoda Hospitals Malakpet",
+      "website_url": "https://yashodahospitals.com",
+      "http_status": 301,
+      "audit_result": "Successfully audited official domain",
+      "stated_departments": [
+        "ENT"
+      ],
+      "stated_schemes": "not stated on website",
+      "stated_phone": "not stated on website",
+      "stated_address": "not stated on website",
+      "configured_status": "verified",
+      "verification_verdict": "confirmed_active",
+      "manual_review_needed": "Empanelment may be hosted on state Aarogyasri / PM-JAY portal rather than hospital homepage"
+    },
+    {
+      "hospital_id": "fac_ah_malakpet_hyd",
+      "name": "Area Hospital Malakpet",
+      "website_url": "http://tvvp.telangana.gov.in",
+      "audit_result": "Network error: getaddrinfo ENOTFOUND tvvp.telangana.gov.in",
+      "stated_departments": "not stated on website",
+      "stated_schemes": "not stated on website",
+      "phone_match": "not stated on website",
+      "configured_status": "verified",
+      "manual_review_needed": "Website could not be reached via automated request; verify manually"
+    },
+    {
+      "hospital_id": "fac_princess_durru_shehvar_hyd",
+      "name": "Princess Durru Shehvar Children's & General Hospital",
+      "website_url": "http://pdshospital.com",
+      "http_status": 301,
+      "audit_result": "Successfully audited official domain",
+      "stated_departments": [
+        "ENT"
+      ],
+      "stated_schemes": "not stated on website",
+      "stated_phone": "not stated on website",
+      "stated_address": "not stated on website",
+      "configured_status": "verified",
+      "verification_verdict": "confirmed_active",
+      "manual_review_needed": "Empanelment may be hosted on state Aarogyasri / PM-JAY portal rather than hospital homepage"
+    },
+    {
+      "hospital_id": "fac_fever_nallakunta_hyd",
+      "name": "Sir Ronald Ross Institute of Tropical & Communicable Diseases (Fever Hospital)",
+      "website_url": "http://feverhospital.telangana.gov.in",
+      "audit_result": "Network error: getaddrinfo ENOTFOUND feverhospital.telangana.gov.in",
+      "stated_departments": "not stated on website",
+      "stated_schemes": "not stated on website",
+      "phone_match": "not stated on website",
+      "configured_status": "verified",
+      "manual_review_needed": "Website could not be reached via automated request; verify manually"
+    },
+    {
+      "hospital_id": "fac_niloufer_hyd",
+      "name": "Niloufer Hospital for Women and Children",
+      "website_url": "http://nilouferhospital.telangana.gov.in",
+      "audit_result": "Network error: getaddrinfo ENOTFOUND nilouferhospital.telangana.gov.in",
+      "stated_departments": "not stated on website",
+      "stated_schemes": "not stated on website",
+      "phone_match": "not stated on website",
+      "configured_status": "verified",
+      "manual_review_needed": "Website could not be reached via automated request; verify manually"
+    },
+    {
+      "hospital_id": "fac_mnj_cancer_hyd",
+      "name": "MNJ Institute of Oncology & Regional Cancer Centre",
+      "website_url": "http://mnjiorcc.telangana.gov.in",
+      "audit_result": "Network error: getaddrinfo ENOTFOUND mnjiorcc.telangana.gov.in",
+      "stated_departments": "not stated on website",
+      "stated_schemes": "not stated on website",
+      "phone_match": "not stated on website",
+      "configured_status": "verified",
+      "manual_review_needed": "Website could not be reached via automated request; verify manually"
+    },
+    {
+      "hospital_id": "fac_gleneagles_lakdikapul",
+      "name": "Gleneagles BGS Global Hospital Lakdikapul",
+      "website_url": "https://gleneagleshospitals.co.in",
+      "http_status": 301,
+      "audit_result": "Successfully audited official domain",
+      "stated_departments": [
+        "ENT"
+      ],
+      "stated_schemes": "not stated on website",
+      "stated_phone": "not stated on website",
+      "stated_address": "not stated on website",
+      "configured_status": "verified",
+      "verification_verdict": "confirmed_active",
+      "manual_review_needed": "Empanelment may be hosted on state Aarogyasri / PM-JAY portal rather than hospital homepage"
+    },
+    {
+      "hospital_id": "fac_mahavir_masabtank_hyd",
+      "name": "Mahavir Hospital and Research Centre",
+      "website_url": "http://mahavirhospital.org",
+      "audit_result": "Network error: getaddrinfo ENOTFOUND mahavirhospital.org",
+      "stated_departments": "not stated on website",
+      "stated_schemes": "not stated on website",
+      "phone_match": "not stated on website",
+      "configured_status": "verified",
+      "manual_review_needed": "Website could not be reached via automated request; verify manually"
+    },
+    {
+      "hospital_id": "fac_gandhi_hyd",
+      "name": "Gandhi Hospital & Medical College",
+      "website_url": "http://gandhihospital.telangana.gov.in",
+      "http_status": 302,
+      "audit_result": "Successfully audited official domain",
+      "stated_departments": "not stated on website",
+      "stated_schemes": "not stated on website",
+      "stated_phone": "not stated on website",
+      "stated_address": "not stated on website",
+      "configured_status": "verified",
+      "verification_verdict": "partial_presence",
+      "manual_review_needed": "Empanelment may be hosted on state Aarogyasri / PM-JAY portal rather than hospital homepage"
+    },
+    {
+      "hospital_id": "fac_sd_eye_mehdipatnam_hyd",
+      "name": "Sarojini Devi Eye Hospital",
+      "website_url": "http://sdeyehospital.telangana.gov.in",
+      "audit_result": "Network error: getaddrinfo ENOTFOUND sdeyehospital.telangana.gov.in",
+      "stated_departments": "not stated on website",
+      "stated_schemes": "not stated on website",
+      "phone_match": "not stated on website",
+      "configured_status": "verified",
+      "manual_review_needed": "Website could not be reached via automated request; verify manually"
+    },
+    {
+      "hospital_id": "fac_care_banjara",
+      "name": "CARE Hospitals Banjara Hills",
+      "website_url": "https://carehospitals.com",
+      "audit_result": "Network error: Request timeout",
+      "stated_departments": "not stated on website",
+      "stated_schemes": "not stated on website",
+      "phone_match": "not stated on website",
+      "configured_status": "verified",
+      "manual_review_needed": "Website could not be reached via automated request; verify manually"
+    },
+    {
+      "hospital_id": "fac_virinchi_banjara",
+      "name": "Virinchi Hospitals Banjara Hills",
+      "website_url": "https://virinchihospitals.com",
+      "http_status": 200,
+      "audit_result": "Successfully audited official domain",
+      "stated_departments": [
+        "Cardiology",
+        "Orthopedics",
+        "Neurology",
+        "Nephrology",
+        "Urology",
+        "General Surgery",
+        "Gastroenterology",
+        "Pediatrics",
+        "Gynecology",
+        "Ophthalmology",
+        "Pulmonology",
+        "ENT",
+        "Emergency",
+        "Dialysis"
+      ],
+      "stated_schemes": [
+        "ESI"
+      ],
+      "stated_phone": "Confirmed on page: +91-40-46999999",
+      "stated_address": "Confirmed locality: Banjara Hills",
+      "configured_status": "verified",
+      "verification_verdict": "confirmed_active",
+      "manual_review_needed": "None"
+    },
+    {
+      "hospital_id": "fac_yashoda_somajiguda",
+      "name": "Yashoda Hospitals Somajiguda",
+      "website_url": "https://yashodahospitals.com",
+      "http_status": 301,
+      "audit_result": "Successfully audited official domain",
+      "stated_departments": [
+        "ENT"
+      ],
+      "stated_schemes": "not stated on website",
+      "stated_phone": "not stated on website",
+      "stated_address": "not stated on website",
+      "configured_status": "verified",
+      "verification_verdict": "confirmed_active",
+      "manual_review_needed": "Empanelment may be hosted on state Aarogyasri / PM-JAY portal rather than hospital homepage"
+    },
+    {
+      "hospital_id": "fac_nims_hyd",
+      "name": "Nizam's Institute of Medical Sciences (NIMS)",
+      "website_url": "https://nims.edu.in",
+      "http_status": 301,
+      "audit_result": "Successfully audited official domain",
+      "stated_departments": [
+        "ENT"
+      ],
+      "stated_schemes": "not stated on website",
+      "stated_phone": "not stated on website",
+      "stated_address": "not stated on website",
+      "configured_status": "verified",
+      "verification_verdict": "confirmed_active",
+      "manual_review_needed": "Empanelment may be hosted on state Aarogyasri / PM-JAY portal rather than hospital homepage"
+    },
+    {
+      "hospital_id": "fac_omni_kothapet",
+      "name": "OMNI Hospitals Kothapet",
+      "website_url": "https://omnihospitals.in",
+      "http_status": 200,
+      "audit_result": "Successfully audited official domain",
+      "stated_departments": [
+        "Cardiology",
+        "ENT"
+      ],
+      "stated_schemes": "not stated on website",
+      "stated_phone": "not stated on website",
+      "stated_address": "not stated on website",
+      "configured_status": "verified",
+      "verification_verdict": "confirmed_active",
+      "manual_review_needed": "Empanelment may be hosted on state Aarogyasri / PM-JAY portal rather than hospital homepage"
+    },
+    {
+      "hospital_id": "fac_kims_secunderabad",
+      "name": "KIMS Hospitals (Krishna Institute of Medical Sciences)",
+      "website_url": "https://kimshospitals.com",
+      "http_status": 301,
+      "audit_result": "Successfully audited official domain",
+      "stated_departments": [
+        "ENT"
+      ],
+      "stated_schemes": "not stated on website",
+      "stated_phone": "not stated on website",
+      "stated_address": "not stated on website",
+      "configured_status": "verified",
+      "verification_verdict": "confirmed_active",
+      "manual_review_needed": "Empanelment may be hosted on state Aarogyasri / PM-JAY portal rather than hospital homepage"
+    },
+    {
+      "hospital_id": "fac_yashoda_secunderabad",
+      "name": "Yashoda Hospitals Secunderabad",
+      "website_url": "https://yashodahospitals.com",
+      "http_status": 301,
+      "audit_result": "Successfully audited official domain",
+      "stated_departments": [
+        "ENT"
+      ],
+      "stated_schemes": "not stated on website",
+      "stated_phone": "not stated on website",
+      "stated_address": "not stated on website",
+      "configured_status": "verified",
+      "verification_verdict": "confirmed_active",
+      "manual_review_needed": "Empanelment may be hosted on state Aarogyasri / PM-JAY portal rather than hospital homepage"
+    },
+    {
+      "hospital_id": "fac_star_banjara",
+      "name": "Star Hospitals Banjara Hills",
+      "website_url": "https://starhospitals.in",
+      "http_status": 200,
+      "audit_result": "Successfully audited official domain",
+      "stated_departments": [
+        "Cardiology",
+        "Orthopedics",
+        "Joint Replacement",
+        "Neurology",
+        "Nephrology",
+        "Urology",
+        "Gastroenterology",
+        "Surgical Oncology",
+        "Medical Oncology",
+        "Radiation Oncology",
+        "Pediatrics",
+        "Obstetrics",
+        "Gynecology",
+        "Ophthalmology",
+        "Pulmonology",
+        "ENT",
+        "Radiology",
+        "Emergency",
+        "Dialysis"
+      ],
+      "stated_schemes": [
+        "ESI"
+      ],
+      "stated_phone": "not stated on website",
+      "stated_address": "Confirmed locality: Banjara Hills",
+      "configured_status": "verified",
+      "verification_verdict": "confirmed_active",
+      "manual_review_needed": "None"
+    },
+    {
+      "hospital_id": "fac_apollo_secunderabad",
+      "name": "Apollo Hospitals Secunderabad",
+      "website_url": "https://hyderabad.apollohospitals.com",
+      "http_status": 301,
+      "audit_result": "Successfully audited official domain",
+      "stated_departments": [
+        "ENT"
+      ],
+      "stated_schemes": "not stated on website",
+      "stated_phone": "not stated on website",
+      "stated_address": "not stated on website",
+      "configured_status": "verified",
+      "verification_verdict": "confirmed_active",
+      "manual_review_needed": "Empanelment may be hosted on state Aarogyasri / PM-JAY portal rather than hospital homepage"
+    },
+    {
+      "hospital_id": "fac_rotary_challa_ameerpet_hyd",
+      "name": "Rotary Challa Multi Specialty Hospital",
+      "website_url": "http://challahospitals.com",
+      "audit_result": "Network error: getaddrinfo ENOTFOUND challahospitals.com",
+      "stated_departments": "not stated on website",
+      "stated_schemes": "not stated on website",
+      "phone_match": "not stated on website",
+      "configured_status": "verified",
+      "manual_review_needed": "Website could not be reached via automated request; verify manually"
+    },
+    {
+      "hospital_id": "fac_rainbow_banjara",
+      "name": "Rainbow Children's Hospital & BirthRight",
+      "website_url": "https://rainbowhospitals.in",
+      "http_status": 301,
+      "audit_result": "Successfully audited official domain",
+      "stated_departments": [
+        "ENT"
+      ],
+      "stated_schemes": "not stated on website",
+      "stated_phone": "not stated on website",
+      "stated_address": "not stated on website",
+      "configured_status": "verified",
+      "verification_verdict": "confirmed_active",
+      "manual_review_needed": "Empanelment may be hosted on state Aarogyasri / PM-JAY portal rather than hospital homepage"
+    },
+    {
+      "hospital_id": "fac_basavatarakam_cancer",
+      "name": "Basavatarakam Indo-American Cancer Hospital & Research Institute",
+      "website_url": "https://induscancer.com",
+      "http_status": 301,
+      "audit_result": "Successfully audited official domain",
+      "stated_departments": [
+        "ENT"
+      ],
+      "stated_schemes": "not stated on website",
+      "stated_phone": "not stated on website",
+      "stated_address": "not stated on website",
+      "configured_status": "verified",
+      "verification_verdict": "confirmed_active",
+      "manual_review_needed": "Empanelment may be hosted on state Aarogyasri / PM-JAY portal rather than hospital homepage"
+    },
+    {
+      "hospital_id": "fac_lvpei_banjara",
+      "name": "L V Prasad Eye Institute (LVPEI)",
+      "website_url": "https://lvpei.org",
+      "http_status": 301,
+      "audit_result": "Successfully audited official domain",
+      "stated_departments": [
+        "ENT"
+      ],
+      "stated_schemes": "not stated on website",
+      "stated_phone": "not stated on website",
+      "stated_address": "not stated on website",
+      "configured_status": "verified",
+      "verification_verdict": "confirmed_active",
+      "manual_review_needed": "Empanelment may be hosted on state Aarogyasri / PM-JAY portal rather than hospital homepage"
+    },
+    {
+      "hospital_id": "fac_tx_uppal",
+      "name": "TX Hospitals Uppal",
+      "website_url": "https://txhospitals.in",
+      "http_status": 200,
+      "audit_result": "Successfully audited official domain",
+      "stated_departments": [
+        "Orthopaedics",
+        "Nephrology",
+        "Urology",
+        "ENT",
+        "Dialysis"
+      ],
+      "stated_schemes": [
+        "ESI"
+      ],
+      "stated_phone": "not stated on website",
+      "stated_address": "Confirmed locality: Uppal",
+      "configured_status": "verified",
+      "verification_verdict": "confirmed_active",
+      "manual_review_needed": "None"
+    },
+    {
+      "hospital_id": "fac_chest_erragadda_hyd",
+      "name": "Government General & Chest Hospital",
+      "website_url": "http://chesthospital.telangana.gov.in",
+      "audit_result": "Network error: getaddrinfo ENOTFOUND chesthospital.telangana.gov.in",
+      "stated_departments": "not stated on website",
+      "stated_schemes": "not stated on website",
+      "phone_match": "not stated on website",
+      "configured_status": "verified",
+      "manual_review_needed": "Website could not be reached via automated request; verify manually"
+    },
+    {
+      "hospital_id": "fac_apollo_jubilee",
+      "name": "Apollo Health City",
+      "website_url": "https://hyderabad.apollohospitals.com",
+      "http_status": 301,
+      "audit_result": "Successfully audited official domain",
+      "stated_departments": [
+        "ENT"
+      ],
+      "stated_schemes": "not stated on website",
+      "stated_phone": "not stated on website",
+      "stated_address": "not stated on website",
+      "configured_status": "verified",
+      "verification_verdict": "confirmed_active",
+      "manual_review_needed": "Empanelment may be hosted on state Aarogyasri / PM-JAY portal rather than hospital homepage"
+    },
+    {
+      "hospital_id": "fac_st_theresa_erragadda_hyd",
+      "name": "St. Theresa's Hospital",
+      "website_url": "http://sttheresashospital.com",
+      "http_status": 200,
+      "audit_result": "Successfully audited official domain",
+      "stated_departments": [
+        "Cardiology",
+        "Orthopedics",
+        "Orthopaedics",
+        "Neurology",
+        "Nephrology",
+        "Urology",
+        "General Surgery",
+        "Gastroenterology",
+        "Surgical Oncology",
+        "Medical Oncology",
+        "Pediatrics",
+        "Obstetrics",
+        "Gynecology",
+        "Ophthalmology",
+        "Pulmonology",
+        "ENT",
+        "Emergency",
+        "Dialysis"
+      ],
+      "stated_schemes": "not stated on website",
+      "stated_phone": "not stated on website",
+      "stated_address": "Confirmed locality: Erragadda",
+      "configured_status": "verified",
+      "verification_verdict": "confirmed_active",
+      "manual_review_needed": "Empanelment may be hosted on state Aarogyasri / PM-JAY portal rather than hospital homepage"
+    },
+    {
+      "hospital_id": "fac_esic_sanathnagar_hyd",
+      "name": "ESIC Super Speciality Hospital",
+      "website_url": "https://esic.gov.in",
+      "http_status": 200,
+      "audit_result": "Successfully audited official domain",
+      "stated_departments": [
+        "ENT",
+        "Emergency"
+      ],
+      "stated_schemes": [
+        "PM-JAY",
+        "Ayushman Bharat",
+        "ESI",
+        "ESIC"
+      ],
+      "stated_phone": "not stated on website",
+      "stated_address": "not stated on website",
+      "configured_status": "verified",
+      "verification_verdict": "confirmed_active",
+      "manual_review_needed": "None"
+    },
+    {
+      "hospital_id": "fac_prasad_nacharam",
+      "name": "Prasad Hospitals Nacharam",
+      "website_url": "https://prasadhospitals.in",
+      "http_status": 200,
+      "audit_result": "Successfully audited official domain",
+      "stated_departments": [
+        "ENT"
+      ],
+      "stated_schemes": "not stated on website",
+      "stated_phone": "not stated on website",
+      "stated_address": "not stated on website",
+      "configured_status": "verified",
+      "verification_verdict": "confirmed_active",
+      "manual_review_needed": "Empanelment may be hosted on state Aarogyasri / PM-JAY portal rather than hospital homepage"
+    },
+    {
+      "hospital_id": "fac_apex_borabanda",
+      "name": "Apex Hospital",
+      "website_url": null,
+      "verification_status": "unverified",
+      "audit_result": "No website URL published for facility",
+      "stated_departments": [],
+      "unstated_departments": "not stated on website",
+      "stated_schemes": [],
+      "unstated_schemes": "not stated on website",
+      "phone_match": "not verified via website",
+      "manual_review_needed": "Check municipal registry or physical verification for unverified facility"
+    },
+    {
+      "hospital_id": "fac_pace_hitec",
+      "name": "PACE Hospitals HITEC City",
+      "website_url": "https://pacehospital.com",
+      "http_status": 301,
+      "audit_result": "Successfully audited official domain",
+      "stated_departments": "not stated on website",
+      "stated_schemes": "not stated on website",
+      "stated_phone": "not stated on website",
+      "stated_address": "not stated on website",
+      "configured_status": "verified",
+      "verification_verdict": "partial_presence",
+      "manual_review_needed": "Empanelment may be hosted on state Aarogyasri / PM-JAY portal rather than hospital homepage"
+    },
+    {
+      "hospital_id": "fac_yashoda_hitec",
+      "name": "Yashoda Hospitals Hitec City",
+      "website_url": "https://yashodahospitals.com",
+      "http_status": 301,
+      "audit_result": "Successfully audited official domain",
+      "stated_departments": [
+        "ENT"
+      ],
+      "stated_schemes": "not stated on website",
+      "stated_phone": "not stated on website",
+      "stated_address": "not stated on website",
+      "configured_status": "verified",
+      "verification_verdict": "confirmed_active",
+      "manual_review_needed": "Empanelment may be hosted on state Aarogyasri / PM-JAY portal rather than hospital homepage"
+    },
+    {
+      "hospital_id": "fac_medicover_madhapur",
+      "name": "Medicover Hospital for Woman & Child",
+      "website_url": "https://medicoverhospitals.in",
+      "http_status": 301,
+      "audit_result": "Successfully audited official domain",
+      "stated_departments": [
+        "ENT"
+      ],
+      "stated_schemes": "not stated on website",
+      "stated_phone": "not stated on website",
+      "stated_address": "not stated on website",
+      "configured_status": "verified",
+      "verification_verdict": "confirmed_active",
+      "manual_review_needed": "Empanelment may be hosted on state Aarogyasri / PM-JAY portal rather than hospital homepage"
+    },
+    {
+      "hospital_id": "fac_medicover_hitec",
+      "name": "Medicover Hospitals HITEC City",
+      "website_url": "https://medicoverhospitals.in",
+      "http_status": 301,
+      "audit_result": "Successfully audited official domain",
+      "stated_departments": [
+        "ENT"
+      ],
+      "stated_schemes": "not stated on website",
+      "stated_phone": "not stated on website",
+      "stated_address": "not stated on website",
+      "configured_status": "verified",
+      "verification_verdict": "confirmed_active",
+      "manual_review_needed": "Empanelment may be hosted on state Aarogyasri / PM-JAY portal rather than hospital homepage"
+    },
+    {
+      "hospital_id": "fac_sunshine_gachibowli",
+      "name": "KIMS Sunshine Hospitals Gachibowli",
+      "website_url": "https://sunshinehospitals.com",
+      "audit_result": "Network error: connect ECONNREFUSED 127.0.0.1:443",
+      "stated_departments": "not stated on website",
+      "stated_schemes": "not stated on website",
+      "phone_match": "not stated on website",
+      "configured_status": "verified",
+      "manual_review_needed": "Website could not be reached via automated request; verify manually"
+    },
+    {
+      "hospital_id": "fac_aig_gachibowli",
+      "name": "AIG Hospitals (Asian Institute of Gastroenterology)",
+      "website_url": "https://aighospitals.com",
+      "http_status": 200,
+      "audit_result": "Successfully audited official domain",
+      "stated_departments": [
+        "Gastroenterology",
+        "ENT"
+      ],
+      "stated_schemes": [
+        "ESI"
+      ],
+      "stated_phone": "Confirmed on page: +91-40-42444222",
+      "stated_address": "Confirmed locality: Gachibowli",
+      "configured_status": "verified",
+      "verification_verdict": "confirmed_active",
+      "manual_review_needed": "None"
+    },
+    {
+      "hospital_id": "fac_sivananda_rehab_hyd",
+      "name": "Sivananda Rehabilitation Home Hospital",
+      "website_url": "http://sivanandarehab.org",
+      "http_status": 301,
+      "audit_result": "Successfully audited official domain",
+      "stated_departments": "not stated on website",
+      "stated_schemes": "not stated on website",
+      "stated_phone": "not stated on website",
+      "stated_address": "not stated on website",
+      "configured_status": "verified",
+      "verification_verdict": "partial_presence",
+      "manual_review_needed": "Empanelment may be hosted on state Aarogyasri / PM-JAY portal rather than hospital homepage"
+    },
+    {
+      "hospital_id": "fac_care_hitec",
+      "name": "CARE Hospitals Hitec City",
+      "website_url": "https://carehospitals.com",
+      "audit_result": "Network error: Request timeout",
+      "stated_departments": "not stated on website",
+      "stated_schemes": "not stated on website",
+      "phone_match": "not stated on website",
+      "configured_status": "verified",
+      "manual_review_needed": "Website could not be reached via automated request; verify manually"
+    },
+    {
+      "hospital_id": "fac_star_nanakramguda",
+      "name": "Star Hospitals Nanakramguda",
+      "website_url": "https://starhospitals.in",
+      "http_status": 200,
+      "audit_result": "Successfully audited official domain",
+      "stated_departments": [
+        "Cardiology",
+        "Orthopedics",
+        "Joint Replacement",
+        "Neurology",
+        "Nephrology",
+        "Urology",
+        "Gastroenterology",
+        "Surgical Oncology",
+        "Medical Oncology",
+        "Radiation Oncology",
+        "Pediatrics",
+        "Obstetrics",
+        "Gynecology",
+        "Ophthalmology",
+        "Pulmonology",
+        "ENT",
+        "Radiology",
+        "Emergency",
+        "Dialysis"
+      ],
+      "stated_schemes": [
+        "ESI"
+      ],
+      "stated_phone": "not stated on website",
+      "stated_address": "Confirmed locality: Financial District",
+      "configured_status": "verified",
+      "verification_verdict": "confirmed_active",
+      "manual_review_needed": "None"
+    },
+    {
+      "hospital_id": "fac_ankura_kukatpally",
+      "name": "Ankura Hospital for Women & Children",
+      "website_url": "https://ankurahospital.com",
+      "http_status": 301,
+      "audit_result": "Successfully audited official domain",
+      "stated_departments": [
+        "ENT"
+      ],
+      "stated_schemes": "not stated on website",
+      "stated_phone": "not stated on website",
+      "stated_address": "not stated on website",
+      "configured_status": "verified",
+      "verification_verdict": "confirmed_active",
+      "manual_review_needed": "Empanelment may be hosted on state Aarogyasri / PM-JAY portal rather than hospital homepage"
+    },
+    {
+      "hospital_id": "fac_continental_gachibowli",
+      "name": "Continental Hospitals",
+      "website_url": "https://continentalhospitals.com",
+      "http_status": 200,
+      "audit_result": "Successfully audited official domain",
+      "stated_departments": [
+        "Cardiology",
+        "Orthopedics",
+        "Joint Replacement",
+        "Neurology",
+        "Nephrology",
+        "Urology",
+        "Gastroenterology",
+        "Surgical Oncology",
+        "Medical Oncology",
+        "Radiation Oncology",
+        "Pediatrics",
+        "Obstetrics",
+        "Gynecology",
+        "Ophthalmology",
+        "Pulmonology",
+        "ENT",
+        "Radiology",
+        "Emergency",
+        "Dialysis"
+      ],
+      "stated_schemes": [
+        "ESI"
+      ],
+      "stated_phone": "Confirmed on page: +91-40-67000000",
+      "stated_address": "Confirmed locality: Gachibowli",
+      "configured_status": "verified",
+      "verification_verdict": "confirmed_active",
+      "manual_review_needed": "None"
+    },
+    {
+      "hospital_id": "fac_rainbow_kondapur",
+      "name": "Rainbow Children's Hospital Kondapur",
+      "website_url": "https://rainbowhospitals.in",
+      "http_status": 301,
+      "audit_result": "Successfully audited official domain",
+      "stated_departments": [
+        "ENT"
+      ],
+      "stated_schemes": "not stated on website",
+      "stated_phone": "not stated on website",
+      "stated_address": "not stated on website",
+      "configured_status": "verified",
+      "verification_verdict": "confirmed_active",
+      "manual_review_needed": "Empanelment may be hosted on state Aarogyasri / PM-JAY portal rather than hospital homepage"
+    },
+    {
+      "hospital_id": "fac_kims_kondapur",
+      "name": "KIMS Hospitals Kondapur",
+      "website_url": "https://kimshospitals.com",
+      "http_status": 301,
+      "audit_result": "Successfully audited official domain",
+      "stated_departments": [
+        "ENT"
+      ],
+      "stated_schemes": "not stated on website",
+      "stated_phone": "not stated on website",
+      "stated_address": "not stated on website",
+      "configured_status": "verified",
+      "verification_verdict": "confirmed_active",
+      "manual_review_needed": "Empanelment may be hosted on state Aarogyasri / PM-JAY portal rather than hospital homepage"
+    },
+    {
+      "hospital_id": "fac_dh_kondapur_hyd",
+      "name": "District Hospital Kondapur (Area Hospital)",
+      "website_url": "http://tvvp.telangana.gov.in",
+      "audit_result": "Network error: getaddrinfo ENOTFOUND tvvp.telangana.gov.in",
+      "stated_departments": "not stated on website",
+      "stated_schemes": "not stated on website",
+      "phone_match": "not stated on website",
+      "configured_status": "verified",
+      "manual_review_needed": "Website could not be reached via automated request; verify manually"
+    },
+    {
+      "hospital_id": "fac_prathima_kukatpally",
+      "name": "Prathima Hospitals Kukatpally",
+      "website_url": "https://prathimahospitals.com",
+      "http_status": 403,
+      "audit_result": "HTTP response 403",
+      "stated_departments": "not stated on website",
+      "stated_schemes": "not stated on website",
+      "manual_review_needed": "Server returned status 403; verify availability manually"
+    },
+    {
+      "hospital_id": "fac_srisri_nizampet",
+      "name": "Sri Sri Holistic Hospitals",
+      "website_url": "https://srisriholistichospitals.com",
+      "http_status": 200,
+      "audit_result": "Successfully audited official domain",
+      "stated_departments": [
+        "Cardiology",
+        "Orthopedics",
+        "Orthopaedics",
+        "Joint Replacement",
+        "Neurology",
+        "Nephrology",
+        "Urology",
+        "General Surgery",
+        "Gastroenterology",
+        "Pediatrics",
+        "Obstetrics",
+        "Gynecology",
+        "Ophthalmology",
+        "Pulmonology",
+        "ENT",
+        "Radiology",
+        "Emergency"
+      ],
+      "stated_schemes": [
+        "ESI"
+      ],
+      "stated_phone": "not stated on website",
+      "stated_address": "Confirmed locality: Nizampet",
+      "configured_status": "verified",
+      "verification_verdict": "confirmed_active",
+      "manual_review_needed": "None"
+    },
+    {
+      "hospital_id": "fac_archana_chandanagar",
+      "name": "Archana Hospitals",
+      "website_url": "https://archanahospitals.com",
+      "http_status": 200,
+      "audit_result": "Successfully audited official domain",
+      "stated_departments": [
+        "ENT",
+        "Radiology",
+        "Emergency"
+      ],
+      "stated_schemes": [
+        "ESI"
+      ],
+      "stated_phone": "not stated on website",
+      "stated_address": "not stated on website",
+      "configured_status": "verified",
+      "verification_verdict": "confirmed_active",
+      "manual_review_needed": "None"
+    },
+    {
+      "hospital_id": "fac_slg_bachupally",
+      "name": "SLG Hospitals Bachupally",
+      "website_url": "https://slghospitals.com",
+      "http_status": 200,
+      "audit_result": "Successfully audited official domain",
+      "stated_departments": [
+        "Cardiology",
+        "Orthopedics",
+        "Orthopaedics",
+        "Joint Replacement",
+        "Neurology",
+        "Nephrology",
+        "Urology",
+        "General Surgery",
+        "Pediatrics",
+        "Obstetrics",
+        "Gynecology",
+        "Pulmonology",
+        "ENT",
+        "Radiology",
+        "Emergency"
+      ],
+      "stated_schemes": [
+        "ESI"
+      ],
+      "stated_phone": "not stated on website",
+      "stated_address": "Confirmed locality: Bachupally",
+      "configured_status": "verified",
+      "verification_verdict": "confirmed_active",
+      "manual_review_needed": "None"
+    },
+    {
+      "hospital_id": "fac_citizens_nallagandla",
+      "name": "Citizens Specialty Hospital",
+      "website_url": "https://citizenshospitals.com",
+      "http_status": 301,
+      "audit_result": "Successfully audited official domain",
+      "stated_departments": [
+        "ENT"
+      ],
+      "stated_schemes": "not stated on website",
+      "stated_phone": "not stated on website",
+      "stated_address": "not stated on website",
+      "configured_status": "verified",
+      "verification_verdict": "confirmed_active",
+      "manual_review_needed": "Empanelment may be hosted on state Aarogyasri / PM-JAY portal rather than hospital homepage"
+    }
+  ]
+}

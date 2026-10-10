@@ -50,8 +50,11 @@ export const CombinedExpenseSummary: React.FC<CombinedExpenseSummaryProps> = ({
   const grandTotalMax = hospitalCostMax + diagnosticCost + medicineCostMax + followUpCost + appointmentFee;
 
   return (
-    <div 
-      className="card combined-expense-summary"
+    <motion.div 
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, ease: 'easeOut' }}
+      className="card combined-expense-summary cost-estimator-card-elevation"
       id="combined-expense-summary-panel"
       style={{
         backgroundColor: '#FFFFFF',
@@ -85,7 +88,7 @@ export const CombinedExpenseSummary: React.FC<CombinedExpenseSummaryProps> = ({
             Estimated Grand Total Range
           </div>
           <div style={{ fontSize: '1.65rem', fontWeight: 800, color: '#12304A' }}>
-            ₹{grandTotalMin.toLocaleString('en-IN')} – ₹{grandTotalMax.toLocaleString('en-IN')}
+            <AnimatedRupeeCounter value={grandTotalMin} /> – <AnimatedRupeeCounter value={grandTotalMax} />
           </div>
         </div>
       </div>
@@ -98,16 +101,19 @@ export const CombinedExpenseSummary: React.FC<CombinedExpenseSummaryProps> = ({
         marginBottom: '20px'
       }}>
         {/* Row 1: Hospital & Procedure */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: '10px 14px',
-          backgroundColor: '#F8FAF9',
-          borderRadius: '10px',
-          border: '1px solid #E2E8F0',
-          fontSize: '0.86rem'
-        }}>
+        <div 
+          className="cost-estimator-interactive-row"
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '10px 14px',
+            backgroundColor: '#F8FAF9',
+            borderRadius: '10px',
+            border: '1px solid #E2E8F0',
+            fontSize: '0.86rem'
+          }}
+        >
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <Building2 size={16} color="#2C8C83" />
             <div>
@@ -116,21 +122,24 @@ export const CombinedExpenseSummary: React.FC<CombinedExpenseSummaryProps> = ({
             </div>
           </div>
           <div style={{ fontWeight: 700, color: '#12304A' }}>
-            ₹{hospitalCostMin.toLocaleString('en-IN')} – ₹{hospitalCostMax.toLocaleString('en-IN')}
+            <AnimatedRupeeCounter value={hospitalCostMin} /> – <AnimatedRupeeCounter value={hospitalCostMax} />
           </div>
         </div>
 
         {/* Row 2: Diagnostics & Labs */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: '10px 14px',
-          backgroundColor: '#F8FAF9',
-          borderRadius: '10px',
-          border: '1px solid #E2E8F0',
-          fontSize: '0.86rem'
-        }}>
+        <div 
+          className="cost-estimator-interactive-row"
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '10px 14px',
+            backgroundColor: '#F8FAF9',
+            borderRadius: '10px',
+            border: '1px solid #E2E8F0',
+            fontSize: '0.86rem'
+          }}
+        >
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <FlaskConical size={16} color="#2C8C83" />
             <div>
@@ -139,21 +148,28 @@ export const CombinedExpenseSummary: React.FC<CombinedExpenseSummaryProps> = ({
             </div>
           </div>
           <div style={{ fontWeight: 700, color: '#12304A' }}>
-            {diagnosticCost > 0 ? `₹${diagnosticCost.toLocaleString('en-IN')}` : 'Included in Package'}
+            {diagnosticCost > 0 ? (
+              <AnimatedRupeeCounter value={diagnosticCost} />
+            ) : (
+              'Included in Package'
+            )}
           </div>
         </div>
 
         {/* Row 3: Prescribed Medicines & Consumables */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: '10px 14px',
-          backgroundColor: '#F8FAF9',
-          borderRadius: '10px',
-          border: '1px solid #E2E8F0',
-          fontSize: '0.86rem'
-        }}>
+        <div 
+          className="cost-estimator-interactive-row"
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '10px 14px',
+            backgroundColor: '#F8FAF9',
+            borderRadius: '10px',
+            border: '1px solid #E2E8F0',
+            fontSize: '0.86rem'
+          }}
+        >
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <Pill size={16} color="#2C8C83" />
             <div>
@@ -164,23 +180,30 @@ export const CombinedExpenseSummary: React.FC<CombinedExpenseSummaryProps> = ({
             </div>
           </div>
           <div style={{ fontWeight: 700, color: '#12304A' }}>
-            {medicineCostMin > 0 || medicineCostMax > 0 
-              ? `₹${medicineCostMin.toLocaleString('en-IN')} – ₹${medicineCostMax.toLocaleString('en-IN')}`
-              : '₹1,500 – ₹3,500 (Indicative)'}
+            {medicineCostMin > 0 || medicineCostMax > 0 ? (
+              <>
+                <AnimatedRupeeCounter value={medicineCostMin} /> – <AnimatedRupeeCounter value={medicineCostMax} />
+              </>
+            ) : (
+              '₹1,500 – ₹3,500 (Indicative)'
+            )}
           </div>
         </div>
 
         {/* Row 4: OPD Consultations & Registration */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: '10px 14px',
-          backgroundColor: '#F8FAF9',
-          borderRadius: '10px',
-          border: '1px solid #E2E8F0',
-          fontSize: '0.86rem'
-        }}>
+        <div 
+          className="cost-estimator-interactive-row"
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '10px 14px',
+            backgroundColor: '#F8FAF9',
+            borderRadius: '10px',
+            border: '1px solid #E2E8F0',
+            fontSize: '0.86rem'
+          }}
+        >
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <Calendar size={16} color="#2C8C83" />
             <div>
@@ -189,21 +212,24 @@ export const CombinedExpenseSummary: React.FC<CombinedExpenseSummaryProps> = ({
             </div>
           </div>
           <div style={{ fontWeight: 700, color: '#12304A' }}>
-            ₹{appointmentFee.toLocaleString('en-IN')}
+            <AnimatedRupeeCounter value={appointmentFee} />
           </div>
         </div>
 
         {/* Row 5: Follow-up & Rehabilitation */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: '10px 14px',
-          backgroundColor: '#F8FAF9',
-          borderRadius: '10px',
-          border: '1px solid #E2E8F0',
-          fontSize: '0.86rem'
-        }}>
+        <div 
+          className="cost-estimator-interactive-row"
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '10px 14px',
+            backgroundColor: '#F8FAF9',
+            borderRadius: '10px',
+            border: '1px solid #E2E8F0',
+            fontSize: '0.86rem'
+          }}
+        >
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <Clock size={16} color="#2C8C83" />
             <div>
@@ -212,7 +238,7 @@ export const CombinedExpenseSummary: React.FC<CombinedExpenseSummaryProps> = ({
             </div>
           </div>
           <div style={{ fontWeight: 700, color: '#12304A' }}>
-            ₹{followUpCost.toLocaleString('en-IN')}
+            <AnimatedRupeeCounter value={followUpCost} />
           </div>
         </div>
       </div>
@@ -237,15 +263,21 @@ export const CombinedExpenseSummary: React.FC<CombinedExpenseSummaryProps> = ({
       </div>
 
       {/* Potential Government Scheme / Insurance Callout (SHOWN SEPARATELY WITHOUT GUARANTEE) */}
-      <div style={{
-        backgroundColor: '#ECFDF5',
-        border: '1px solid #A7F3D0',
-        borderRadius: '12px',
-        padding: '14px 16px',
-        display: 'flex',
-        alignItems: 'flex-start',
-        gap: '12px'
-      }}>
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.98 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.25, duration: 0.4 }}
+        className="scheme-benefit-card-reveal"
+        style={{
+          backgroundColor: '#ECFDF5',
+          border: '1px solid #A7F3D0',
+          borderRadius: '12px',
+          padding: '14px 16px',
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: '12px'
+        }}
+      >
         <ShieldCheck size={20} color="#059669" style={{ flexShrink: 0, marginTop: '2px' }} />
         <div style={{ fontSize: '0.82rem', color: '#065F46', lineHeight: 1.5 }}>
           <strong>Potential Government Scheme / Insurance Assistance:</strong>
@@ -256,7 +288,7 @@ export const CombinedExpenseSummary: React.FC<CombinedExpenseSummaryProps> = ({
             *Note: Scheme benefits are subject to mandatory Aarogya Mitra pre-authorization, valid ration card / PM-JAY card, and empanelled bed availability. These figures are NOT deducted from the bill above until formally approved by the empanelled hospital.
           </em>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };

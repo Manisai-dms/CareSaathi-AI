@@ -55,12 +55,31 @@ interface FeatureAnchor {
   sub: string;
   color: string;
   pillIdx: number;
+  slot: 'top-left' | 'bottom-left' | 'right';
 }
 
 const FEATURE_ANCHORS: FeatureAnchor[] = [
-  { title: 'Cost estimates', sub: 'Statutory & Private tariffs', color: '#1F7A70', pillIdx: 2 },
-  { title: 'Empanelled hospitals', sub: '28 Facilities mapped', color: '#246BB5', pillIdx: 6 },
-  { title: 'Scheme guidance', sub: 'PM-JAY & Aarogyasri coverage', color: '#D95338', pillIdx: 10 }
+  { 
+    title: 'Cost estimates', 
+    sub: 'Statutory & Private tariffs', 
+    color: '#1F7A70', 
+    pillIdx: 2,
+    slot: 'top-left'
+  },
+  { 
+    title: 'Empanelled hospitals', 
+    sub: 'Empanelled network mapped', 
+    color: '#246BB5', 
+    pillIdx: 6,
+    slot: 'bottom-left'
+  },
+  { 
+    title: 'Scheme guidance', 
+    sub: 'PM-JAY & Aarogyasri coverage', 
+    color: '#D95338', 
+    pillIdx: 10,
+    slot: 'right'
+  }
 ];
 
 export const LivingHeart3D: React.FC<LivingHeart3DProps> = ({
@@ -294,9 +313,9 @@ export const LivingHeart3D: React.FC<LivingHeart3DProps> = ({
       { radius: 2.05, tiltX: 0.30, tiltZ: 0.12, speed: 0.24 },
       { radius: 2.75, tiltX: -0.36, tiltZ: -0.18, speed: -0.17 }
     ] : [
-      { radius: 2.3, tiltX: 0.35, tiltZ: 0.15, speed: 0.32 },
-      { radius: 3.1, tiltX: -0.45, tiltZ: -0.25, speed: -0.22 },
-      { radius: 3.9, tiltX: 0.22, tiltZ: -0.38, speed: 0.16 }
+      { radius: 2.2, tiltX: 0.35, tiltZ: 0.15, speed: 0.30 },
+      { radius: 2.82, tiltX: -0.42, tiltZ: -0.22, speed: -0.20 },
+      { radius: 3.42, tiltX: 0.20, tiltZ: -0.32, speed: 0.15 } // Clamped from 3.9 to prevent edge clipping
     ];
 
     // Optional faint orbit trail lines
@@ -885,10 +904,10 @@ export const LivingHeart3D: React.FC<LivingHeart3DProps> = ({
         aria-hidden="true"
       />
 
-      {/* Desktop HTML Leader Line Captions (purely decorative, hero only) */}
+      {/* Desktop HTML Leader Line Captions (purely decorative, hero only, scoped hc-) */}
       {!compact && variant !== 'login' && (
         <div
-          className="desktop-captions-overlay"
+          className="hc-captions-overlay"
           style={{
             position: 'absolute',
             top: 0,
@@ -900,28 +919,93 @@ export const LivingHeart3D: React.FC<LivingHeart3DProps> = ({
           }}
           aria-hidden="true"
         >
-          {FEATURE_ANCHORS.map(anchor => {
-            const coords = screenCoords[anchor.pillIdx];
-            if (!coords) return null;
+          {/* Hairline SVG Leader Lines Connecting Peripheral Cards to Tablets */}
+          <svg
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              pointerEvents: 'none'
+            }}
+          >
+            {FEATURE_ANCHORS.map(anchor => {
+              const coords = screenCoords[anchor.pillIdx];
+              if (!coords) return null;
 
-            // Flip caption to left side when node is on right to avoid container edge clipping
-            const containerWidth = dimensions.width || 520;
-            const containerHeight = dimensions.height || 460;
-            const isRightSide = coords.x > containerWidth * 0.48;
-            const rawX = isRightSide ? coords.x - 175 : coords.x + 22;
-            const offsetX = Math.max(16, Math.min(rawX, containerWidth - 185));
-            const offsetY = Math.max(16, Math.min(coords.y - 18, containerHeight - 55));
+              const containerW = dimensions.width || 520;
+              const containerH = dimensions.height || 460;
+              const cardW = 168;
+
+              let anchorX = 18 + cardW;
+              let anchorY = 56 + 20;
+
+              if (anchor.slot === 'top-left') {
+                anchorX = 18 + cardW;
+                anchorY = 56 + 20;
+              } else if (anchor.slot === 'bottom-left') {
+                anchorX = 18 + cardW;
+                anchorY = (containerH - 84) + 20;
+              } else if (anchor.slot === 'right') {
+                anchorX = containerW - cardW - 18;
+                anchorY = Math.round(containerH * 0.42) + 20;
+              }
+
+              return (
+                <g key={`line-${anchor.title}`}>
+                  <line
+                    x1={anchorX}
+                    y1={anchorY}
+                    x2={coords.x}
+                    y2={coords.y}
+                    stroke={anchor.color}
+                    strokeWidth="1"
+                    strokeOpacity="0.45"
+                    strokeDasharray="3 3"
+                  />
+                  <circle
+                    cx={coords.x}
+                    cy={coords.y}
+                    r="2.5"
+                    fill={anchor.color}
+                    fillOpacity="0.85"
+                  />
+                </g>
+              );
+            })}
+          </svg>
+
+          {/* Peripheral Caption Cards Placed in Clear Margins (never over heart body) */}
+          {FEATURE_ANCHORS.map((anchor, idx) => {
+            const containerW = dimensions.width || 520;
+            const containerH = dimensions.height || 460;
+            const cardW = 168;
+
+            let cardLeft: string | number = '18px';
+            let cardTop: string | number = '56px';
+
+            if (anchor.slot === 'top-left') {
+              cardLeft = '18px';
+              cardTop = '56px';
+            } else if (anchor.slot === 'bottom-left') {
+              cardLeft = '18px';
+              cardTop = `${containerH - 84}px`;
+            } else if (anchor.slot === 'right') {
+              cardLeft = `${containerW - cardW - 18}px`;
+              cardTop = `${Math.round(containerH * 0.42)}px`;
+            }
 
             return (
               <div
                 key={anchor.title}
+                className="hc-caption-card"
                 style={{
                   position: 'absolute',
-                  left: `${offsetX}px`,
-                  top: `${offsetY}px`,
-                  transition: 'transform 0.15s ease-out, opacity 0.2s ease',
-                  opacity: 0.94,
-                  maxWidth: '175px'
+                  left: cardLeft,
+                  top: cardTop,
+                  width: `${cardW}px`,
+                  animationDelay: `${idx * 120 + 900}ms`
                 }}
               >
                 <div
@@ -931,14 +1015,14 @@ export const LivingHeart3D: React.FC<LivingHeart3DProps> = ({
                     border: `1px solid ${anchor.color}35`,
                     borderLeft: `3px solid ${anchor.color}`,
                     borderRadius: '6px',
-                    padding: '5px 10px',
+                    padding: '6px 10px',
                     boxShadow: '0 4px 12px rgba(16, 42, 54, 0.06)'
                   }}
                 >
-                  <div style={{ fontSize: '0.74rem', fontWeight: 700, color: anchor.color, lineHeight: 1.2 }}>
+                  <div style={{ fontSize: '0.74rem', fontWeight: 700, color: anchor.color, lineHeight: 1.25 }}>
                     {anchor.title}
                   </div>
-                  <div style={{ fontSize: '0.66rem', color: '#64717D', lineHeight: 1.1 }}>
+                  <div style={{ fontSize: '0.66rem', color: '#64717D', lineHeight: 1.15, marginTop: '2px' }}>
                     {anchor.sub}
                   </div>
                 </div>
@@ -948,10 +1032,36 @@ export const LivingHeart3D: React.FC<LivingHeart3DProps> = ({
         </div>
       )}
 
+      {/* Scoped CSS Styles for Hero Captions (hc-) */}
       <style>{`
+        @keyframes hcCaptionFadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(6px);
+          }
+          to {
+            opacity: 0.95;
+            transform: translateY(0);
+          }
+        }
+
+        .hc-caption-card {
+          opacity: 0;
+          animation: hcCaptionFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+          transition: transform 0.2s ease;
+        }
+
         @media (max-width: 1023px) {
-          .desktop-captions-overlay {
+          .hc-captions-overlay {
             display: none !important;
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .hc-caption-card {
+            animation: none !important;
+            opacity: 0.95 !important;
+            transform: none !important;
           }
         }
       `}</style>

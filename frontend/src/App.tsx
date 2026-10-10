@@ -50,7 +50,7 @@ const AppContent: React.FC = () => {
     if (PROTECTED_TABS.includes(path) || path === 'methodology') {
       return path;
     }
-    return 'dashboard';
+    return 'landing';
   });
 
   const pendingRedirectRef = useRef<string | null>(null);
@@ -119,7 +119,7 @@ const AppContent: React.FC = () => {
       // Signed-in users who visit / or /login or /landing go straight to the app
       // /welcome is intentionally preserved for signed-in users to experience the intro!
       if (path === '' || path === 'login' || path === 'landing') {
-        const destination = pendingRedirectRef.current || 'dashboard';
+        const destination = 'landing';
         pendingRedirectRef.current = null;
         setActiveTab(destination);
         setCurrentPath(destination);
@@ -149,9 +149,9 @@ const AppContent: React.FC = () => {
 
       if (user || token) {
         if (path === '' || path === 'login' || path === 'landing') {
-          window.history.replaceState(null, '', '/dashboard');
-          setActiveTab('dashboard');
-          setCurrentPath('dashboard');
+          window.history.replaceState(null, '', '/landing');
+          setActiveTab('landing');
+          setCurrentPath('landing');
         } else if (PROTECTED_TABS.includes(path) || path === 'methodology') {
           setActiveTab(path);
         }
@@ -184,11 +184,11 @@ const AppContent: React.FC = () => {
 
   // Successful authentication redirect to target or dashboard
   const handleAuthSuccess = () => {
-    const destination = pendingRedirectRef.current || 'dashboard';
+    const destination = 'landing';
     pendingRedirectRef.current = null;
     setActiveTab(destination);
     setCurrentPath(destination);
-    window.history.pushState(null, '', `/${destination}`);
+    window.history.replaceState(null, '', `/${destination}`);
   };
 
   const handleVoiceConfirm = (transcript: string) => {

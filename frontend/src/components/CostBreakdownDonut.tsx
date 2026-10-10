@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import { CostBreakdownDTO } from '../services/api';
 import { PieChart, Info, CheckCircle2 } from 'lucide-react';
 import { motion } from 'framer-motion';

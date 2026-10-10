@@ -103,8 +103,11 @@ export const HealthcareCostRiskAlert: React.FC<HealthcareCostRiskProps> = ({
   };
 
   return (
-    <div 
-      className="card"
+    <motion.div 
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, ease: 'easeOut' }}
+      className="card cost-estimator-card-elevation"
       id="healthcare-cost-risk-alert"
       style={{
         backgroundColor: '#FFFFFF',
@@ -135,7 +138,10 @@ export const HealthcareCostRiskAlert: React.FC<HealthcareCostRiskProps> = ({
               <span style={{ fontWeight: 700, fontSize: '0.98rem', color: '#12304A' }}>
                 Healthcare Cost Risk Analysis
               </span>
-              <span 
+              <motion.span 
+                initial={{ scale: 0.88, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.15, duration: 0.3 }}
                 style={{
                   fontSize: '0.72rem',
                   fontWeight: 700,
@@ -148,7 +154,7 @@ export const HealthcareCostRiskAlert: React.FC<HealthcareCostRiskProps> = ({
                 }}
               >
                 {riskLevel} Financial Risk
-              </span>
+              </motion.span>
             </div>
             <p style={{ margin: '2px 0 0', fontSize: '0.78rem', color: '#64717D' }}>
               Financial risk indicator based on tariffs, variance & optional patient budget.
@@ -208,17 +214,20 @@ export const HealthcareCostRiskAlert: React.FC<HealthcareCostRiskProps> = ({
             marginBottom: '16px'
           }}>
             {/* Treatment Cost Range */}
-            <div style={{
-              backgroundColor: '#FFFFFF',
-              border: '1px solid #E2E8F0',
-              borderRadius: '10px',
-              padding: '10px 12px'
-            }}>
+            <div 
+              className="cost-estimator-interactive-row"
+              style={{
+                backgroundColor: '#FFFFFF',
+                border: '1px solid #E2E8F0',
+                borderRadius: '10px',
+                padding: '10px 12px'
+              }}
+            >
               <div style={{ fontSize: '0.72rem', color: '#64717D', fontWeight: 600, textTransform: 'uppercase' }}>
                 Hospital / Procedure
               </div>
               <div style={{ fontSize: '1.05rem', fontWeight: 700, color: '#12304A', marginTop: '4px' }}>
-                ₹{minTreatmentCost.toLocaleString('en-IN')} – ₹{maxTreatmentCost.toLocaleString('en-IN')}
+                <AnimatedRupeeCounter value={minTreatmentCost} /> – <AnimatedRupeeCounter value={maxTreatmentCost} />
               </div>
               <div style={{ fontSize: '0.7rem', color: '#059669', marginTop: '2px' }}>
                 Status: {priceType}
@@ -226,17 +235,24 @@ export const HealthcareCostRiskAlert: React.FC<HealthcareCostRiskProps> = ({
             </div>
 
             {/* Medicine Cost */}
-            <div style={{
-              backgroundColor: '#FFFFFF',
-              border: '1px solid #E2E8F0',
-              borderRadius: '10px',
-              padding: '10px 12px'
-            }}>
+            <div 
+              className="cost-estimator-interactive-row"
+              style={{
+                backgroundColor: '#FFFFFF',
+                border: '1px solid #E2E8F0',
+                borderRadius: '10px',
+                padding: '10px 12px'
+              }}
+            >
               <div style={{ fontSize: '0.72rem', color: '#64717D', fontWeight: 600, textTransform: 'uppercase' }}>
                 Medicines & Consumables
               </div>
               <div style={{ fontSize: '1.05rem', fontWeight: 700, color: '#12304A', marginTop: '4px' }}>
-                {estimatedMedicineCost > 0 ? `₹${estimatedMedicineCost.toLocaleString('en-IN')}` : 'Included in Package'}
+                {estimatedMedicineCost > 0 ? (
+                  <AnimatedRupeeCounter value={estimatedMedicineCost} />
+                ) : (
+                  'Included in Package'
+                )}
               </div>
               <div style={{ fontSize: '0.7rem', color: '#64717D', marginTop: '2px' }}>
                 Source: {estimatedMedicineCost > 0 ? 'NPPA / Pharma Sahi Daam' : 'Standard Hospital Tariff'}
@@ -244,17 +260,24 @@ export const HealthcareCostRiskAlert: React.FC<HealthcareCostRiskProps> = ({
             </div>
 
             {/* Diagnostics */}
-            <div style={{
-              backgroundColor: '#FFFFFF',
-              border: '1px solid #E2E8F0',
-              borderRadius: '10px',
-              padding: '10px 12px'
-            }}>
+            <div 
+              className="cost-estimator-interactive-row"
+              style={{
+                backgroundColor: '#FFFFFF',
+                border: '1px solid #E2E8F0',
+                borderRadius: '10px',
+                padding: '10px 12px'
+              }}
+            >
               <div style={{ fontSize: '0.72rem', color: '#64717D', fontWeight: 600, textTransform: 'uppercase' }}>
                 Diagnostics & Lab
               </div>
               <div style={{ fontSize: '1.05rem', fontWeight: 700, color: '#12304A', marginTop: '4px' }}>
-                {estimatedDiagnosticCost > 0 ? `₹${estimatedDiagnosticCost.toLocaleString('en-IN')}` : 'Pre-op Included'}
+                {estimatedDiagnosticCost > 0 ? (
+                  <AnimatedRupeeCounter value={estimatedDiagnosticCost} />
+                ) : (
+                  'Pre-op Included'
+                )}
               </div>
               <div style={{ fontSize: '0.7rem', color: '#64717D', marginTop: '2px' }}>
                 Source: CGHS Diagnostic Gazette
@@ -262,17 +285,20 @@ export const HealthcareCostRiskAlert: React.FC<HealthcareCostRiskProps> = ({
             </div>
 
             {/* Potential Additional Expenses */}
-            <div style={{
-              backgroundColor: '#FFFFFF',
-              border: '1px solid #E2E8F0',
-              borderRadius: '10px',
-              padding: '10px 12px'
-            }}>
+            <div 
+              className="cost-estimator-interactive-row"
+              style={{
+                backgroundColor: '#FFFFFF',
+                border: '1px solid #E2E8F0',
+                borderRadius: '10px',
+                padding: '10px 12px'
+              }}
+            >
               <div style={{ fontSize: '0.72rem', color: '#64717D', fontWeight: 600, textTransform: 'uppercase' }}>
                 Potential Extra Buffer
               </div>
               <div style={{ fontSize: '1.05rem', fontWeight: 700, color: '#B45309', marginTop: '4px' }}>
-                ₹{(potentialAdditionalExpenses || 5000).toLocaleString('en-IN')}
+                <AnimatedRupeeCounter value={potentialAdditionalExpenses || 5000} />
               </div>
               <div style={{ fontSize: '0.7rem', color: '#64717D', marginTop: '2px' }}>
                 Post-op rehab & unplanned stay

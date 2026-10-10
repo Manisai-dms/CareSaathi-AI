@@ -189,12 +189,23 @@ export interface SchemeMatchDTO {
     full_name: string;
     authority: string;
     coverage_limit_inr: string;
+    coverage_ceiling_inr?: number;
+    income_ceiling_lakhs?: number;
+    is_cashless?: boolean;
     eligibility_summary: string;
     eligible_categories: string[];
     states: string[];
     official_portal: string;
+    official_portal_url?: string;
+    apply_url?: string;
+    eligibility_check_url?: string;
+    portal_source?: string;
+    portal_verified_at?: string;
     helpline: string;
     required_documents: string[];
+    rule_sources?: string[];
+    can_combine_with?: string[];
+    last_verified_date?: string;
   };
   match_status: string;
   status_color: string;
@@ -204,6 +215,13 @@ export interface SchemeMatchDTO {
   empanelment_status?: string;
   official_verification_url: string;
   helpline: string;
+  group?: 'likely_eligible' | 'needs_more_info' | 'does_not_match';
+  missing_criteria?: string[];
+  coverage_assessment?: string;
+  estimated_out_of_pocket?: string;
+  can_combine_note?: string;
+  why_matches?: string[];
+  state_match?: boolean;
 }
 
 export interface DetectedMedicineDetailDTO {

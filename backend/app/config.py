@@ -1,4 +1,6 @@
 import os
+from urllib.parse import urlparse
+from typing import Tuple
 
 class Settings:
     APP_NAME: str = "CareSaathi AI"
@@ -12,3 +14,90 @@ class Settings:
     CORS_ORIGINS: list[str] = ["*"]
 
 settings = Settings()
+
+# Official Government Portal Domain Allowlist & Validation
+ALLOWED_OFFICIAL_DOMAINS = [
+    # National (PM-JAY, CGHS, ESIC, PMBJP)
+    "pmjay.gov.in",
+    "beneficiary.nha.gov.in",
+    "nha.gov.in",
+    "cghs.nic.in",
+    "cghs.gov.in",
+    "esic.gov.in",
+    "janaushadhi.gov.in",
+
+    # Telangana (Aarogyasri)
+    "aarogyasri.telangana.gov.in",
+    "telangana.gov.in",
+
+    # Maharashtra (MJPJAY)
+    "jeevandayee.gov.in",
+
+    # Karnataka (AB-ArK / SAST)
+    "arogya.karnataka.gov.in",
+    "karnataka.gov.in",
+
+    # Andhra Pradesh (Dr. YSR Aarogyasri)
+    "aarogyasri.ap.gov.in",
+    "ap.gov.in",
+
+    # Gujarat (Mukhyamantri Amrutum / PMJAY Gujarat)
+    "pmjay.gujarat.gov.in",
+    "gujarat.gov.in",
+
+    # West Bengal (Swasthya Sathi)
+    "swasthyasathi.gov.in",
+    "wb.gov.in",
+
+    # Kerala (KASP / SHA)
+    "sha.kerala.gov.in",
+    "kerala.gov.in",
+
+    # Tamil Nadu (CMCHIS - statutory trust portal)
+    "cmchistn.com",
+    "www.cmchistn.com",
+    "tn.gov.in",
+
+    # Rajasthan (Chiranjeevi / MAAY)
+    "chiranjeevi.rajasthan.gov.in",
+    "rajasthan.gov.in",
+
+    # Uttar Pradesh (MMJAY / SACHIS)
+    "sachis.up.gov.in",
+    "up.gov.in",
+
+    # Delhi (DAK / DGHS)
+    "dghs.delhi.gov.in",
+    "delhi.gov.in",
+]
+
+def validate_official_portal_url(url: str) -> Tuple[bool, str]:
+    """
+    Validates that a URL:
+    1. Uses HTTPS protocol.
+    2. Host matches an official government or statutory authority domain on the allowlist.
+    Returns (is_valid, reason).
+    """
+    if not url:
+        return False, "URL is missing"
+    
+    try:
+        parsed = urlparse(url)
+        if parsed.scheme.lower() != "https":
+            return False, "Rejected: Must use secure HTTPS protocol"
+        
+        hostname = (parsed.hostname or "").lower()
+        if not hostname:
+            return False, "Rejected: Invalid hostname"
+        
+        for allowed in ALLOWED_OFFICIAL_DOMAINS:
+            if hostname == allowed or hostname.endswith("." + allowed):
+                return True, "Verified official government domain"
+        
+        # Also allow any bona fide *.gov.in or *.nic.in subdomain
+        if hostname.endswith(".gov.in") or hostname.endswith(".nic.in"):
+            return True, "Verified official Indian government domain"
+
+        return False, f"Rejected: Domain '{hostname}' is not in the official government allowlist"
+    except Exception as e:
+        return False, f"Invalid URL structure: {e}"

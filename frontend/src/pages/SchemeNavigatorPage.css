@@ -1,0 +1,208 @@
+/* ==============================================================================
+   CareSaathi AI - Scheme Navigator Page Layout Stylesheet
+   Preserves sticky left assessment questionnaire while scrolling through schemes.
+   Grid columns: minmax(340px, 440px) minmax(0, 1fr), max-width 1500px.
+   ============================================================================== */
+
+/* Ensure parent layout does not break sticky scroll context */
+.app-main-layout {
+  overflow-x: clip !important;
+}
+
+.scheme-navigator-page-root {
+  width: 100%;
+  max-width: 1500px;
+  margin-inline: auto;
+  padding: 24px clamp(16px, 2.5vw, 36px) 120px;
+  box-sizing: border-box;
+}
+
+/* Two-column layout: Form (sticky) + Results */
+.scheme-discovery-layout {
+  display: grid;
+  grid-template-columns: minmax(340px, 440px) minmax(0, 1fr);
+  gap: 28px;
+  max-width: 1500px;
+  margin-inline: auto;
+  align-items: start;
+}
+
+/* Left Column: Questionnaire Form + Results at a Glance */
+.scheme-left-column {
+  position: sticky;
+  top: 72px; /* Journey bar offset + padding */
+  max-height: calc(100vh - 88px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding-right: 4px; /* Room for subtle scrollbar */
+}
+
+/* Custom subtle scrollbar for sticky form */
+.scheme-left-column::-webkit-scrollbar {
+  width: 5px;
+}
+.scheme-left-column::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 4px;
+}
+.scheme-left-column::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Results at a glance card */
+.scheme-glance-card {
+  background-color: #FFFFFF;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 16px 18px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+.scheme-glance-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 12px;
+  margin-bottom: 14px;
+}
+
+.scheme-metric-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 6px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.scheme-metric-pill.green {
+  background-color: #ECFDF5;
+  border: 1px solid #A7F3D0;
+  color: #065F46;
+}
+
+.scheme-metric-pill.amber {
+  background-color: #FFFBEB;
+  border: 1px solid #FDE68A;
+  color: #92400E;
+}
+
+.scheme-metric-pill.gray {
+  background-color: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  color: #475569;
+}
+
+.scheme-metric-number {
+  font-size: 1.35rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.scheme-metric-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+/* Best match card */
+.scheme-best-match-box {
+  background: linear-gradient(135deg, #F0FDFA 0%, #E6F4F1 100%);
+  border: 1px solid #99F6E4;
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+
+/* Right Column Scheme Groups */
+.scheme-right-column {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+}
+
+/* Scheme Cards Grid: Equal Heights per Row */
+.scheme-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 20px;
+  align-items: stretch;
+}
+
+/* Group Header Button */
+.scheme-group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 14px 18px;
+  background-color: #FFFFFF;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  cursor: pointer;
+  margin-bottom: 14px;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.scheme-group-header:hover {
+  background-color: #F8FAFC;
+}
+
+.scheme-group-header.open {
+  border-bottom: 2px solid var(--color-teal);
+}
+
+/* Responsive Breakpoints */
+@media (max-width: 1100px) {
+  .scheme-discovery-layout {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .scheme-left-column {
+    position: static;
+    max-height: none;
+    overflow-y: visible;
+  }
+
+  .scheme-cards-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .scheme-navigator-page-root {
+    padding: 16px 14px 120px;
+  }
+
+  .scheme-glance-metrics {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+}
+
+/* Floating "Ask CareSaathi" button responsive sizing: shrink to icon-only under 1500px */
+@media (max-width: 1499px) {
+  button[title*="CareSaathi WhatsApp"] {
+    padding: 12px !important;
+    border-radius: 50% !important;
+    width: 48px !important;
+    height: 48px !important;
+    justify-content: center !important;
+  }
+  button[title*="CareSaathi WhatsApp"] span {
+    display: none !important;
+  }
+}
+
+/* Motion Preferences */
+@media (prefers-reduced-motion: reduce) {
+  .scheme-card-root,
+  .scheme-group-header {
+    transition: none !important;
+  }
+}
+

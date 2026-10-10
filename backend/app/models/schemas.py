@@ -156,6 +156,16 @@ class Scheme(BaseModel):
     required_documents: List[str] = []
     is_active: bool = True
     last_verified_date: str = "2026-03-15"
+    official_portal_url: Optional[str] = None
+    apply_url: Optional[str] = None
+    eligibility_check_url: Optional[str] = None
+    portal_source: Optional[str] = None
+    portal_verified_at: Optional[str] = "2026-03-15"
+    income_ceiling_lakhs: Optional[float] = None
+    coverage_ceiling_inr: Optional[int] = None
+    is_cashless: bool = True
+    rule_sources: List[str] = []
+    can_combine_with: List[str] = []
 
 # --- Request / Response Models ---
 class CostEstimateRequest(BaseModel):
@@ -286,6 +296,13 @@ class SchemeMatchResult(BaseModel):
     empanelment_status: Optional[str] = None
     official_verification_url: str
     helpline: str
+    group: str = "likely_eligible"  # "likely_eligible", "needs_more_info", "does_not_match"
+    missing_criteria: List[str] = []
+    coverage_assessment: Optional[str] = None  # "Fully covered", "Partly covered", "Not covered", etc.
+    estimated_out_of_pocket: Optional[str] = None
+    can_combine_note: Optional[str] = None
+    why_matches: List[str] = []
+    state_match: bool = True
 
 class FacilityCompareRequest(BaseModel):
     facility_ids: List[str]

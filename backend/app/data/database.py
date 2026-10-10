@@ -117,9 +117,36 @@ def init_db():
         helpline TEXT NOT NULL,
         required_documents TEXT,
         is_active INTEGER DEFAULT 1,
-        last_verified_date TEXT
+        last_verified_date TEXT,
+        official_portal_url TEXT,
+        apply_url TEXT,
+        eligibility_check_url TEXT,
+        portal_source TEXT,
+        portal_verified_at TEXT,
+        income_ceiling_lakhs REAL,
+        coverage_ceiling_inr INTEGER,
+        is_cashless INTEGER DEFAULT 1,
+        rule_sources TEXT,
+        can_combine_with TEXT
     )
     """)
+
+    cursor.execute("PRAGMA table_info(schemes)")
+    scheme_cols = [row[1] for row in cursor.fetchall()]
+    for col, col_type in [
+        ("official_portal_url", "TEXT"),
+        ("apply_url", "TEXT"),
+        ("eligibility_check_url", "TEXT"),
+        ("portal_source", "TEXT"),
+        ("portal_verified_at", "TEXT"),
+        ("income_ceiling_lakhs", "REAL"),
+        ("coverage_ceiling_inr", "INTEGER"),
+        ("is_cashless", "INTEGER DEFAULT 1"),
+        ("rule_sources", "TEXT"),
+        ("can_combine_with", "TEXT")
+    ]:
+        if col not in scheme_cols:
+            cursor.execute(f"ALTER TABLE schemes ADD COLUMN {col} {col_type}")
 
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS cost_observations (
@@ -229,12 +256,25 @@ def init_db():
     # Populate Schemes (Upsert to ensure all pan-India and state schemes are loaded)
     for s in SEED_SCHEMES:
         cursor.execute("""
-        INSERT OR REPLACE INTO schemes VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT OR REPLACE INTO schemes (
+            id, name, full_name, authority, coverage_limit_inr,
+            eligibility_summary, eligible_categories, states,
+            official_portal, helpline, required_documents, is_active,
+            last_verified_date, official_portal_url, apply_url,
+            eligibility_check_url, portal_source, portal_verified_at,
+            income_ceiling_lakhs, coverage_ceiling_inr, is_cashless,
+            rule_sources, can_combine_with
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             s.id, s.name, s.full_name, s.authority, s.coverage_limit_inr,
             s.eligibility_summary, json.dumps(s.eligible_categories),
             json.dumps(s.states), s.official_portal, s.helpline,
-            json.dumps(s.required_documents), 1 if s.is_active else 0, s.last_verified_date
+            json.dumps(s.required_documents), 1 if s.is_active else 0,
+            s.last_verified_date, s.official_portal_url or s.official_portal,
+            s.apply_url, s.eligibility_check_url, s.portal_source,
+            s.portal_verified_at, s.income_ceiling_lakhs, s.coverage_ceiling_inr,
+            1 if s.is_cashless else 0, json.dumps(s.rule_sources),
+            json.dumps(s.can_combine_with)
         ))
 
     # Populate Cost Observations
@@ -405,6 +445,7 @@ def get_all_schemes() -> List[Scheme]:
         rows = cursor.fetchall()
         schemes = []
         for r in rows:
+            keys = r.keys()
             schemes.append(Scheme(
                 id=r["id"],
                 name=r["name"],
@@ -418,7 +459,17 @@ def get_all_schemes() -> List[Scheme]:
                 helpline=r["helpline"],
                 required_documents=json.loads(r["required_documents"] or "[]"),
                 is_active=bool(r["is_active"]),
-                last_verified_date=r["last_verified_date"]
+                last_verified_date=r["last_verified_date"],
+                official_portal_url=r["official_portal_url"] if "official_portal_url" in keys and r["official_portal_url"] else r["official_portal"],
+                apply_url=r["apply_url"] if "apply_url" in keys else None,
+                eligibility_check_url=r["eligibility_check_url"] if "eligibility_check_url" in keys else None,
+                portal_source=r["portal_source"] if "portal_source" in keys and r["portal_source"] else r["authority"],
+                portal_verified_at=r["portal_verified_at"] if "portal_verified_at" in keys and r["portal_verified_at"] else r["last_verified_date"],
+                income_ceiling_lakhs=r["income_ceiling_lakhs"] if "income_ceiling_lakhs" in keys else None,
+                coverage_ceiling_inr=r["coverage_ceiling_inr"] if "coverage_ceiling_inr" in keys else None,
+                is_cashless=bool(r["is_cashless"]) if "is_cashless" in keys else True,
+                rule_sources=json.loads(r["rule_sources"] or "[]") if "rule_sources" in keys and r["rule_sources"] else [],
+                can_combine_with=json.loads(r["can_combine_with"] or "[]") if "can_combine_with" in keys and r["can_combine_with"] else []
             ))
         conn.close()
         return schemes

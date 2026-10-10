@@ -12,6 +12,7 @@
 import React, { useState, useEffect } from 'react';
 import { KineticHeadline } from '../components/KineticHeadline';
 import { HeroBackground } from '../components/HeroBackground';
+import { HeroVideo } from '../components/HeroVideo';
 import { 
   ArrowRight, 
   ChevronRight
@@ -448,7 +449,10 @@ export const PublicLandingPage: React.FC<PublicLandingPageProps> = ({
         }}
         className="hero-section"
       >
-        {/* Layer 1-3: Gradient Overlays and Plus Symbols */}
+        {/* Layer 1 & 2: Hero Video Layer and Fallback Image */}
+        <HeroVideo />
+
+        {/* Layer 3 & 4: Gradient Overlays and Plus Symbols */}
         <HeroBackground />
 
         <div
@@ -457,7 +461,7 @@ export const PublicLandingPage: React.FC<PublicLandingPageProps> = ({
             margin: '0 auto',
             width: '100%',
             position: 'relative',
-            zIndex: 2
+            zIndex: 10
           }}
           className="hero-inner-container"
         >

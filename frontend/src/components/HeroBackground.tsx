@@ -184,7 +184,7 @@ export const HeroBackground: React.FC = () => {
       style={{
         position: 'absolute',
         inset: 0,
-        zIndex: 0,
+        zIndex: 1,
         pointerEvents: 'none',
         overflow: 'hidden'
       }}

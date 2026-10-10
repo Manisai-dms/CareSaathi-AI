@@ -25,7 +25,7 @@ export const ItemizedComponentsTable: React.FC<ItemizedComponentsTableProps> = (
   };
 
   return (
-    <div className="card" style={{ backgroundColor: 'var(--color-white)', border: '1px solid var(--color-border)', marginBottom: '24px' }}>
+    <div className="card cost-estimator-card-elevation" style={{ backgroundColor: 'var(--color-white)', border: '1px solid var(--color-border)', marginBottom: '24px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '10px', marginBottom: '16px' }}>
         <div>
           <div className="badge badge-teal" style={{ marginBottom: '6px' }}>
@@ -55,9 +55,11 @@ export const ItemizedComponentsTable: React.FC<ItemizedComponentsTableProps> = (
             {components.map((comp, idx) => (
               <tr
                 key={idx}
+                className="cost-estimator-interactive-row"
                 style={{
                   borderBottom: '1px solid var(--color-border)',
-                  backgroundColor: !comp.is_verified ? '#fffdfa' : 'transparent'
+                  backgroundColor: !comp.is_verified ? '#fffdfa' : 'transparent',
+                  transition: 'background-color 0.15s ease'
                 }}
               >
                 <td style={{ padding: '12px', maxWidth: '260px' }}>
@@ -69,7 +71,7 @@ export const ItemizedComponentsTable: React.FC<ItemizedComponentsTableProps> = (
                   </div>
                 </td>
                 <td style={{ padding: '12px', fontWeight: 800, color: 'var(--color-navy)', whiteSpace: 'nowrap' }}>
-                  ₹{comp.min_cost.toLocaleString('en-IN')} — ₹{comp.max_cost.toLocaleString('en-IN')}
+                  <AnimatedRupeeCounter value={comp.min_cost} /> — <AnimatedRupeeCounter value={comp.max_cost} />
                 </td>
                 <td style={{ padding: '12px', maxWidth: '240px' }}>
                   <div style={{ fontWeight: 600, color: 'var(--color-navy)', fontSize: '0.8rem' }}>

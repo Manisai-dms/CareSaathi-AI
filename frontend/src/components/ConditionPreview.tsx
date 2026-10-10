@@ -72,12 +72,12 @@ export const ConditionPreview: React.FC<ConditionPreviewProps> = ({
 
   return (
     <motion.div
-      initial={{ opacity: 0, height: 0, y: 12 }}
-      animate={{ opacity: 1, height: 'auto', y: 0 }}
-      exit={{ opacity: 0, height: 0, y: -10 }}
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -8 }}
       transition={{ 
-        duration: shouldReduceMotion ? 0.05 : 0.35, 
-        ease: [0.16, 1, 0.3, 1] 
+        duration: shouldReduceMotion ? 0.05 : 0.3, 
+        ease: 'easeOut' 
       }}
       style={{ overflow: 'hidden', marginBottom: '26px' }}
       aria-live="polite"
@@ -92,13 +92,13 @@ export const ConditionPreview: React.FC<ConditionPreviewProps> = ({
           background: 'linear-gradient(180deg, #FFFFFF 0%, #FAFCFB 100%)'
         }}
       >
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="popLayout" initial={false}>
           <motion.div
             key={visual.id}
-            initial={{ opacity: 0, x: shouldReduceMotion ? 0 : 10 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: shouldReduceMotion ? 0 : -10 }}
-            transition={{ duration: shouldReduceMotion ? 0.05 : 0.25, ease: 'easeOut' }}
+            initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: shouldReduceMotion ? 0 : -8 }}
+            transition={{ duration: shouldReduceMotion ? 0.05 : 0.22, ease: 'easeOut' }}
           >
             {/* Header Tag Bar */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: '16px' }}>

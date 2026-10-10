@@ -206,7 +206,7 @@ export const CostEstimatorPage: React.FC = () => {
             <div className="form-group">
               <label className="form-label">Treatment or Diagnostic Procedure:</label>
               <select
-                className="form-select"
+                className="form-select cost-estimator-select"
                 value={selectedTreatmentId}
                 onChange={e => handleTreatmentChange(e.target.value)}
               >
@@ -224,7 +224,7 @@ export const CostEstimatorPage: React.FC = () => {
                 <label className="form-label">Hospital Name:</label>
                 <input
                   type="text"
-                  className="form-input"
+                  className="form-input cost-estimator-input"
                   placeholder="e.g. NIMS, Apollo Health City, Gandhi Hospital, Yashoda..."
                   value={hospitalName}
                   onChange={e => setHospitalName(e.target.value)}
@@ -236,9 +236,10 @@ export const CostEstimatorPage: React.FC = () => {
                       key={h}
                       type="button"
                       onClick={() => setHospitalName(h)}
+                      className="cost-estimator-quick-chip"
                       style={{
                         background: 'var(--color-light-blue)',
-                        border: 'none',
+                        border: '1px solid transparent',
                         borderRadius: 'var(--radius-sm)',
                         padding: '2px 8px',
                         fontSize: '0.75rem',
@@ -271,7 +272,7 @@ export const CostEstimatorPage: React.FC = () => {
             {workflowMode === 'location' && (
               <div className="form-group">
                 <label className="form-label">Healthcare Facility Ownership:</label>
-                <select className="form-select" value={ownershipPref} onChange={e => setOwnershipPref(e.target.value)}>
+                <select className="form-select cost-estimator-select" value={ownershipPref} onChange={e => setOwnershipPref(e.target.value)}>
                   <option value="All">All Categories (Govt, Charitable & Private)</option>
                   <option value="Government">Government Hospitals (Free / Subsidized)</option>
                   <option value="Charitable/Trust">Charitable / Trust Hospitals (Non-profit)</option>
@@ -283,17 +284,19 @@ export const CostEstimatorPage: React.FC = () => {
             {/* Ward / Room Category Preference */}
             <div className="form-group">
               <label className="form-label">Room / Ward Category:</label>
-              <select className="form-select" value={roomCategory} onChange={e => setRoomCategory(e.target.value)}>
+              <select className="form-select cost-estimator-select" value={roomCategory} onChange={e => setRoomCategory(e.target.value)}>
                 <option value="General Ward">General Ward (Standard Economy)</option>
                 <option value="Twin Sharing / Semi-Private">Twin Sharing / Semi-Private (2 Beds)</option>
                 <option value="Single Deluxe Room">Single Deluxe Private Room</option>
               </select>
             </div>
 
-            {/* Submit Button */}
-            <button
+            {/* Submit Button with Animated Micro-interactions */}
+            <motion.button
               onClick={runEstimate}
-              className="btn btn-primary"
+              whileHover={{ scale: 1.015 }}
+              whileTap={{ scale: 0.985 }}
+              className="btn btn-primary cost-estimator-calc-btn"
               style={{ width: '100%', marginTop: '8px' }}
               disabled={isLoading}
             >
@@ -308,12 +311,17 @@ export const CostEstimatorPage: React.FC = () => {
                   <span>Calculate Indicative Estimate</span>
                 </>
               )}
-            </button>
+            </motion.button>
           </div>
 
           {/* Result Card (Right) */}
           {estimateResult && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <motion.div 
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.45, ease: 'easeOut' }}
+              style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}
+            >
               {/* 1. Healthcare Cost Risk Alert Component */}
               <HealthcareCostRiskAlert
                 minTreatmentCost={estimateResult.overall_min}
@@ -328,7 +336,7 @@ export const CostEstimatorPage: React.FC = () => {
                 onBudgetChange={(b) => setBudgetLimit(b)}
               />
 
-              <div className="card" style={{
+              <div className="card cost-estimator-card-elevation" style={{
                 background: 'var(--color-white)',
                 border: '1px solid var(--color-border)',
                 boxShadow: 'var(--shadow-md)'
@@ -351,24 +359,28 @@ export const CostEstimatorPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Main Estimated Range Box */}
-                <div style={{
-                  backgroundColor: 'var(--color-warm-bg)',
-                  borderRadius: 'var(--radius-lg)',
-                  padding: '20px',
-                  border: '1px solid var(--color-border)',
-                  marginBottom: '18px'
-                }}>
-                  <div style={{ fontSize: '0.78rem', color: 'var(--color-text-grey)', textTransform: 'uppercase', fontWeight: 600 }}>
-                    Estimated Indicative Cost (INR)
-                  </div>
-                  <div style={{ fontSize: '2.2rem', fontWeight: 800, color: 'var(--color-navy)', marginTop: '4px' }}>
-                    {estimateResult.overall_min === 0 ? "₹0 (Free / Subsidized)" : `₹${estimateResult.overall_min.toLocaleString('en-IN')}`}
-                    {" "}— ₹{estimateResult.overall_max.toLocaleString('en-IN')}
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', color: 'var(--color-teal-dark)', fontWeight: 600, marginTop: '6px' }}>
-                    <CheckCircle2 size={16} />
-                    <span>Price Type: {estimateResult.price_type}</span>
+                {/* Main Estimated Range Box with Floating Rupee Accent and Animated Counter */}
+                <div className="cost-estimator-range-box" style={{ marginBottom: '18px' }}>
+                  <FloatingRupeeBackground count={4} />
+                  <div style={{ position: 'relative', zIndex: 1 }}>
+                    <div style={{ fontSize: '0.78rem', color: 'var(--color-text-grey)', textTransform: 'uppercase', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span>Estimated Indicative Cost (INR)</span>
+                      <span style={{ color: '#D6A64F', fontSize: '0.9rem' }}>✦</span>
+                    </div>
+                    <div style={{ fontSize: '2.2rem', fontWeight: 800, color: 'var(--color-navy)', marginTop: '4px' }}>
+                      <AnimatedRupeeCounter 
+                        value={estimateResult.overall_min} 
+                        freeSubsidizedText="₹0 (Free / Subsidized)"
+                      />
+                      {" "}—{" "}
+                      <AnimatedRupeeCounter 
+                        value={estimateResult.overall_max} 
+                      />
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', color: 'var(--color-teal-dark)', fontWeight: 600, marginTop: '6px' }}>
+                      <CheckCircle2 size={16} />
+                      <span>Price Type: {estimateResult.price_type}</span>
+                    </div>
                   </div>
                 </div>
 
@@ -410,31 +422,37 @@ export const CostEstimatorPage: React.FC = () => {
                 {/* Actions: Breakdown, Share & Print Summary */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', borderTop: '1px solid var(--color-border)', paddingTop: '16px' }}>
                   <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                    <button
+                    <motion.button
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.97 }}
                       onClick={() => setIsBreakdownOpen(true)}
                       className="btn btn-secondary btn-sm"
                     >
                       <DollarSign size={15} color="var(--color-teal)" />
                       <span>Inspect Components</span>
-                    </button>
+                    </motion.button>
 
-                    <button
+                    <motion.button
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.97 }}
                       onClick={() => setIsShareOpen(true)}
                       className="btn btn-secondary btn-sm"
                       style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#075E54', borderColor: '#86EFAC' }}
                     >
                       <MessageSquare size={15} color="#25D366" />
                       <span>Share via WhatsApp</span>
-                    </button>
+                    </motion.button>
 
-                    <button
+                    <motion.button
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.97 }}
                       onClick={() => setIsPrintOpen(true)}
                       className="btn btn-primary btn-sm"
                       style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
                     >
                       <Printer size={15} />
                       <span>Print / Save PDF</span>
-                    </button>
+                    </motion.button>
                   </div>
 
                   <div style={{ fontSize: '0.78rem', color: 'var(--color-text-grey)' }}>

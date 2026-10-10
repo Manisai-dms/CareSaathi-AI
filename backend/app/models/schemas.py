@@ -254,8 +254,13 @@ class PrescriptionOCRResponse(BaseModel):
     detected_medicines_detailed: List[Dict[str, Any]] = []
     uncertain_regions: List[str] = []
     is_handwritten: bool = False
-    image_quality_notes: Optional[str] = None
     visibly_extracted_lines: List[str] = []
+    # New structured multimodal OCR & matching fields
+    medicines: List[Dict[str, Any]] = []
+    doctor_name: Optional[str] = None
+    date: Optional[str] = None
+    unreadable_parts: List[str] = []
+    source: Optional[str] = "gemini_vision"
 
 class SpeechTranscribeRequest(BaseModel):
     audio_base64: Optional[str] = None

@@ -242,6 +242,40 @@ export interface DetectedMedicineDetailDTO {
   visibly_extracted_text: string;
 }
 
+export interface ExtractedMedicineAlternativeDTO {
+  medicine_id: string;
+  brand_name: string;
+  generic_name: string;
+  strength: string;
+  formulation: string;
+  mrp_branded: number;
+  jan_aushadhi_per_unit: number;
+  match_score: number;
+  generic_alternative?: string;
+}
+
+export interface ExtractedMedicineItemDTO {
+  name_as_written: string;
+  brand_name?: string | null;
+  generic_name?: string | null;
+  strength?: string | null;
+  form?: string | null;
+  dosage_pattern?: string | null;
+  duration_days?: number | null;
+  quantity?: number | null;
+  confidence: number;
+  matched_medicine_id?: string | null;
+  matched_brand_name?: string | null;
+  matched_generic_name?: string | null;
+  match_score?: number;
+  is_verified?: boolean;
+  cost_branded?: number | null;
+  cost_jan_aushadhi?: number | null;
+  generic_alternative?: string | null;
+  source?: string;
+  alternatives?: ExtractedMedicineAlternativeDTO[];
+}
+
 export interface PrescriptionOCRDTO {
   extracted_raw_text: string;
   confidence_score: number;
@@ -257,6 +291,11 @@ export interface PrescriptionOCRDTO {
   is_handwritten?: boolean;
   image_quality_notes?: string;
   visibly_extracted_lines?: string[];
+  medicines?: ExtractedMedicineItemDTO[];
+  doctor_name?: string | null;
+  date?: string | null;
+  unreadable_parts?: string[];
+  source?: string;
 }
 
 export interface SpeechTranscribeDTO {

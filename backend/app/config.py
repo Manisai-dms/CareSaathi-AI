@@ -1,6 +1,15 @@
 import os
 from urllib.parse import urlparse
 from typing import Tuple
+from pathlib import Path
+from dotenv import load_dotenv
+
+# Load root .env file if present
+root_env = Path(__file__).resolve().parent.parent.parent / ".env"
+if root_env.exists():
+    load_dotenv(dotenv_path=root_env)
+else:
+    load_dotenv()
 
 class Settings:
     APP_NAME: str = "CareSaathi AI"
@@ -8,6 +17,7 @@ class Settings:
     ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
     DATABASE_PATH: str = os.getenv("DATABASE_PATH", "caresaathi.db")
     DEMO_MODE: bool = os.getenv("DEMO_MODE", "true").lower() in ("true", "1", "yes")
+    GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY") or ""
     OVERPASS_API_URL: str = os.getenv("OVERPASS_API_URL", "https://overpass-api.de/api/interpreter")
     NOMINATIM_URL: str = os.getenv("NOMINATIM_URL", "https://nominatim.openstreetmap.org")
     USER_AGENT: str = os.getenv("USER_AGENT", "CareSaathiAI/1.0 (healthcare-navigation-hackathon)")

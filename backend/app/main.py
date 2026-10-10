@@ -27,6 +27,7 @@ from .services.cost_service import estimate_cost
 from .services.facility_service import search_facilities, get_facility_details
 from .services.scheme_service import evaluate_schemes
 from .services.ocr_service import process_prescription_ocr
+from .services.image_preprocessor import validate_prescription_file
 from .services.speech_service import transcribe_audio
 from .services.hybrid_chat_service import process_guided_chat
 from .services.action_plan_service import generate_patient_action_plan
@@ -322,16 +323,24 @@ async def ocr_prescription(
     file: Optional[UploadFile] = File(None),
     raw_text: Optional[str] = Form(None)
 ):
-    filename = file.filename if file else ""
-    req = PrescriptionOCRRequest(
+    file_bytes = None
+    filename = ""
+    if file:
+        filename = file.filename or "prescription.jpg"
+        file_bytes = await file.read()
+        valid, err = validate_prescription_file(filename, file.content_type, len(file_bytes))
+        if not valid:
+            raise HTTPException(status_code=400, detail=err)
+
+    return process_prescription_ocr(
+        file_bytes=file_bytes,
         filename=filename,
         raw_text=raw_text
     )
-    return process_prescription_ocr(req)
 
 @app.post("/api/ocr/prescription-json", response_model=PrescriptionOCRResponse)
 def ocr_prescription_json(req: PrescriptionOCRRequest):
-    return process_prescription_ocr(req)
+    return process_prescription_ocr(req=req)
 
 # --- Speech Recognition & Synthesis ---
 @app.post("/api/speech/transcribe", response_model=SpeechTranscribeResponse)

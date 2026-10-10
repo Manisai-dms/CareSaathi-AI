@@ -163,17 +163,17 @@ export const KineticHeadline: React.FC<KineticHeadlineProps> = ({
   return (
     <h1
       ref={h1Ref}
-      className={`hk-headline-root ${className}`}
+      className={`hk-headline-root ${isEntranceActive ? 'hk-entrance-running' : ''} ${className}`}
       aria-label="Understand Your Healthcare Costs. Find Care You Can Trust."
       onPointerMove={handlePointerMove}
       onPointerLeave={handlePointerLeave}
       style={{
         margin: 0,
         fontFamily: "'Newsreader', Georgia, 'Times New Roman', serif",
-        fontSize: 'clamp(2.0rem, 3.85vw, 3.65rem)',
+        fontSize: 'clamp(1.9rem, 2.85vw, 3.25rem)',
         fontWeight: 650,
-        letterSpacing: '-0.028em',
-        lineHeight: 1.15,
+        letterSpacing: '-0.025em',
+        lineHeight: 1.18,
         position: 'relative',
         display: 'block',
         ...style
@@ -226,7 +226,7 @@ export const KineticHeadline: React.FC<KineticHeadlineProps> = ({
         <div className="hk-line-mask">
           <div
             className={`hk-line-inner ${isEntranceActive ? 'hk-line-enter-3' : ''}`}
-            style={{ display: 'inline-flex', flexWrap: 'nowrap', gap: '0.28em', alignItems: 'baseline' }}
+            style={{ display: 'inline-flex', flexWrap: 'wrap', gap: '0.28em', alignItems: 'baseline' }}
             aria-hidden="true"
           >
             {/* Word: Find */}
@@ -331,9 +331,13 @@ export const KineticHeadline: React.FC<KineticHeadlineProps> = ({
 
         .hk-line-mask {
           overflow: hidden;
-          padding-bottom: 0.16em;
+          padding-bottom: 0.18em;
           margin-bottom: -0.16em;
           perspective: 600px;
+        }
+
+        .hk-headline-root:not(.hk-entrance-running) .hk-line-mask {
+          overflow: visible;
         }
 
         .hk-line-inner {

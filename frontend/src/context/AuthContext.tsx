@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { api, UserProfileDTO, SavedComparisonDTO } from '../services/api';
+import { supabase } from '../services/supabase';
 
 interface AuthContextType {
   user: UserProfileDTO | null;
@@ -27,26 +28,81 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [savedComparisons, setSavedComparisons] = useState<SavedComparisonDTO[]>([]);
 
   useEffect(() => {
+    let isMounted = true;
+
     const initializeAuth = async () => {
-      const storedToken = localStorage.getItem('caresaathi_token');
-      if (storedToken) {
+      // 1. Check if active Supabase session exists (e.g. from Google OAuth redirect)
+      if (supabase) {
         try {
-          const profile = await api.getMe(storedToken);
-          setUser(profile);
-          setToken(storedToken);
-          setIsGuest(false);
-          const comparisons = await api.getSavedComparisons(storedToken);
-          setSavedComparisons(comparisons);
-        } catch {
-          localStorage.removeItem('caresaathi_token');
-          setToken(null);
-          setUser(null);
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session?.user && isMounted) {
+            const supabaseProfile: UserProfileDTO = {
+              id: session.user.id,
+              name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User',
+              email: session.user.email || '',
+              language: session.user.user_metadata?.language || session.user.user_metadata?.preferred_language || 'en'
+            };
+            setUser(supabaseProfile);
+            setToken(session.access_token);
+            setIsGuest(false);
+            localStorage.setItem('caresaathi_token', session.access_token);
+            localStorage.removeItem('caresaathi_is_guest');
+            setIsLoading(false);
+            return;
+          }
+        } catch (e) {
+          console.warn('Error reading Supabase session:', e);
         }
       }
-      setIsLoading(false);
+
+      // 2. Fallback to stored token (FastAPI / Demo)
+      const storedToken = localStorage.getItem('caresaathi_token');
+      if (storedToken && isMounted) {
+        try {
+          const profile = await api.getMe(storedToken);
+          if (isMounted) {
+            setUser(profile);
+            setToken(storedToken);
+            setIsGuest(false);
+            const comparisons = await api.getSavedComparisons(storedToken);
+            setSavedComparisons(comparisons);
+          }
+        } catch {
+          if (isMounted) {
+            localStorage.removeItem('caresaathi_token');
+            setToken(null);
+            setUser(null);
+          }
+        }
+      }
+      if (isMounted) {
+        setIsLoading(false);
+      }
     };
 
     initializeAuth();
+
+    // 3. Listen to Supabase auth state changes (OAuth redirect completion)
+    const { data: authListener } = supabase?.auth.onAuthStateChange(async (_event, session) => {
+      if (session?.user && isMounted) {
+        const supabaseProfile: UserProfileDTO = {
+          id: session.user.id,
+          name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User',
+          email: session.user.email || '',
+          language: session.user.user_metadata?.language || session.user.user_metadata?.preferred_language || 'en'
+        };
+        setUser(supabaseProfile);
+        setToken(session.access_token);
+        setIsGuest(false);
+        localStorage.setItem('caresaathi_token', session.access_token);
+        localStorage.removeItem('caresaathi_is_guest');
+      }
+    }) || { data: null };
+
+    return () => {
+      isMounted = false;
+      authListener?.subscription?.unsubscribe();
+    };
   }, []);
 
   const login = async (email: string, password: string) => {
@@ -89,6 +145,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = () => {
+    if (supabase) {
+      supabase.auth.signOut().catch(() => {});
+    }
     setUser(null);
     setToken(null);
     setIsGuest(false);

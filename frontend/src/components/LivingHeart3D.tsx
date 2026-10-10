@@ -37,16 +37,16 @@ const checkWebGLSupport = (): boolean => {
 };
 
 // ------------------------------------------------------------------------------
-// Tablet / Pill Color Palette (Harmonious Candy Gloss, MeshPhysicalMaterial)
+// Tablet / Pill Color Palette (Soft Harmonious Pastels, MeshPhysicalMaterial)
 // ------------------------------------------------------------------------------
 const TABLET_PALETTE = [
-  { name: 'coral', hex: '#FF7A59', labelColor: '#D95338' },
-  { name: 'aqua', hex: '#2EC4B6', labelColor: '#1F7A70' },
-  { name: 'sky', hex: '#4DA8FF', labelColor: '#246BB5' },
-  { name: 'violet', hex: '#8B6CFF', labelColor: '#5E3CD6' },
-  { name: 'sunny', hex: '#FFC83D', labelColor: '#9C6F00' },
-  { name: 'mint', hex: '#7FE0B5', labelColor: '#288863' },
-  { name: 'white-pearl', hex: '#F8FAFC', labelColor: '#475569' }
+  { name: 'coral', hex: '#F6A89E', labelColor: '#C85A48' },
+  { name: 'aqua', hex: '#7DD3C7', labelColor: '#2F8F83' },
+  { name: 'sky', hex: '#93C5FD', labelColor: '#2563EB' },
+  { name: 'violet', hex: '#C4B5FD', labelColor: '#6D28D9' },
+  { name: 'sunny', hex: '#FDE68A', labelColor: '#B45309' },
+  { name: 'mint', hex: '#A7F3D0', labelColor: '#059669' },
+  { name: 'white-pearl', hex: '#F8FAFC', labelColor: '#64748B' }
 ];
 
 // Captions attached to real app features
@@ -62,21 +62,21 @@ const FEATURE_ANCHORS: FeatureAnchor[] = [
   { 
     title: 'Cost estimates', 
     sub: 'Statutory & Private tariffs', 
-    color: '#1F7A70', 
+    color: '#2F8F83', 
     pillIdx: 2,
     slot: 'top-left'
   },
   { 
     title: 'Empanelled hospitals', 
     sub: 'Empanelled network mapped', 
-    color: '#246BB5', 
+    color: '#2563EB', 
     pillIdx: 6,
     slot: 'bottom-left'
   },
   { 
     title: 'Scheme guidance', 
     sub: 'PM-JAY & Aarogyasri coverage', 
-    color: '#D95338', 
+    color: '#C85A48', 
     pillIdx: 10,
     slot: 'right'
   }
@@ -146,26 +146,26 @@ export const LivingHeart3D: React.FC<LivingHeart3DProps> = ({
     // --------------------------------------------------------------------------
     // 2. Studio Lighting Setup
     // --------------------------------------------------------------------------
-    // Key Light (Softbox cool white)
-    const keyLight = new THREE.DirectionalLight(0xF8FAFC, 1.4);
+    // Key Light (Softbox cool white, softened)
+    const keyLight = new THREE.DirectionalLight(0xF8FAFC, 1.05);
     keyLight.position.set(4, 5, 5);
     scene.add(keyLight);
 
-    // Warm Coral Bounce Light (from lower-left)
-    const bounceLight = new THREE.DirectionalLight(0xFF7A59, 0.85);
+    // Warm Peach Bounce Light (from lower-left, softened)
+    const bounceLight = new THREE.DirectionalLight(0xFED7AA, 0.45);
     bounceLight.position.set(-4, -3, 3);
     scene.add(bounceLight);
 
-    // Aqua Rim Light (from behind right)
-    const rimLight = new THREE.DirectionalLight(0x2EC4B6, 1.1);
+    // Soft Mint Rim Light (from behind right, softened)
+    const rimLight = new THREE.DirectionalLight(0xA7F3D0, 0.60);
     rimLight.position.set(3, 2, -4);
     scene.add(rimLight);
 
-    // Soft Ambient Fill
-    const ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.55);
+    // Bright Soft Ambient Fill (eliminates harsh dark shadows)
+    const ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.85);
     scene.add(ambientLight);
 
-    // Soft floor contact shadow
+    // Soft lightened floor contact shadow
     const shadowGeo = new THREE.PlaneGeometry(5.5, 5.5);
     const shadowCanvas = document.createElement('canvas');
     shadowCanvas.width = 128;
@@ -173,8 +173,8 @@ export const LivingHeart3D: React.FC<LivingHeart3DProps> = ({
     const sCtx = shadowCanvas.getContext('2d');
     if (sCtx) {
       const grad = sCtx.createRadialGradient(64, 64, 10, 64, 64, 60);
-      grad.addColorStop(0, 'rgba(16, 42, 54, 0.18)');
-      grad.addColorStop(0.5, 'rgba(16, 42, 54, 0.06)');
+      grad.addColorStop(0, 'rgba(16, 42, 54, 0.08)');
+      grad.addColorStop(0.5, 'rgba(16, 42, 54, 0.02)');
       grad.addColorStop(1, 'rgba(16, 42, 54, 0)');
       sCtx.fillStyle = grad;
       sCtx.fillRect(0, 0, 128, 128);
@@ -183,7 +183,7 @@ export const LivingHeart3D: React.FC<LivingHeart3DProps> = ({
     const shadowMat = new THREE.MeshBasicMaterial({
       map: shadowTex,
       transparent: true,
-      opacity: 0.8,
+      opacity: 0.4,
       depthWrite: false
     });
     const shadowMesh = new THREE.Mesh(shadowGeo, shadowMat);
@@ -192,7 +192,7 @@ export const LivingHeart3D: React.FC<LivingHeart3DProps> = ({
     scene.add(shadowMesh);
 
     // --------------------------------------------------------------------------
-    // 3. Centerpiece: Procedural Glossy 3D Heart Mesh
+    // 3. Centerpiece: Procedural Soft Pastel 3D Heart Mesh (#F2A0A0 to #E88B8B)
     // --------------------------------------------------------------------------
     const heartShape = new THREE.Shape();
     heartShape.moveTo(0, 0.42);
@@ -233,17 +233,17 @@ export const LivingHeart3D: React.FC<LivingHeart3DProps> = ({
     heartGeo.computeVertexNormals();
 
     const heartMat = new THREE.MeshPhysicalMaterial({
-      color: new THREE.Color('#E5384F'),
-      emissive: new THREE.Color('#991B2D'),
-      emissiveIntensity: 0.22,
-      roughness: 0.14,
-      metalness: 0.08,
-      clearcoat: 1.0,
-      clearcoatRoughness: 0.08,
-      sheen: 1.0,
-      sheenColor: new THREE.Color('#FF6B81'),
-      transmission: 0.12,
-      ior: 1.45
+      color: new THREE.Color('#F2A0A0'),
+      emissive: new THREE.Color('#E88B8B'),
+      emissiveIntensity: 0.12,
+      roughness: 0.22,
+      metalness: 0.02,
+      clearcoat: 0.55,
+      clearcoatRoughness: 0.14,
+      sheen: 0.45,
+      sheenColor: new THREE.Color('#FCE7F3'),
+      transmission: 0.08,
+      ior: 1.40
     });
 
     const heartMesh = new THREE.Mesh(heartGeo, heartMat);
@@ -254,10 +254,10 @@ export const LivingHeart3D: React.FC<LivingHeart3DProps> = ({
     heartGroup.add(heartMesh);
     scene.add(heartGroup);
 
-    // Shockwave Rings (Pulse Rings on heartbeat)
-    const ringGeo = new THREE.TorusGeometry(1.2, 0.025, 16, 64);
+    // Shockwave Rings (Soft Pastel Pulse Rings)
+    const ringGeo = new THREE.TorusGeometry(1.2, 0.022, 16, 64);
     const ringMat = new THREE.MeshBasicMaterial({
-      color: new THREE.Color('#FF6B81'),
+      color: new THREE.Color('#FBCFE8'),
       transparent: true,
       opacity: 0,
       depthWrite: false,
@@ -296,29 +296,29 @@ export const LivingHeart3D: React.FC<LivingHeart3DProps> = ({
     const capletGeo = new THREE.SphereGeometry(0.16, 16, 16);
     const beadGeo = new THREE.SphereGeometry(0.1, 16, 16);
 
-    // Pre-allocated materials for each palette color
+    // Pre-allocated materials for each palette color (Soft pastel sheen)
     const paletteMaterials = TABLET_PALETTE.map(item => {
       return new THREE.MeshPhysicalMaterial({
         color: new THREE.Color(item.hex),
-        roughness: 0.18,
-        metalness: 0.05,
-        clearcoat: 0.95,
-        clearcoatRoughness: 0.1,
-        transmission: item.name === 'white-pearl' ? 0.05 : 0.08,
-        ior: 1.4
+        roughness: 0.26,
+        metalness: 0.02,
+        clearcoat: 0.55,
+        clearcoatRoughness: 0.15,
+        transmission: item.name === 'white-pearl' ? 0.04 : 0.06,
+        ior: 1.38
       });
     });
 
     const orbitConfigs = isLogin ? [
-      { radius: 2.05, tiltX: 0.30, tiltZ: 0.12, speed: 0.24 },
-      { radius: 2.75, tiltX: -0.36, tiltZ: -0.18, speed: -0.17 }
+      { radius: 2.05, tiltX: 0.30, tiltZ: 0.12, speed: 0.18 },
+      { radius: 2.75, tiltX: -0.36, tiltZ: -0.18, speed: -0.13 }
     ] : [
-      { radius: 2.2, tiltX: 0.35, tiltZ: 0.15, speed: 0.30 },
-      { radius: 2.82, tiltX: -0.42, tiltZ: -0.22, speed: -0.20 },
-      { radius: 3.42, tiltX: 0.20, tiltZ: -0.32, speed: 0.15 } // Clamped from 3.9 to prevent edge clipping
+      { radius: 2.2, tiltX: 0.35, tiltZ: 0.15, speed: 0.22 },   // slowed ~27% from 0.30
+      { radius: 2.82, tiltX: -0.42, tiltZ: -0.22, speed: -0.15 }, // slowed 25% from -0.20
+      { radius: 3.42, tiltX: 0.20, tiltZ: -0.32, speed: 0.11 }  // slowed ~27% from 0.15
     ];
 
-    // Optional faint orbit trail lines
+    // Optional faint orbit trail lines (reduced opacity to 0.05)
     orbitConfigs.forEach(cfg => {
       const trailCurve = new THREE.EllipseCurve(
         0, 0,
@@ -332,7 +332,7 @@ export const LivingHeart3D: React.FC<LivingHeart3DProps> = ({
       const trailMat = new THREE.LineBasicMaterial({
         color: 0x438F84,
         transparent: true,
-        opacity: 0.08
+        opacity: 0.05
       });
       const trailLine = new THREE.Line(trailGeo, trailMat);
       trailLine.rotation.x = cfg.tiltX;
@@ -444,14 +444,15 @@ export const LivingHeart3D: React.FC<LivingHeart3DProps> = ({
     }
 
     const ecgCurve = new THREE.CatmullRomCurve3(ecgPoints, true);
-    const ecgTubeGeo = new THREE.TubeGeometry(ecgCurve, 120, 0.024, 8, true);
+    // Thinned slightly (0.018 vs 0.024)
+    const ecgTubeGeo = new THREE.TubeGeometry(ecgCurve, 120, 0.018, 8, true);
 
-    // Apply vertex colors (coral → violet → sky → aqua)
+    // Apply soft pastel vertex colors (coral → violet → sky → aqua)
     const ecgColors: number[] = [];
-    const colorCoral = new THREE.Color('#FF7A59');
-    const colorViolet = new THREE.Color('#8B6CFF');
-    const colorSky = new THREE.Color('#4DA8FF');
-    const colorAqua = new THREE.Color('#2EC4B6');
+    const colorCoral = new THREE.Color('#FCA5A5');
+    const colorViolet = new THREE.Color('#C4B5FD');
+    const colorSky = new THREE.Color('#93C5FD');
+    const colorAqua = new THREE.Color('#6EE7B7');
 
     const tubePos = ecgTubeGeo.attributes.position;
     for (let k = 0; k < tubePos.count; k++) {
@@ -469,20 +470,23 @@ export const LivingHeart3D: React.FC<LivingHeart3DProps> = ({
     }
     ecgTubeGeo.setAttribute('color', new THREE.Float32BufferAttribute(ecgColors, 3));
 
+    // Opacity lowered to 0.50
     const ecgMat = new THREE.MeshBasicMaterial({
       vertexColors: true,
       transparent: true,
-      opacity: 0.65
+      opacity: 0.50
     });
 
     const ecgMesh = new THREE.Mesh(ecgTubeGeo, ecgMat);
     ecgMesh.rotation.x = 0.25;
     scene.add(ecgMesh);
 
-    // Travelling bright pulse bead along the ECG line
-    const ecgBeadGeo = new THREE.SphereGeometry(0.065, 16, 16);
+    // Travelling soft pulse bead along the ECG line
+    const ecgBeadGeo = new THREE.SphereGeometry(0.046, 16, 16);
     const ecgBeadMat = new THREE.MeshBasicMaterial({
-      color: 0xFFFFFF
+      color: 0xFFFFFF,
+      transparent: true,
+      opacity: 0.85
     });
     const ecgBead = new THREE.Mesh(ecgBeadGeo, ecgBeadMat);
     scene.add(ecgBead);
@@ -569,28 +573,28 @@ export const LivingHeart3D: React.FC<LivingHeart3DProps> = ({
       camera.lookAt(0, 0, 0);
 
       if (!prefersReducedMotion) {
-        // --- HEARTBEAT "LUB-DUB" ANIMATION (~60 BPM login, ~72 BPM hero) ---
+        // --- HEARTBEAT "LUB-DUB" ANIMATION (Calm, softened pulse) ---
         const curLoginState = loginStateRef.current;
         const beatPeriod = isLogin ? 1.0 : 0.833;
         const bpmCycle = (time % beatPeriod) / beatPeriod;
         let pulseScale = 1.0;
-        let emissiveBoost = 0.22;
+        let emissiveBoost = 0.12;
 
-        if (curLoginState === 'loading') emissiveBoost += 0.28;
-        if (curLoginState === 'success') pulseScale += 0.15;
+        if (curLoginState === 'loading') emissiveBoost += 0.18;
+        if (curLoginState === 'success') pulseScale += 0.10;
 
         if (bpmCycle < 0.14) {
-          // Lub: scale 1.0 -> 1.08 -> 1.0
+          // Lub: scale 1.0 -> 1.06 -> 1.0
           const p = bpmCycle / 0.14;
-          const s = Math.sin(p * Math.PI) * 0.08;
+          const s = Math.sin(p * Math.PI) * 0.06;
           pulseScale += s;
-          emissiveBoost += Math.sin(p * Math.PI) * 0.35;
+          emissiveBoost += Math.sin(p * Math.PI) * 0.16;
         } else if (bpmCycle >= 0.22 && bpmCycle < 0.35) {
-          // Dub: scale 1.0 -> 1.05 -> 1.0
+          // Dub: scale 1.0 -> 1.035 -> 1.0
           const p = (bpmCycle - 0.22) / 0.13;
-          const s = Math.sin(p * Math.PI) * 0.05;
+          const s = Math.sin(p * Math.PI) * 0.035;
           pulseScale += s;
-          emissiveBoost += Math.sin(p * Math.PI) * 0.22;
+          emissiveBoost += Math.sin(p * Math.PI) * 0.10;
         }
 
         const baseHeartScale = isLogin ? 1.15 : 1.4;
@@ -601,24 +605,24 @@ export const LivingHeart3D: React.FC<LivingHeart3DProps> = ({
         );
         heartMat.emissiveIntensity = emissiveBoost;
 
-        // Gentle float and yaw sway (focus eases slightly toward card on right)
-        const targetRotY = isLogin && curLoginState === 'focus' ? 0.24 : 0;
-        heartGroup.position.y = 0.1 + Math.sin(time * 1.5) * 0.06;
-        heartGroup.rotation.y = targetRotY + Math.sin(time * 0.7) * (isLogin ? 0.25 : 0.42);
-        heartGroup.rotation.x = Math.sin(time * 0.5) * 0.08;
+        // Calm float and gentle yaw sway (slowed ~25-30% with eased motion)
+        const targetRotY = isLogin && curLoginState === 'focus' ? 0.20 : 0;
+        heartGroup.position.y = 0.1 + Math.sin(time * 1.1) * 0.04;
+        heartGroup.rotation.y = targetRotY + Math.sin(time * 0.52) * (isLogin ? 0.18 : 0.30);
+        heartGroup.rotation.x = Math.sin(time * 0.38) * 0.06;
 
-        // Shockwave rings expansion
-        ringProgress1 += delta * 1.2;
+        // Shockwave rings expansion (softened and calmed)
+        ringProgress1 += delta * 0.85;
         if (ringProgress1 > 1.0) ringProgress1 = 0;
-        const scale1 = 1.0 + ringProgress1 * 1.4;
+        const scale1 = 1.0 + ringProgress1 * 1.3;
         shockwaveRing1.scale.set(scale1, scale1, scale1);
-        (shockwaveRing1.material as THREE.MeshBasicMaterial).opacity = Math.max(0, (1 - ringProgress1) * 0.45);
+        (shockwaveRing1.material as THREE.MeshBasicMaterial).opacity = Math.max(0, (1 - ringProgress1) * 0.28);
 
-        ringProgress2 += delta * 1.2;
+        ringProgress2 += delta * 0.85;
         if (ringProgress2 > 1.0) ringProgress2 = 0;
-        const scale2 = 1.0 + ringProgress2 * 1.4;
+        const scale2 = 1.0 + ringProgress2 * 1.3;
         shockwaveRing2.scale.set(scale2, scale2, scale2);
-        (shockwaveRing2.material as THREE.MeshBasicMaterial).opacity = Math.max(0, (1 - ringProgress2) * 0.35);
+        (shockwaveRing2.material as THREE.MeshBasicMaterial).opacity = Math.max(0, (1 - ringProgress2) * 0.20);
 
         // --- ORBITING TABLETS & PILLS ANIMATION ---
         // Raycasting for interactive hover
@@ -693,10 +697,10 @@ export const LivingHeart3D: React.FC<LivingHeart3DProps> = ({
           setScreenCoords(newCoords);
         }
 
-        // --- ECG WAVEFORM ANIMATION ---
-        ecgMesh.rotation.y += delta * 0.15;
+        // --- ECG WAVEFORM ANIMATION (Slowed ~25-28%) ---
+        ecgMesh.rotation.y += delta * 0.11;
         // Move travelling bead along the curve
-        const beadT = (time * 0.35) % 1.0;
+        const beadT = (time * 0.25) % 1.0;
         const beadPos = ecgCurve.getPointAt(beadT);
         ecgBead.position.copy(beadPos);
         ecgBead.position.applyEuler(ecgMesh.rotation);
@@ -795,23 +799,23 @@ export const LivingHeart3D: React.FC<LivingHeart3DProps> = ({
       >
         <svg
           viewBox="0 0 500 460"
-          style={{ width: '85%', maxWidth: '440px', height: 'auto', filter: 'drop-shadow(0 14px 28px rgba(229, 56, 79, 0.16))' }}
+          style={{ width: '85%', maxWidth: '440px', height: 'auto', filter: 'drop-shadow(0 14px 28px rgba(232, 139, 139, 0.14))' }}
         >
           <defs>
             <linearGradient id="heartGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#FF6B81" />
-              <stop offset="50%" stopColor="#E5384F" />
-              <stop offset="100%" stopColor="#991B2D" />
+              <stop offset="0%" stopColor="#FAD2D2" />
+              <stop offset="50%" stopColor="#F2A0A0" />
+              <stop offset="100%" stopColor="#E88B8B" />
             </linearGradient>
             <linearGradient id="ecgGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#FF7A59" />
-              <stop offset="35%" stopColor="#8B6CFF" />
-              <stop offset="70%" stopColor="#4DA8FF" />
-              <stop offset="100%" stopColor="#2EC4B6" />
+              <stop offset="0%" stopColor="#FCA5A5" />
+              <stop offset="35%" stopColor="#C4B5FD" />
+              <stop offset="70%" stopColor="#93C5FD" />
+              <stop offset="100%" stopColor="#6EE7B7" />
             </linearGradient>
             <radialGradient id="haloGrad" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="rgba(229, 56, 79, 0.2)" />
-              <stop offset="100%" stopColor="rgba(229, 56, 79, 0)" />
+              <stop offset="0%" stopColor="rgba(242, 160, 160, 0.15)" />
+              <stop offset="100%" stopColor="rgba(242, 160, 160, 0)" />
             </radialGradient>
           </defs>
 
@@ -819,8 +823,8 @@ export const LivingHeart3D: React.FC<LivingHeart3DProps> = ({
           <circle cx="250" cy="220" r="180" fill="url(#haloGrad)" />
 
           {/* Orbit rings */}
-          <ellipse cx="250" cy="220" rx="190" ry="85" fill="none" stroke="#438F84" strokeWidth="1.5" strokeOpacity="0.25" strokeDasharray="4 6" />
-          <ellipse cx="250" cy="220" rx="220" ry="110" fill="none" stroke="#2EC4B6" strokeWidth="1.5" strokeOpacity="0.2" transform="rotate(-15 250 220)" />
+          <ellipse cx="250" cy="220" rx="190" ry="85" fill="none" stroke="#7DD3C7" strokeWidth="1.5" strokeOpacity="0.22" strokeDasharray="4 6" />
+          <ellipse cx="250" cy="220" rx="220" ry="110" fill="none" stroke="#93C5FD" strokeWidth="1.5" strokeOpacity="0.18" transform="rotate(-15 250 220)" />
 
           {/* Heart Centerpiece */}
           <path
@@ -833,9 +837,9 @@ export const LivingHeart3D: React.FC<LivingHeart3DProps> = ({
             d="M 160 145 C 150 165, 150 195, 170 215"
             fill="none"
             stroke="#FFFFFF"
-            strokeWidth="5"
+            strokeWidth="4"
             strokeLinecap="round"
-            strokeOpacity="0.55"
+            strokeOpacity="0.45"
           />
 
           {/* ECG Waveform */}
@@ -843,17 +847,17 @@ export const LivingHeart3D: React.FC<LivingHeart3DProps> = ({
             d="M 50 240 L 160 240 L 180 220 L 200 270 L 220 170 L 240 290 L 260 230 L 280 240 L 450 240"
             fill="none"
             stroke="url(#ecgGrad)"
-            strokeWidth="3.5"
+            strokeWidth="2.8"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
 
-          {/* Orbiting colorful pill icons */}
-          <rect x="70" y="170" width="36" height="18" rx="9" fill="#2EC4B6" />
-          <rect x="380" y="270" width="38" height="18" rx="9" fill="#4DA8FF" />
-          <circle cx="370" cy="130" r="14" fill="#FF7A59" />
-          <circle cx="110" cy="280" r="13" fill="#8B6CFF" />
-          <rect x="230" y="70" width="32" height="16" rx="8" fill="#FFC83D" />
+          {/* Orbiting colorful pill icons (Pastels) */}
+          <rect x="70" y="170" width="36" height="18" rx="9" fill="#7DD3C7" />
+          <rect x="380" y="270" width="38" height="18" rx="9" fill="#93C5FD" />
+          <circle cx="370" cy="130" r="14" fill="#F6A89E" />
+          <circle cx="110" cy="280" r="13" fill="#C4B5FD" />
+          <rect x="230" y="70" width="32" height="16" rx="8" fill="#FDE68A" />
         </svg>
       </div>
     );
@@ -884,7 +888,7 @@ export const LivingHeart3D: React.FC<LivingHeart3DProps> = ({
           height: '75%',
           top: '12.5%',
           left: '12.5%',
-          background: 'radial-gradient(circle at 50% 50%, rgba(229, 56, 79, 0.12) 0%, rgba(255, 107, 129, 0.04) 50%, transparent 72%)',
+          background: 'radial-gradient(circle at 50% 50%, rgba(242, 160, 160, 0.10) 0%, rgba(246, 168, 158, 0.03) 50%, transparent 72%)',
           borderRadius: '50%',
           pointerEvents: 'none',
           zIndex: 1
@@ -936,20 +940,20 @@ export const LivingHeart3D: React.FC<LivingHeart3DProps> = ({
 
               const containerW = dimensions.width || 520;
               const containerH = dimensions.height || 460;
-              const cardW = 168;
+              const cardW = 152;
 
-              let anchorX = 18 + cardW;
-              let anchorY = 56 + 20;
+              let anchorX = 12 + cardW;
+              let anchorY = 14 + 18;
 
               if (anchor.slot === 'top-left') {
-                anchorX = 18 + cardW;
-                anchorY = 56 + 20;
+                anchorX = 12 + cardW;
+                anchorY = 14 + 18;
               } else if (anchor.slot === 'bottom-left') {
-                anchorX = 18 + cardW;
-                anchorY = (containerH - 84) + 20;
+                anchorX = 12 + cardW;
+                anchorY = (containerH - 74) + 18;
               } else if (anchor.slot === 'right') {
-                anchorX = containerW - cardW - 18;
-                anchorY = Math.round(containerH * 0.42) + 20;
+                anchorX = containerW - cardW - 12;
+                anchorY = Math.round(containerH * 0.44) + 18;
               }
 
               return (
@@ -980,20 +984,20 @@ export const LivingHeart3D: React.FC<LivingHeart3DProps> = ({
           {FEATURE_ANCHORS.map((anchor, idx) => {
             const containerW = dimensions.width || 520;
             const containerH = dimensions.height || 460;
-            const cardW = 168;
+            const cardW = 152;
 
-            let cardLeft: string | number = '18px';
-            let cardTop: string | number = '56px';
+            let cardLeft: string | number = '12px';
+            let cardTop: string | number = '14px';
 
             if (anchor.slot === 'top-left') {
-              cardLeft = '18px';
-              cardTop = '56px';
+              cardLeft = '12px';
+              cardTop = '14px';
             } else if (anchor.slot === 'bottom-left') {
-              cardLeft = '18px';
-              cardTop = `${containerH - 84}px`;
+              cardLeft = '12px';
+              cardTop = `${containerH - 74}px`;
             } else if (anchor.slot === 'right') {
-              cardLeft = `${containerW - cardW - 18}px`;
-              cardTop = `${Math.round(containerH * 0.42)}px`;
+              cardLeft = `${containerW - cardW - 12}px`;
+              cardTop = `${Math.round(containerH * 0.44)}px`;
             }
 
             return (

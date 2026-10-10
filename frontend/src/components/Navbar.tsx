@@ -171,13 +171,13 @@ export const Navbar: React.FC<NavbarProps> = ({
                 display: 'none',
                 alignItems: 'center',
                 gap: '6px',
-                backgroundColor: '#FEF3C7',
-                color: '#92400E',
-                border: '1px solid #F59E0B',
+                backgroundColor: 'rgba(67, 143, 132, 0.12)',
+                color: '#326D64',
+                border: '1px solid rgba(67, 143, 132, 0.35)',
                 fontWeight: 700,
                 fontSize: '0.82rem',
                 padding: '6px 12px',
-                boxShadow: '0 1px 2px rgba(245, 158, 11, 0.2)'
+                boxShadow: '0 1px 2px rgba(67, 143, 132, 0.15)'
               }}
               id="desktop-judge-btn"
               title="Quick Load Hackathon Scenario: Total Knee Replacement in Hyderabad with White Card"
@@ -187,7 +187,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   #desktop-judge-btn { display: inline-flex !important; }
                 }
               `}</style>
-              <Sparkles size={14} color="#D97706" />
+              <Sparkles size={14} color="#438F84" />
               <span>Judge Demo</span>
             </button>
           )}
@@ -532,15 +532,15 @@ export const Navbar: React.FC<NavbarProps> = ({
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
-                  backgroundColor: '#FEF3C7',
-                  color: '#92400E',
-                  border: '1px solid #F59E0B',
+                  backgroundColor: 'rgba(67, 143, 132, 0.12)',
+                  color: '#326D64',
+                  border: '1px solid rgba(67, 143, 132, 0.35)',
                   fontWeight: 700,
                   padding: '10px 14px',
                   marginBottom: '6px'
                 }}
               >
-                <Sparkles size={16} color="#D97706" />
+                <Sparkles size={16} color="#438F84" />
                 <span>🎯 Run Judge Demo (Knee Replacement)</span>
               </button>
             )}

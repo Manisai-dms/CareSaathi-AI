@@ -121,7 +121,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess, onContinueAsGuest
             CareSaathi <span style={{ color: '#438F84' }}>AI</span>
           </h2>
           <p style={{ fontSize: '0.86rem', color: '#64717D', margin: 0 }}>
-            Know the Cost. Find the Care. Discover Support.
+            Understand Your Healthcare Costs. Find Care You Can Trust.
           </p>
         </div>
 

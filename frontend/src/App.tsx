@@ -9,14 +9,14 @@ import { VoiceSearchModal } from './components/VoiceSearchModal';
 import { PrescriptionModal } from './components/PrescriptionModal';
 import { TrustDashboardModal } from './components/TrustDashboardModal';
 import { GuidedChatDrawer } from './components/GuidedChatDrawer';
-import { AnimatedIntro } from './components/AnimatedIntro';
 import { SavedComparisonsModal } from './components/SavedComparisonsModal';
-import { AuthPage } from './pages/AuthPage';
+import { PublicLandingPage } from './pages/PublicLandingPage';
+import { LoginPage } from './pages/LoginPage';
 import { JourneyContextBar } from './components/JourneyContextBar';
 import { appointmentRepo, Appointment } from './services/appointmentRepository';
-import { MessageSquare, Sparkles, Menu, Heart, Clock } from 'lucide-react';
+import { MessageSquare, Sparkles, Menu, Clock, ArrowLeft } from 'lucide-react';
 
-// Pages
+// Authenticated Pages
 import { LandingPage } from './pages/LandingPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { CostEstimatorPage } from './pages/CostEstimatorPage';
@@ -28,25 +28,33 @@ import { UserProfilePage } from './pages/UserProfilePage';
 
 const PROTECTED_TABS = ['dashboard', 'estimate', 'hospitals', 'schemes', 'comparison', 'profile'];
 
-const getInitialTabFromUrl = (): string => {
-  if (typeof window === 'undefined') return 'landing';
-  const path = window.location.pathname.replace(/^\//, '');
-  if (PROTECTED_TABS.includes(path) || path === 'methodology') {
-    return path;
-  }
-  return 'landing';
+const getInitialPath = (): string => {
+  if (typeof window === 'undefined') return '';
+  return window.location.pathname.replace(/^\//, '');
+};
+
+const getInitialLoginMode = (): 'login' | 'register' => {
+  if (typeof window === 'undefined') return 'login';
+  const mode = new URLSearchParams(window.location.search).get('mode');
+  return mode === 'register' ? 'register' : 'login';
 };
 
 const AppContent: React.FC = () => {
   const { user, token, isLoading: isAuthLoading } = useAuth();
   const { searchState, setSearchQuery, setTreatment, setLocation } = useSearch();
 
-  const [activeTab, setActiveTab] = useState<string>(getInitialTabFromUrl);
-  const [isAuthOpen, setIsAuthOpen] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return false;
-    return window.location.pathname === '/login';
+  const [currentPath, setCurrentPath] = useState<string>(getInitialPath);
+  const [loginMode, setLoginMode] = useState<'login' | 'register'>(getInitialLoginMode);
+  const [activeTab, setActiveTab] = useState<string>(() => {
+    const path = getInitialPath();
+    if (PROTECTED_TABS.includes(path) || path === 'methodology') {
+      return path;
+    }
+    return 'dashboard';
   });
+
   const pendingRedirectRef = useRef<string | null>(null);
+  const [replayKey, setReplayKey] = useState<number>(0);
 
   const [emergencyMessage, setEmergencyMessage] = useState<string | null>(null);
   const [isVoiceOpen, setIsVoiceOpen] = useState(false);
@@ -69,25 +77,32 @@ const AppContent: React.FC = () => {
   });
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
 
-  // First visit animated intro
-  const [showIntro, setShowIntro] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return false;
-    return !localStorage.getItem('caresaathi_intro_seen');
-  });
+  // Navigation helpers for public and login routes
+  const navigateToLogin = (mode: 'login' | 'register' = 'login') => {
+    setLoginMode(mode);
+    setCurrentPath('login');
+    const url = mode === 'register' ? '/login?mode=register' : '/login';
+    window.history.pushState(null, '', url);
+  };
+
+  const navigateToPublic = (path: string = '/') => {
+    const clean = path.replace(/^\//, '');
+    setCurrentPath(clean);
+    window.history.pushState(null, '', path.startsWith('/') ? path : `/${path}`);
+  };
 
   // Protected route navigation helper with URL synchronization
   const navigateToTab = (targetTab: string) => {
     if (PROTECTED_TABS.includes(targetTab)) {
       if (!user && !token) {
         pendingRedirectRef.current = targetTab;
-        window.history.pushState(null, '', '/login');
-        setIsAuthOpen(true);
+        navigateToLogin('login');
         return;
       }
     }
-    setIsAuthOpen(false);
     setActiveTab(targetTab);
-    const targetPath = targetTab === 'landing' ? '/' : `/${targetTab}`;
+    setCurrentPath(targetTab);
+    const targetPath = `/${targetTab}`;
     if (window.location.pathname !== targetPath) {
       window.history.pushState(null, '', targetPath);
     }
@@ -97,55 +112,56 @@ const AppContent: React.FC = () => {
   useEffect(() => {
     if (isAuthLoading) return;
 
-    const currentPath = window.location.pathname.replace(/^\//, '');
-    if (currentPath === 'login') {
-      setIsAuthOpen(true);
-      return;
-    }
+    const path = window.location.pathname.replace(/^\//, '');
+    setCurrentPath(prev => prev === path ? prev : path);
 
-    const currentTab = currentPath === '' || currentPath === 'welcome' ? 'landing' : currentPath;
-
-    if (PROTECTED_TABS.includes(currentTab)) {
-      if (!user && !token) {
-        // Direct URL access without authentication: redirect via replaceState to avoid Back navigation loop
-        pendingRedirectRef.current = currentTab;
-        window.history.replaceState(null, '', '/login');
-        setIsAuthOpen(true);
-        setActiveTab('landing');
-        return;
+    if (user || token) {
+      // Signed-in users who visit / or /login or /landing go straight to the app
+      // /welcome is intentionally preserved for signed-in users to experience the intro!
+      if (path === '' || path === 'login' || path === 'landing') {
+        const destination = pendingRedirectRef.current || 'dashboard';
+        pendingRedirectRef.current = null;
+        setActiveTab(destination);
+        setCurrentPath(destination);
+        window.history.replaceState(null, '', `/${destination}`);
+      } else if (PROTECTED_TABS.includes(path) || path === 'methodology') {
+        setActiveTab(path);
       }
-      setActiveTab(currentTab);
-      setIsAuthOpen(false);
     } else {
-      setActiveTab(currentTab);
-      setIsAuthOpen(false);
+      // Signed-out visitors attempting to hit a protected tab
+      if (PROTECTED_TABS.includes(path)) {
+        pendingRedirectRef.current = path;
+        window.history.replaceState(null, '', '/login');
+        setCurrentPath('login');
+      }
     }
   }, [isAuthLoading, user, token]);
 
   // Handle browser Back / Forward (popstate) without navigation loops
   useEffect(() => {
     const handlePopState = () => {
-      const currentPath = window.location.pathname.replace(/^\//, '');
-      if (currentPath === 'login') {
-        setIsAuthOpen(true);
-        return;
-      }
+      const path = window.location.pathname.replace(/^\//, '');
+      const mode = new URLSearchParams(window.location.search).get('mode');
+      if (mode === 'register') setLoginMode('register');
+      else setLoginMode('login');
 
-      const targetTab = currentPath === '' || currentPath === 'welcome' ? 'landing' : currentPath;
+      setCurrentPath(path);
 
-      if (PROTECTED_TABS.includes(targetTab)) {
-        if (!user && !token) {
-          // Unauthenticated attempt to navigate back to protected page
-          pendingRedirectRef.current = targetTab;
+      if (user || token) {
+        if (path === '' || path === 'login' || path === 'landing') {
+          window.history.replaceState(null, '', '/dashboard');
+          setActiveTab('dashboard');
+          setCurrentPath('dashboard');
+        } else if (PROTECTED_TABS.includes(path) || path === 'methodology') {
+          setActiveTab(path);
+        }
+      } else {
+        if (PROTECTED_TABS.includes(path)) {
+          pendingRedirectRef.current = path;
           window.history.replaceState(null, '', '/login');
-          setIsAuthOpen(true);
-          setActiveTab('landing');
-          return;
+          setCurrentPath('login');
         }
       }
-
-      setIsAuthOpen(false);
-      setActiveTab(targetTab);
     };
 
     window.addEventListener('popstate', handlePopState);
@@ -166,36 +182,13 @@ const AppContent: React.FC = () => {
     });
   }, [activeTab]);
 
-  // Handle intro completion: "Get Started" transitions into authentication
-  const handleIntroComplete = () => {
-    localStorage.setItem('caresaathi_intro_seen', 'true');
-    setShowIntro(false);
-    if (!user && !token) {
-      pendingRedirectRef.current = 'dashboard';
-      window.history.pushState(null, '', '/login');
-      setIsAuthOpen(true);
-    } else {
-      navigateToTab('dashboard');
-    }
-  };
-
-  // Successful authentication transitions smoothly to pending or dashboard page
+  // Successful authentication redirect to target or dashboard
   const handleAuthSuccess = () => {
-    setIsAuthOpen(false);
     const destination = pendingRedirectRef.current || 'dashboard';
     pendingRedirectRef.current = null;
     setActiveTab(destination);
+    setCurrentPath(destination);
     window.history.pushState(null, '', `/${destination}`);
-  };
-
-  // Close auth modal & restore public URL
-  const handleAuthClose = () => {
-    setIsAuthOpen(false);
-    pendingRedirectRef.current = null;
-    if (window.location.pathname === '/login') {
-      const fallback = activeTab === 'landing' ? '/' : `/${activeTab}`;
-      window.history.pushState(null, '', fallback);
-    }
   };
 
   const handleVoiceConfirm = (transcript: string) => {
@@ -226,33 +219,101 @@ const AppContent: React.FC = () => {
     }, 7000);
   };
 
+  // =========================================================================
+  // 1. DEDICATED /welcome (INTRO) ROUTE - ALWAYS ACCESSIBLE (SIGNED IN OR NOT)
+  // =========================================================================
+  if (currentPath === 'welcome') {
+    return (
+      <PublicLandingPage
+        key={`welcome-${replayKey}`}
+        onNavigateToLogin={navigateToLogin}
+        onNavigateToMethodology={() => navigateToPublic('methodology')}
+        isAuthenticated={!!(user || token)}
+        onOpenDashboard={() => navigateToTab('dashboard')}
+      />
+    );
+  }
+
+  // =========================================================================
+  // 2. SIGNED-OUT VISITOR FLOW (NO SIDEBAR, NO DASHBOARD, NO APP SHELL)
+  // =========================================================================
+  if (!user && !token) {
+    // Dedicated Full-Page /login Route
+    if (currentPath === 'login') {
+      return (
+        <LoginPage
+          initialMode={loginMode}
+          onSuccess={handleAuthSuccess}
+          onNavigateHome={() => navigateToPublic('/')}
+        />
+      );
+    }
+
+    // Public Methodology Page Route
+    if (currentPath === 'methodology') {
+      return (
+        <div style={{ minHeight: '100vh', backgroundColor: '#FAFAF7', display: 'flex', flexDirection: 'column' }}>
+          <header style={{
+            padding: '16px 28px',
+            backgroundColor: '#FFFFFF',
+            borderBottom: '1px solid #E2E8F0',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}>
+            <button
+              onClick={() => navigateToPublic('/')}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#64717D',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontSize: '0.88rem',
+                fontWeight: 500
+              }}
+            >
+              <ArrowLeft size={16} />
+              <span>Back to Overview</span>
+            </button>
+            <div
+              onClick={() => navigateToPublic('/')}
+              style={{ cursor: 'pointer', fontFamily: "Georgia, serif", fontSize: '1.25rem', fontWeight: 700, color: '#102A36' }}
+            >
+              CareSaathi <span style={{ color: '#438F84' }}>AI</span>
+            </div>
+            <button
+              onClick={() => navigateToLogin('login')}
+              className="btn btn-primary"
+              style={{ padding: '7px 16px', fontSize: '0.86rem' }}
+            >
+              Log in
+            </button>
+          </header>
+          <div style={{ flex: 1 }}>
+            <MethodologyPage />
+          </div>
+        </div>
+      );
+    }
+
+    // Public Landing Page (/)
+    return (
+      <PublicLandingPage
+        key={`landing-${replayKey}`}
+        onNavigateToLogin={navigateToLogin}
+        onNavigateToMethodology={() => navigateToPublic('methodology')}
+      />
+    );
+  }
+
+  // =========================================================================
+  // 2. SIGNED-IN APPLICATION FLOW (COMPLETE APP SHELL WITH SIDEBAR & TABS)
+  // =========================================================================
   return (
     <div style={{ minHeight: '100vh', display: 'flex', position: 'relative', backgroundColor: 'var(--color-warm-bg)' }}>
-      {/* 1. First Visit Animated Intro Screen */}
-      {showIntro && (
-        <AnimatedIntro onComplete={handleIntroComplete} />
-      )}
-
-      {/* 2. Enforced Authentication Page / Modal */}
-      {isAuthOpen && (
-        <div style={{
-          position: 'fixed',
-          inset: 0,
-          zIndex: 1100,
-          overflowY: 'auto',
-          backgroundColor: '#FAFAF7'
-        }}>
-          <AuthPage
-            onSuccess={handleAuthSuccess}
-            onContinueAsGuest={() => {
-              // Redirect to login demo mode rather than unauthenticated bypass
-              handleAuthSuccess();
-            }}
-            onClose={handleAuthClose}
-          />
-        </div>
-      )}
-
       {/* Emergency Alert Banner */}
       {emergencyMessage && (
         <EmergencyBanner
@@ -261,7 +322,7 @@ const AppContent: React.FC = () => {
         />
       )}
 
-      {/* Judge Demo Banner / Toast */}
+      {/* Judge Demo Banner / Toast (Teal/Ink, No Amber) */}
       {judgeToast && (
         <div style={{
           position: 'fixed',
@@ -269,12 +330,12 @@ const AppContent: React.FC = () => {
           left: '50%',
           transform: 'translateX(-50%)',
           zIndex: 1200,
-          backgroundColor: '#1E293B',
-          color: '#FEF3C7',
+          backgroundColor: '#102A36',
+          color: '#E7F3EF',
           padding: '12px 24px',
           borderRadius: '50px',
           boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.4)',
-          border: '1px solid #F59E0B',
+          border: '1px solid #438F84',
           display: 'flex',
           alignItems: 'center',
           gap: '10px',
@@ -283,7 +344,7 @@ const AppContent: React.FC = () => {
           animation: 'slideDown 0.3s ease-out',
           maxWidth: '90vw'
         }}>
-          <Sparkles size={18} color="#F59E0B" style={{ flexShrink: 0 }} />
+          <Sparkles size={18} color="#5EEAD4" style={{ flexShrink: 0 }} />
           <span>{judgeToast}</span>
           <button
             onClick={() => setJudgeToast(null)}
@@ -313,15 +374,11 @@ const AppContent: React.FC = () => {
         onOpenTrustDashboard={() => setIsTrustOpen(true)}
         onOpenChatDrawer={() => setIsChatOpen(true)}
         onRunJudgeDemo={handleRunJudgeDemo}
-        onOpenAuth={() => {
-          pendingRedirectRef.current = activeTab;
-          window.history.pushState(null, '', '/login');
-          setIsAuthOpen(true);
-        }}
+        onOpenAuth={() => navigateToLogin('login')}
         onOpenSavedComparisons={() => setIsSavedComparisonsOpen(true)}
       />
 
-      {/* 2. Main Application Content Layout (occupies remaining width beside sidebar) */}
+      {/* 2. Main Application Content Layout */}
       <div
         className={`app-main-layout ${isSidebarCollapsed ? 'collapsed' : 'expanded'}`}
         style={{
@@ -412,22 +469,10 @@ const AppContent: React.FC = () => {
               <Menu size={22} />
             </button>
             <div
-              onClick={() => navigateToTab('landing')}
+              onClick={() => navigateToTab('dashboard')}
               style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
             >
-              <div style={{
-                width: '30px',
-                height: '30px',
-                borderRadius: '6px',
-                backgroundColor: 'var(--color-mint)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'var(--color-teal)'
-              }}>
-                <Heart size={16} fill="var(--color-teal)" />
-              </div>
-              <span style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--color-navy)' }}>
+              <span style={{ fontFamily: "Georgia, serif", fontWeight: 700, fontSize: '1.15rem', color: 'var(--color-navy)' }}>
                 CareSaathi <span style={{ color: 'var(--color-teal)' }}>AI</span>
               </span>
             </div>
@@ -450,53 +495,39 @@ const AppContent: React.FC = () => {
                   fontWeight: 700,
                   cursor: 'pointer'
                 }}
-                title={user.name || user.email}
               >
                 {(user.name || user.email || 'U').charAt(0).toUpperCase()}
               </div>
-            ) : (
-              <button
-                onClick={() => {
-                  pendingRedirectRef.current = activeTab;
-                  window.history.pushState(null, '', '/login');
-                  setIsAuthOpen(true);
-                }}
-                className="btn btn-secondary btn-sm"
-                style={{ padding: '6px 12px', fontSize: '0.8rem' }}
-              >
-                Sign In
-              </button>
-            )}
+            ) : null}
           </div>
         </header>
 
-        {/* Journey Context Bar & Simple Mode (Shown across care navigation stages) */}
-        {activeTab !== 'landing' && (
-          <JourneyContextBar
-            currentStage={activeTab === 'dashboard' || activeTab === 'estimate' ? 1 : activeTab === 'hospitals' ? 2 : activeTab === 'schemes' || activeTab === 'comparison' ? 3 : 4}
-            onNavigateTab={tab => navigateToTab(tab)}
-            isSimpleMode={isSimpleMode}
-            onToggleSimpleMode={() => setIsSimpleMode(!isSimpleMode)}
-          />
-        )}
+        {/* Journey Context Stepper Bar */}
+        <JourneyContextBar
+          currentStage={activeTab === 'estimate' ? 3 : activeTab === 'hospitals' ? 4 : (activeTab === 'schemes' || activeTab === 'comparison') ? 5 : (searchState.city ? 2 : 1)}
+          onNavigateTab={navigateToTab}
+          isSimpleMode={isSimpleMode}
+          onToggleSimpleMode={() => setIsSimpleMode(!isSimpleMode)}
+        />
 
-        {/* 24-Hour Urgent Reminder In-App Banner */}
-        {upcomingReminder && activeTab !== 'profile' && (
+        {/* 24-Hour Imminent Appointment Alert Toast */}
+        {upcomingReminder && (
           <div style={{
+            margin: '12px 24px 0 24px',
+            padding: '12px 18px',
+            borderRadius: '10px',
             backgroundColor: '#EFF6FF',
-            borderBottom: '1px solid #BFDBFE',
-            padding: '10px 20px',
+            border: '1px solid #BFDBFE',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            fontSize: '0.86rem',
-            color: '#1E40AF',
-            zIndex: 79
+            gap: '12px',
+            fontSize: '0.86rem'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Clock size={16} color="#2563EB" />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <Clock size={18} color="#2563EB" />
               <span>
-                <strong>Upcoming Hospital Appointment:</strong> {upcomingReminder.facility_name} on{' '}
+                <strong>Upcoming Consultation:</strong> {upcomingReminder.facility_name} on{' '}
                 {new Date(upcomingReminder.slot_start || '').toLocaleDateString('en-IN', { weekday: 'short', month: 'short', day: 'numeric' })} at{' '}
                 {new Date(upcomingReminder.slot_start || '').toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
               </span>
@@ -556,7 +587,11 @@ const AppContent: React.FC = () => {
         {/* Footer */}
         <Footer
           setActiveTab={navigateToTab}
-          onReplayIntro={() => setShowIntro(true)}
+          onReplayIntro={() => {
+            setReplayKey(prev => prev + 1);
+            navigateToPublic('welcome');
+            window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+          }}
         />
       </div>
 
@@ -588,42 +623,7 @@ const AppContent: React.FC = () => {
         <span>Ask CareSaathi</span>
       </button>
 
-      {/* Floating Comparison Bar */}
-      {searchState.comparisonList.length > 0 && activeTab !== 'comparison' && (
-        <div style={{
-          position: 'fixed',
-          bottom: '20px',
-          right: '24px',
-          zIndex: 90,
-          backgroundColor: 'var(--color-navy)',
-          color: 'white',
-          padding: '12px 20px',
-          borderRadius: 'var(--radius-lg)',
-          boxShadow: 'var(--shadow-lg)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '14px',
-          animation: 'slideUp 0.3s ease-out'
-        }}>
-          <div>
-            <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>
-              {searchState.comparisonList.length} Facilities Selected
-            </div>
-            <div style={{ fontSize: '0.75rem', color: '#94A3B8' }}>
-              Ready for side-by-side comparison
-            </div>
-          </div>
-          <button
-            onClick={() => navigateToTab('comparison')}
-            className="btn btn-primary btn-sm"
-            style={{ padding: '8px 14px' }}
-          >
-            Compare Now
-          </button>
-        </div>
-      )}
-
-      {/* Modals & Drawers */}
+      {/* Modals */}
       <VoiceSearchModal
         isOpen={isVoiceOpen}
         onClose={() => setIsVoiceOpen(false)}

@@ -828,7 +828,7 @@ export const GuidedChatDrawer: React.FC<GuidedChatDrawerProps> = ({
                         </div>
                       </div>
                       <div style={{ textAlign: 'right' }}>
-                        <span className={`badge ${h.ownership === 'Government' ? 'badge-teal' : 'badge-gold'}`} style={{ fontSize: '0.7rem' }}>
+                        <span className={`badge ${h.ownership === 'Government' ? 'badge-teal' : 'badge-slate'}`} style={{ fontSize: '0.7rem' }}>
                           {h.pricing_status}
                         </span>
                       </div>

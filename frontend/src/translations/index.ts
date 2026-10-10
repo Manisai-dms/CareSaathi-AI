@@ -14,7 +14,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     startSearch: "Start Healthcare Search",
 
     // Hero
-    heroHeadline: "Know the Cost. Find the Care. Discover the Support.",
+    heroHeadline: "Understand Your Healthcare Costs. Find Care You Can Trust.",
     heroSubtitle: "CareSaathi AI helps you explore treatment cost estimates, nearby healthcare facilities, and potentially applicable financial support in one place.",
     exploreOptions: "Explore Healthcare Options",
     howItWorksBtn: "How It Works",
@@ -150,7 +150,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     startSearch: "వెతకడం ప్రారంభించండి",
 
     // Hero
-    heroHeadline: "ఖర్చు తెలుసుకోండి. వైద్యాన్ని కనుగొనండి. సహాయం పొందండి.",
+    heroHeadline: "మీ వైద్య ఖర్చులను అర్థం చేసుకోండి. మీరు నమ్మదగిన వైద్యాన్ని కనుగొనండి.",
     heroSubtitle: "కేర్ సాథీ AI ద్వారా చికిత్స ఖర్చుల అంచనాలు, సమీపంలోని ఆసుపత్రులు మరియు ప్రభుత్వ ఆరోగ్య పథకాల మద్దతును ఒకే చోట సులభంగా తెలుసుకోండి.",
     exploreOptions: "చికిత్స ఎంపికలను చూడండి",
     howItWorksBtn: "ఇది ఎలా పనిచేస్తుంది",
@@ -286,7 +286,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     startSearch: "सर्च शुरू करें",
 
     // Hero
-    heroHeadline: "लागत जानें। उपचार खोजें। सरकारी सहायता पाएं।",
+    heroHeadline: "अपनी उपचार लागत समझें। विश्वसनीय स्वास्थ्य सेवा पाएं।",
     heroSubtitle: "केयरसाथी AI उपचार लागत का अनुमान, नजदीकी अस्पताल और आयुष्मान भारत व राज्य स्वास्थ्य योजनाओं की जानकारी एक ही स्थान पर प्रदान करता है।",
     exploreOptions: "उपचार विकल्प देखें",
     howItWorksBtn: "यह कैसे काम करता है",

@@ -46,7 +46,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   setIsCollapsed,
   isMobileOpen,
   setIsMobileOpen,
-  onOpenSearch,
+  onOpenSearch: _onOpenSearch,
   onOpenTrustDashboard,
   onOpenChatDrawer,
   onRunJudgeDemo,
@@ -388,19 +388,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
               }}
               className={`nav-item-btn ${isCollapsed ? 'collapsed-btn' : ''}`}
               style={{
-                backgroundColor: isCollapsed ? 'transparent' : '#FEF3C7',
-                color: '#92400E',
-                border: isCollapsed ? 'none' : '1px solid #FDE68A'
+                backgroundColor: isCollapsed ? 'transparent' : 'rgba(67, 143, 132, 0.12)',
+                color: '#326D64',
+                border: isCollapsed ? 'none' : '1px solid rgba(67, 143, 132, 0.35)'
               }}
               title={isCollapsed ? 'Judge Demo: Knee Replacement Scenario' : undefined}
             >
-              <Sparkles size={18} color="#D97706" style={{ flexShrink: 0 }} />
+              <Sparkles size={18} color="#438F84" style={{ flexShrink: 0 }} />
               {!isCollapsed && (
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
                   <span style={{ fontWeight: 600 }}>Judge Demo</span>
                   <span style={{
                     fontSize: '0.65rem',
-                    backgroundColor: '#D97706',
+                    backgroundColor: '#438F84',
                     color: 'white',
                     padding: '1px 6px',
                     borderRadius: '4px',

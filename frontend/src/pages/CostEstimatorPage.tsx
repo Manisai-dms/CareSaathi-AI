@@ -564,7 +564,7 @@ export const CostEstimatorPage: React.FC = () => {
               userBudget={budgetLimit}
               city={city}
             />
-          </div>
+          </motion.div>
         )}
 
         {/* Modal for Breakdown */}

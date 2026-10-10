@@ -11,6 +11,8 @@ import {
   ChevronDown,
   ChevronUp
 } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { AnimatedRupeeCounter } from './AnimatedRupeeCounter';
 
 export type FinancialRiskLevel = 'Lower' | 'Moderate' | 'High';
 
